@@ -1137,6 +1137,19 @@ select.form-control {
   pointer-events: auto;
 }
 
+.quick-potions-container {
+  position: absolute;
+  bottom: var(--space-20);
+  left: var(--space-20);
+  z-index: 40;
+  pointer-events: auto;
+  display: flex;
+  gap: var(--space-2);
+  /* Убеждаемся, что контейнер всегда видим */
+  visibility: visible;
+  opacity: 1;
+}
+
 .potion-slot {
   position: relative;
   width: 48px;
@@ -1993,6 +2006,30 @@ select.form-control {
   .potion-icon {
     font-size: 20px;
   }
+  
+  /* На мобильных устройствах быстрые слоты справа внизу */
+  .quick-potions-container {
+    bottom: calc(var(--space-12) + 80px);
+    right: var(--space-12);
+    left: auto;
+    /* Принудительно показываем на мобильных */
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Десктопная версия - быстрые слоты слева внизу */
+@media (min-width: 769px) {
+  .quick-potions-container {
+    bottom: var(--space-20);
+    left: var(--space-20);
+    right: auto;
+    /* Принудительно показываем на десктопе */
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
 }
 
 /* Safe area for notched devices */
@@ -2463,4 +2500,58 @@ html, body {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
   z-index: 2;
   position: relative;
+}
+
+/* Active Buffs Container */
+.active-buffs-container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  position: absolute;
+  top: 120px;
+  left: var(--space-4);
+  z-index: 1000;
+  max-width: 200px;
+}
+
+.active-buff {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-cream-50);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.active-buff:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+}
+
+.active-buff::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: var(--progress-width, 100%);
+  background: linear-gradient(to right, var(--color-primary), var(--color-success));
+  transition: width 0.1s ease;
+  z-index: 1;
+}
+
+.active-buff.warning::after {
+  background: linear-gradient(to right, var(--color-warning), var(--color-error));
+}
+
+.active-buff.critical::after {
+  background: var(--color-error);
 }

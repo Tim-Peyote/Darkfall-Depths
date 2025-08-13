@@ -56,7 +56,23 @@ export class InputManager {
         e.preventDefault();
         (async () => {
           const { GameEngine } = await import('../game/GameEngine.js');
-          GameEngine.useHealthPotion();
+          GameEngine.useQuickPotion(0);
+        })();
+      }
+      
+      if (e.code === 'Digit2') {
+        e.preventDefault();
+        (async () => {
+          const { GameEngine } = await import('../game/GameEngine.js');
+          GameEngine.useQuickPotion(1);
+        })();
+      }
+      
+      if (e.code === 'Digit3') {
+        e.preventDefault();
+        (async () => {
+          const { GameEngine } = await import('../game/GameEngine.js');
+          GameEngine.useQuickPotion(2);
         })();
       }
       

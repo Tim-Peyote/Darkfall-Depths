@@ -109,6 +109,16 @@ export class ContextMenuManager {
 
     const isEquipped = currentSlot.type === 'equipment';
     const isConsumable = currentItem.type === 'consumable';
+    const isQuickSlot = currentSlot.type === 'quickslot';
+
+    // Специальная обработка для быстрых слотов
+    if (isQuickSlot) {
+      const removeFromQuickSlot = this.createMenuItem('Снять с быстрого доступа', () => {
+        this.removeFromQuickSlot();
+      });
+      contextMenu.appendChild(removeFromQuickSlot);
+      return;
+    }
 
     // Пункт "Применить" для расходников
     if (isConsumable) {
@@ -200,6 +210,23 @@ export class ContextMenuManager {
     // Используем InventoryManager для реальной игры
     import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
       InventoryManager.unequipItem(currentSlot.index);
+    });
+  }
+
+  static removeFromQuickSlot() {
+    if (!currentSlot || currentSlot.type !== 'quickslot') return;
+
+    // Очищаем быстрый слот
+    gameState.inventory.quickSlots[currentSlot.index] = null;
+    
+    // Обновляем инвентарь
+    import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
+      InventoryManager.renderInventory();
+    });
+    
+    // Обновляем быстрые слоты в UI
+    import('../game/GameEngine.js').then(({ GameEngine }) => {
+      GameEngine.updateQuickPotions();
     });
   }
 

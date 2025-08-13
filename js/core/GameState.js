@@ -21,7 +21,21 @@ export const gameState = {
   },
   inventory: {
     equipment: [null, null, null, null], // weapon, armor, accessory, consumable
-    backpack: new Array(8).fill(null)
+    backpack: new Array(8).fill(null),
+    quickSlots: [null, null, null] // Хранит типы зелий: 'potion', 'speed_potion', 'strength_potion', etc. // Быстрые слоты для банок (1, 2, 3)
+  },
+  buffs: {
+    active: [], // Активные временные баффы
+    icons: {
+      damage: '⚔️',
+      crit: '💥',
+      defense: '🛡️',
+      moveSpeed: '💨',
+      attackSpeed: '⚡',
+      attackRadius: '🎯',
+      fire: '🔥',
+      ice: '❄️'
+    }
   },
   stats: {
     enemiesKilled: 0,

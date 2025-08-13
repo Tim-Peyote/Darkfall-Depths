@@ -68,6 +68,13 @@ export class GameEngine {
       // Сброс инвентаря только при новом запуске
       gameState.inventory.equipment = [null, null, null, null];
       gameState.inventory.backpack = new Array(8).fill(null);
+      gameState.inventory.quickSlots = [null, null, null];
+      
+      // Очищаем все временные баффы при новом запуске
+      (async () => {
+        const { BuffManager } = await import('../core/BuffManager.js');
+        BuffManager.clearAllBuffs();
+      })();
       
       console.log('🎮 Starting new game - resetting progress');
     } else {
@@ -101,6 +108,7 @@ export class GameEngine {
     
     // Принудительно обновляем UI после запуска игры
     this.updateUI();
+    this.updateQuickPotions();
     
     // Запускаем игровой цикл
     console.log('🔄 Starting game loop...');
@@ -201,6 +209,12 @@ export class GameEngine {
     if (Math.floor(gameState.gameTime * 0.5) !== Math.floor((gameState.gameTime - dt) * 0.5)) {
       this.updateUI();
     }
+    
+    // Обновление временных баффов
+    (async () => {
+      const { BuffManager } = await import('../core/BuffManager.js');
+      BuffManager.update(dt);
+    })();
   }
 
   static render() {
@@ -423,6 +437,9 @@ export class GameEngine {
     
     // Обновляем откат способности
     this.updateAbilityCooldown();
+    
+    // Обновляем активные баффы
+    this.updateActiveBuffs();
   }
 
   static resizeCanvas() {
@@ -459,106 +476,164 @@ export class GameEngine {
     }
   }
   
-  static updateHealthPotions() {
-    const potionSlot = document.getElementById('healthPotionSlot');
-    const potionCount = document.getElementById('potionCount');
-    
-    if (!potionSlot || !potionCount) return;
-    
-    // Подсчитываем количество банок здоровья в инвентаре
-    let healthPotionCount = 0;
-    
-    // Проверяем рюкзак
-    gameState.inventory.backpack.forEach(item => {
-      if (item && item.bonus && item.bonus.heal) {
-        healthPotionCount++;
+  static updateQuickPotions() {
+    // Обновляем все быстрые слоты
+    for (let i = 1; i <= 3; i++) {
+      const potionSlot = document.getElementById(`quickPotionSlot${i}`);
+      const potionIcon = potionSlot?.querySelector('.potion-icon');
+      const potionCount = potionSlot?.querySelector('.potion-count');
+      
+      if (!potionSlot || !potionIcon || !potionCount) {
+        continue;
       }
-    });
-    
-    // Проверяем экипировку (расходники)
-    if (gameState.inventory.equipment[3] && gameState.inventory.equipment[3].bonus && gameState.inventory.equipment[3].bonus.heal) {
-      healthPotionCount++;
+      
+      const potionType = gameState.inventory.quickSlots[i - 1];
+      
+      if (potionType) {
+        // Слот с назначенным типом зелья
+        // Определяем иконку и цвет в зависимости от типа
+        let icon = '🧪';
+        let borderColor = '#ff6666';
+        
+        switch (potionType) {
+          case 'potion':
+            icon = '❤️';
+            borderColor = '#ff6666'; // Красный для здоровья
+            break;
+          case 'speed_potion':
+            icon = '💨';
+            borderColor = '#66ff66'; // Зеленый для скорости
+            break;
+          case 'strength_potion':
+            icon = '⚔️';
+            borderColor = '#ffaa66'; // Оранжевый для силы
+            break;
+          case 'defense_potion':
+            icon = '🛡️';
+            borderColor = '#6666ff'; // Синий для защиты
+            break;
+          case 'regen_potion':
+            icon = '💚';
+            borderColor = '#ff66ff'; // Розовый для регенерации
+            break;
+          case 'combo_potion':
+            icon = '✨';
+            borderColor = '#ffff66'; // Желтый для комбо
+            break;
+          default:
+            icon = '🧪';
+            borderColor = '#ff6666';
+        }
+        
+        // Подсчитываем количество зелий этого типа в рюкзаке
+        const count = gameState.inventory.backpack.filter(item => 
+          item && item.type === 'consumable' && item.base === potionType
+        ).length;
+        
+        potionIcon.textContent = icon;
+        potionCount.textContent = count.toString();
+        
+        // Если зелья закончились, показываем "пустое" состояние
+        if (count === 0) {
+          potionSlot.classList.add('empty');
+          potionSlot.style.borderColor = '#666666';
+          potionIcon.style.opacity = '0.5';
+          potionCount.style.opacity = '0.5';
+        } else {
+          potionSlot.classList.remove('empty');
+          potionSlot.style.borderColor = borderColor;
+          potionIcon.style.opacity = '1';
+          potionCount.style.opacity = '1';
+        }
+      } else {
+        // Пустой слот
+        potionIcon.textContent = '🧪';
+        potionCount.textContent = '0';
+        potionSlot.classList.add('empty');
+        potionSlot.style.borderColor = '#666666';
+        potionIcon.style.opacity = '0.5';
+        potionCount.style.opacity = '0.5';
+      }
     }
-    
-    // Обновляем UI
-    potionCount.textContent = healthPotionCount;
-    
-    if (healthPotionCount > 0) {
-      potionSlot.classList.remove('empty');
-    } else {
-      potionSlot.classList.add('empty');
-    }
+  }
+  
+  static updateHealthPotions() {
+    // Для обратной совместимости - обновляем быстрые слоты
+    this.updateQuickPotions();
   }
   
   static setupHealthPotionHandlers() {
-    const potionSlot = document.getElementById('healthPotionSlot');
-    if (potionSlot) {
-      potionSlot.addEventListener('click', () => {
-        // Проверяем, что игра не в паузе
-        if (gameState.isPaused) {
-          console.log('Health potion clicked during pause - ignoring');
-          return;
-        }
-        this.useHealthPotion();
-      });
+    // Настраиваем обработчики для всех быстрых слотов
+    for (let i = 1; i <= 3; i++) {
+      const potionSlot = document.getElementById(`quickPotionSlot${i}`);
+      
+      if (potionSlot) {
+        potionSlot.addEventListener('click', () => {
+          // Проверяем, что игра не в паузе
+          if (gameState.isPaused) {
+            return;
+          }
+          this.useQuickPotion(i - 1); // i-1 потому что индексы с 0
+        });
+      }
     }
   }
   
-  static useHealthPotion() {
+  static useQuickPotion(slotIndex) {
     if (!gameState.player) return;
     
     // Дополнительная проверка на паузу
     if (gameState.isPaused) {
-      console.log('Health potion use attempted during pause - ignoring');
       return;
     }
     
-    // Ищем банку здоровья в рюкзаке
-    for (let i = 0; i < gameState.inventory.backpack.length; i++) {
-      const item = gameState.inventory.backpack[i];
-      if (item && item.bonus && item.bonus.heal) {
-        // Используем банку
-        gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + item.bonus.heal);
-        
-        // Удаляем банку из инвентаря
-        gameState.inventory.backpack[i] = null;
-        
-        // Воспроизводим звук использования зелья (асинхронно)
-        (async () => {
-          const { audioManager } = await import('../audio/AudioManager.js');
-          audioManager.playHealthPotion();
-        })();
-        
-        console.log(`🧪 Used health potion: +${item.bonus.heal} HP (${gameState.player.hp}/${gameState.player.maxHp})`);
-        
-        // Обновляем UI
-        this.updateHealthPotions();
-        return;
-      }
-    }
-    
-    // Если в рюкзаке нет, проверяем экипировку
-    const equippedPotion = gameState.inventory.equipment[3];
-    if (equippedPotion && equippedPotion.bonus && equippedPotion.bonus.heal) {
-      gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + equippedPotion.bonus.heal);
-      
-      // Удаляем банку из экипировки
-      gameState.inventory.equipment[3] = null;
-      
-      // Воспроизводим звук использования зелья (асинхронно)
-      (async () => {
-        const { audioManager } = await import('../audio/AudioManager.js');
-        audioManager.playHealthPotion();
-      })();
-      
-      console.log(`🧪 Used equipped health potion: +${equippedPotion.bonus.heal} HP (${gameState.player.hp}/${gameState.player.maxHp})`);
-      
-      // Обновляем UI
-      this.updateHealthPotions();
+    // Проверяем быстрый слот - теперь там хранится тип зелья
+    const potionType = gameState.inventory.quickSlots[slotIndex];
+    if (!potionType) {
       return;
     }
     
-    console.log('🧪 No health potions available');
+    // Ищем зелье нужного типа в рюкзаке
+    const potionIndex = gameState.inventory.backpack.findIndex(item => 
+      item && item.type === 'consumable' && item.base === potionType
+    );
+    
+    if (potionIndex === -1) {
+      // Обновляем UI, чтобы показать "пустое" состояние
+      this.updateQuickPotions();
+      return;
+    }
+    
+    const potion = gameState.inventory.backpack[potionIndex];
+    
+    // Применяем эффекты зелья
+    (async () => {
+      const { BuffManager } = await import('../core/BuffManager.js');
+      BuffManager.applyConsumableEffects(potion);
+    })();
+    
+    // Удаляем зелье из рюкзака
+    gameState.inventory.backpack[potionIndex] = null;
+    
+    // Воспроизводим звук использования зелья
+    (async () => {
+      const { audioManager } = await import('../audio/AudioManager.js');
+      audioManager.playHealthPotion();
+    })();
+    
+    // Обновляем UI
+    this.updateQuickPotions();
+    
+    // Обновляем инвентарь
+    (async () => {
+      const { InventoryManager } = await import('../ui/InventoryManager.js');
+      InventoryManager.renderInventory();
+    })();
+  }
+  
+  static useHealthPotion() {
+    // Для обратной совместимости - используем первый быстрый слот
+    this.useQuickPotion(0);
   }
   
   static updateAbilityCooldown() {
@@ -654,6 +729,45 @@ export class GameEngine {
     }
   }
   
+  static updateActiveBuffs() {
+    const buffsContainer = document.getElementById('activeBuffsContainer');
+    if (!buffsContainer) return;
+    
+    const activeBuffs = gameState.buffs.active;
+    
+    // Очищаем контейнер
+    buffsContainer.innerHTML = '';
+    
+    // Добавляем активные баффы
+    activeBuffs.forEach(buff => {
+      const buffElement = document.createElement('div');
+      buffElement.className = 'active-buff';
+      
+      // Добавляем классы предупреждения
+      if (buff.remainingTime < 3) {
+        buffElement.classList.add('critical');
+      } else if (buff.remainingTime < 6) {
+        buffElement.classList.add('warning');
+      }
+      
+      const iconElement = document.createElement('span');
+      iconElement.textContent = buff.icon;
+      iconElement.style.fontSize = '14px';
+      
+      const timeElement = document.createElement('span');
+      timeElement.textContent = `${Math.ceil(buff.remainingTime)}s`;
+      timeElement.style.color = buff.remainingTime < 3 ? '#ff4444' : '#ffffff';
+      
+      // Устанавливаем ширину прогресс-бара через CSS переменную
+      const progressPercent = (buff.remainingTime / buff.duration) * 100;
+      buffElement.style.setProperty('--progress-width', `${progressPercent}%`);
+      
+      buffElement.appendChild(iconElement);
+      buffElement.appendChild(timeElement);
+      buffsContainer.appendChild(buffElement);
+    });
+  }
+  
   static stopGame() {
     console.log('🛑 Stopping game...');
     
@@ -706,6 +820,7 @@ export class GameEngine {
     // Настраиваем canvas и запускаем игровой цикл
     this.resizeCanvas();
     this.updateUI();
+    this.updateQuickPotions();
     
     console.log('🔄 Starting game loop...');
     gameLoopId = requestAnimationFrame(this.gameLoop.bind(this));

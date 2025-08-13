@@ -15,26 +15,18 @@ export class AudioManager {
 
   async init() {
     try {
-      console.log('🎵 Initializing audio system...');
-      
       // Проверяем поддержку Web Audio API
       if (!window.AudioContext && !window.webkitAudioContext) {
         console.warn('🎵 Web Audio API not supported in this browser');
         return;
       }
       
-      console.log('🎵 Loading music tracks...');
       // Загружаем треки без создания аудио контекста
       await this.loadMusicTracks();
-      
-      console.log('🎵 Loading sound effects...');
       await this.loadSfxTracks();
       
-      console.log('🎵 Setting up audio resume handlers...');
       // Добавляем обработчики для автоматического возобновления аудио
       this.setupAudioResumeHandlers();
-      
-      console.log('🎵 Audio system initialization complete');
       
       // Автоматически создаем аудио контекст и запускаем музыку
       setTimeout(() => {
@@ -49,7 +41,6 @@ export class AudioManager {
   setupAudioResumeHandlers() {
     // Функция для возобновления аудио контекста
     const resumeAudio = () => {
-      console.log('🎵 Resuming audio context...');
       if (this.audioContext && this.audioContext.state === 'suspended') {
         this.audioContext.resume();
       }
@@ -59,7 +50,6 @@ export class AudioManager {
       
       // Если музыка не играет и мы на главном экране, запускаем её
       if (!this.currentMusic && gameState.screen === 'menu' && gameState.audio.enabled) {
-        console.log('🎵 Starting music on first interaction...');
         this.playMusic('main');
       }
     };
@@ -72,17 +62,12 @@ export class AudioManager {
 
   createAudioContextAndPlay() {
     try {
-      console.log('🎵 Creating audio context...');
       // Создаем аудио контекст
       this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      console.log('✅ Audio context created successfully');
       
       // Автоматически запускаем музыку
       if (gameState.audio.enabled && this.isMusicLoaded) {
-        console.log('🎵 Auto-starting main music after audio context creation...');
         this.playMusic('main');
-      } else {
-        console.log(`🎵 Auto-start conditions not met: enabled=${gameState.audio.enabled}, loaded=${this.isMusicLoaded}`);
       }
     } catch (e) {
       console.warn('❌ Failed to create audio context:', e);
@@ -91,12 +76,6 @@ export class AudioManager {
 
   // Метод для принудительного запуска музыки (вызывается из main.js)
   forceStartMusic() {
-    console.log('🎵 Force start music called');
-    console.log(`🎵 Audio context: ${this.audioContext ? 'exists' : 'null'}`);
-    console.log(`🎵 Audio enabled: ${gameState.audio.enabled}`);
-    console.log(`🎵 Music loaded: ${this.isMusicLoaded}`);
-    console.log(`🎵 Current music: ${this.currentMusic ? 'playing' : 'null'}`);
-    
     if (!this.audioContext) {
       console.log('🎵 Creating audio context and playing...');
       this.createAudioContextAndPlay();
@@ -111,27 +90,14 @@ export class AudioManager {
   async loadMusicTracks() {
     try {
       // Загружаем треки
-      console.log('🎵 Loading main track...');
       this.musicTracks.main = await this.loadAudioFile('Audio/Main.mp3');
-      console.log('✅ Main track loaded successfully');
-      
-      console.log('🎵 Loading stage1 track...');
       this.musicTracks.stage1 = await this.loadAudioFile('Audio/stage1.mp3');
-      console.log('✅ Stage1 track loaded successfully');
-      
-      console.log('🎵 Loading game over track...');
       this.musicTracks.gameOver = await this.loadAudioFile('Audio/GameOver.mp3');
-      console.log('✅ Game over track loaded successfully');
-      
-      console.log('🎵 Loading level complete track...');
       this.musicTracks.levelComplete = await this.loadAudioFile('Audio/Level_Complite.mp3');
-      console.log('✅ Level complete track loaded successfully');
       
       this.isMusicLoaded = true;
-      console.log('✅ All music tracks loaded successfully');
     } catch (error) {
       console.warn('⚠️ Failed to load music tracks:', error);
-      console.log('🎮 Continuing without audio...');
       this.isMusicLoaded = false;
       // Не выбрасываем ошибку, чтобы игра продолжала работать
     }
@@ -139,8 +105,6 @@ export class AudioManager {
 
   async loadSfxTracks() {
     try {
-      console.log('🎵 Loading sound effects...');
-      
       // Загружаем звуковые эффекты по одному, чтобы один неудачный не прерывал остальные
       const sfxToLoad = [
         { key: 'inventoryOpen', path: 'Audio/Fx/Inventory_open.mp3' },
@@ -162,9 +126,7 @@ export class AudioManager {
       
       for (const sfx of sfxToLoad) {
         try {
-          console.log(`🎵 Loading ${sfx.key} sound...`);
           this.sfxTracks[sfx.key] = await this.loadAudioFile(sfx.path);
-          console.log(`✅ ${sfx.key} sound loaded`);
           loadedCount++;
         } catch (error) {
           console.warn(`❌ Failed to load ${sfx.key} sound:`, error);
@@ -173,22 +135,18 @@ export class AudioManager {
       
       if (loadedCount > 0) {
         this.isSfxLoaded = true;
-        console.log(`✅ ${loadedCount}/${sfxToLoad.length} sound effects loaded successfully`);
-        console.log('📋 Loaded SFX tracks:', Object.keys(this.sfxTracks));
       } else {
         this.isSfxLoaded = false;
         console.warn('❌ No sound effects loaded');
       }
     } catch (error) {
       console.warn('⚠️ Failed to load sound effects:', error);
-      console.log('🎮 Continuing without sound effects...');
       this.isSfxLoaded = false;
     }
   }
 
   async loadAudioFile(url) {
     return new Promise((resolve, reject) => {
-      console.log(`🎵 Loading audio file: ${url}`);
       const audio = new Audio();
       
       // Проверяем, запущена ли игра через file:// протокол
@@ -203,7 +161,6 @@ export class AudioManager {
         
         audio.addEventListener('canplaythrough', () => {
           clearTimeout(timeout);
-          console.log(`✅ Audio file loaded successfully: ${url}`);
           resolve(audio);
         }, false);
         
@@ -279,17 +236,13 @@ export class AudioManager {
     this.currentMusic.loop = loop;
     this.currentMusic.volume = gameState.audio.musicVolume * gameState.audio.masterVolume;
     
-    console.log(`🎵 Playing music: ${trackName}, volume: ${this.currentMusic.volume}`);
-    
     // Воспроизводим только если контекст активен
     if (this.audioContext && this.audioContext.state === 'suspended') {
-      console.log('🎵 Resuming audio context...');
       this.audioContext.resume();
     }
     
     this.currentMusic.play().catch(e => {
       console.warn('❌ Failed to play music:', e);
-      console.log('🎵 Audio context state:', this.audioContext?.state);
     });
   }
 

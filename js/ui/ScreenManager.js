@@ -7,8 +7,6 @@ import { MenuNavigationManager } from './MenuNavigationManager.js';
 
 export class ScreenManager {
   static switchScreen(screenName) {
-    console.log('🖥️ Switching to screen:', screenName);
-    
     document.querySelectorAll('.screen').forEach(screen => {
       screen.classList.add('hidden');
       screen.classList.remove('active');
@@ -19,30 +17,21 @@ export class ScreenManager {
       targetScreen.classList.remove('hidden');
       targetScreen.classList.add('active');
       gameState.screen = screenName;
-      console.log('✅ Screen switched successfully to:', screenName);
       
       // Управление музыкой при переключении экранов
-      console.log(`🎵 Switching music for screen: ${screenName}`);
       if (screenName === 'game') {
         // На игровом экране играет stage1
-        console.log('🎵 Switching to stage1 music for game screen');
         audioManager.playMusic('stage1');
       } else if (screenName === 'menu' || screenName === 'select') {
         // На главном экране и экране выбора персонажей продолжаем играть Main
         // (не перезапускаем, если уже играет)
-        console.log('🎵 Switching to main music for menu/select screen');
         if (!audioManager.currentMusic || audioManager.currentMusic.src !== audioManager.musicTracks.main.src) {
           audioManager.playMusic('main');
-        } else {
-          console.log('🎵 Main music already playing, not switching');
         }
       } else {
         // На других экранах (records, settings) продолжаем играть Main
-        console.log('🎵 Switching to main music for other screen');
         if (!audioManager.currentMusic || audioManager.currentMusic.src !== audioManager.musicTracks.main.src) {
           audioManager.playMusic('main');
-        } else {
-          console.log('🎵 Main music already playing, not switching');
         }
       }
 
@@ -60,6 +49,16 @@ export class ScreenManager {
           const { SettingsManager } = await import('./SettingsManager.js');
           SettingsManager.setupEventListeners();
         })();
+      }
+      
+      // Обновляем быстрые слоты при переключении на игровой экран
+      if (screenName === 'game') {
+        setTimeout(() => {
+          (async () => {
+            const { GameEngine } = await import('../game/GameEngine.js');
+            GameEngine.updateQuickPotions();
+          })();
+        }, 100);
       }
       
       // Обновляем навигацию по клавиатуре при переключении экранов
@@ -183,12 +182,12 @@ export class ScreenManager {
         const inventoryToggleBtn = document.getElementById('inventoryToggle');
         const pauseBtn = document.getElementById('pauseBtn');
         const desktopAbilityBtn = document.getElementById('desktopAbilityBtn');
-        const healthPotionSlot = document.getElementById('healthPotionSlot');
+        const quickPotionsContainer = document.querySelector('.quick-potions-container');
         
         if (inventoryToggleBtn) inventoryToggleBtn.style.display = '';
         if (pauseBtn) pauseBtn.style.display = '';
         if (desktopAbilityBtn) desktopAbilityBtn.style.display = '';
-        if (healthPotionSlot) healthPotionSlot.style.display = '';
+        if (quickPotionsContainer) quickPotionsContainer.style.display = '';
       }
     }
   }
@@ -227,12 +226,12 @@ export class ScreenManager {
       const inventoryToggleBtn = document.getElementById('inventoryToggle');
       const pauseBtn = document.getElementById('pauseBtn');
       const desktopAbilityBtn = document.getElementById('desktopAbilityBtn');
-      const healthPotionSlot = document.getElementById('healthPotionSlot');
+      const quickPotionsContainer = document.querySelector('.quick-potions-container');
       
       if (inventoryToggleBtn) inventoryToggleBtn.style.display = 'none';
       if (pauseBtn) pauseBtn.style.display = 'none';
       if (desktopAbilityBtn) desktopAbilityBtn.style.display = 'none';
-      if (healthPotionSlot) healthPotionSlot.style.display = 'none';
+      if (quickPotionsContainer) quickPotionsContainer.style.display = 'none';
       
       // Инициализируем обработчики клавиатуры для слайдеров
       (async () => {
@@ -255,12 +254,12 @@ export class ScreenManager {
       const inventoryToggleBtn = document.getElementById('inventoryToggle');
       const pauseBtn = document.getElementById('pauseBtn');
       const desktopAbilityBtn = document.getElementById('desktopAbilityBtn');
-      const healthPotionSlot = document.getElementById('healthPotionSlot');
+      const quickPotionsContainer = document.querySelector('.quick-potions-container');
       
       if (inventoryToggleBtn) inventoryToggleBtn.style.display = '';
       if (pauseBtn) pauseBtn.style.display = '';
       if (desktopAbilityBtn) desktopAbilityBtn.style.display = '';
-      if (healthPotionSlot) healthPotionSlot.style.display = '';
+      if (quickPotionsContainer) quickPotionsContainer.style.display = '';
       
       // Восстанавливаем громкость музыки при возобновлении
       this.restoreMusicOnResume();

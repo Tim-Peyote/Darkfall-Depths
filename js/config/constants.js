@@ -168,7 +168,12 @@ export const BASE_ITEMS = [
   // Универсальные
   { base: 'amulet', name: 'Амулет', class: null, icon: '📿', color: '#f39c12', type: 'accessory' },
   { base: 'ring', name: 'Кольцо', class: null, icon: '💍', color: '#e67e22', type: 'accessory' },
-  { base: 'potion', name: 'Зелье здоровья', class: null, icon: '🧪', color: '#e74c3c', type: 'consumable' }
+  { base: 'potion', name: 'Зелье здоровья', class: null, icon: '🧪', color: '#e74c3c', type: 'consumable' },
+  { base: 'speed_potion', name: 'Зелье скорости', class: null, icon: '💨', color: '#3498db', type: 'consumable' },
+  { base: 'strength_potion', name: 'Зелье силы', class: null, icon: '💪', color: '#e67e22', type: 'consumable' },
+  { base: 'defense_potion', name: 'Зелье защиты', class: null, icon: '🛡️', color: '#95a5a6', type: 'consumable' },
+  { base: 'regen_potion', name: 'Зелье регенерации', class: null, icon: '💚', color: '#27ae60', type: 'consumable' },
+  { base: 'combo_potion', name: 'Комплексное зелье', class: null, icon: '🌈', color: '#9b59b6', type: 'consumable' }
 ];
 
 export const AFFIXES = [
@@ -233,7 +238,43 @@ export function generateRandomItem(level, playerClass) {
     bonus.moveSpeed = (bonus.moveSpeed || 0) + Math.floor(3 + level);
   }
   if (base.type === 'consumable') {
-    bonus.heal = 40 + Math.floor(level * 2.5);
+    // Разные типы банок с разными эффектами
+    switch (base.base) {
+      case 'potion':
+        // Обычное зелье здоровья - мгновенное восстановление
+        bonus.heal = 40 + Math.floor(level * 2.5);
+        break;
+      case 'speed_potion':
+        // Зелье скорости - временный бафф
+        bonus.moveSpeed = 20 + Math.floor(level * 1.5);
+        bonus.duration = 15; // 15 секунд
+        break;
+      case 'strength_potion':
+        // Зелье силы - временный бафф урона
+        bonus.damage = 15 + Math.floor(level * 2);
+        bonus.duration = 20; // 20 секунд
+        break;
+      case 'defense_potion':
+        // Зелье защиты - временный бафф защиты
+        bonus.defense = 10 + Math.floor(level * 1.5);
+        bonus.duration = 18; // 18 секунд
+        break;
+      case 'regen_potion':
+        // Зелье регенерации - постепенное восстановление
+        bonus.heal = 60 + Math.floor(level * 3);
+        bonus.regenDuration = 8; // 8 секунд регенерации
+        bonus.regenTick = 2; // каждые 2 секунды
+        break;
+      case 'combo_potion':
+        // Комплексное зелье - несколько эффектов
+        bonus.heal = 30 + Math.floor(level * 2);
+        bonus.damage = 10 + Math.floor(level * 1.5);
+        bonus.moveSpeed = 15 + Math.floor(level * 1);
+        bonus.duration = 12; // 12 секунд
+        break;
+      default:
+        bonus.heal = 40 + Math.floor(level * 2.5);
+    }
   }
   
   // 5. Радиус для милишников
@@ -253,8 +294,33 @@ export function generateRandomItem(level, playerClass) {
   // 7. Описание
   let description = '';
   if (base.type === 'consumable') {
-    // Для зелий показываем только эффект восстановления
-    description = `Восстанавливает ${bonus.heal} здоровья`;
+    // Для зелий показываем эффекты в зависимости от типа
+    switch (base.base) {
+      case 'potion':
+        description = `Восстанавливает ${bonus.heal} здоровья`;
+        break;
+      case 'speed_potion':
+        description = `Скорость +${bonus.moveSpeed} на ${bonus.duration}с`;
+        break;
+      case 'strength_potion':
+        description = `Урон +${bonus.damage} на ${bonus.duration}с`;
+        break;
+      case 'defense_potion':
+        description = `Защита +${bonus.defense} на ${bonus.duration}с`;
+        break;
+      case 'regen_potion':
+        description = `Регенерация ${bonus.heal} HP за ${bonus.regenDuration}с`;
+        break;
+      case 'combo_potion':
+        const effects = [];
+        if (bonus.heal) effects.push(`HP +${bonus.heal}`);
+        if (bonus.damage) effects.push(`Урон +${bonus.damage}`);
+        if (bonus.moveSpeed) effects.push(`Скорость +${bonus.moveSpeed}`);
+        description = `${effects.join(', ')} на ${bonus.duration}с`;
+        break;
+      default:
+        description = `Восстанавливает ${bonus.heal} здоровья`;
+    }
   } else {
     // Для других предметов показываем все бонусы
     description = Object.entries(bonus).map(([k,v]) => {

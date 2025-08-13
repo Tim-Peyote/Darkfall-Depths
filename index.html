@@ -146,6 +146,9 @@
                     <div class="ability-icon">⚡</div>
                     <div class="cooldown-text">0s</div>
                 </div>
+                
+                <!-- Active Buffs -->
+                <div id="activeBuffsContainer" class="active-buffs-container"></div>
             </div>
             
             <div class="ui-right">
@@ -154,12 +157,22 @@
             </div>
         </div>
 
-        <!-- Health Potions (Bottom Left) -->
-        <div class="health-potions-bottom">
-            <div id="healthPotionSlot" class="potion-slot">
+        <!-- Quick Potion Slots (Bottom Left) -->
+        <div class="quick-potions-container health-potions-bottom">
+            <div id="quickPotionSlot1" class="potion-slot" data-slot="1">
                 <div class="potion-icon">🧪</div>
-                <div id="potionCount" class="potion-count">0</div>
+                <div class="potion-count">0</div>
                 <div class="potion-hotkey">1</div>
+            </div>
+            <div id="quickPotionSlot2" class="potion-slot" data-slot="2">
+                <div class="potion-icon">🧪</div>
+                <div class="potion-count">0</div>
+                <div class="potion-hotkey">2</div>
+            </div>
+            <div id="quickPotionSlot3" class="potion-slot" data-slot="3">
+                <div class="potion-icon">🧪</div>
+                <div class="potion-count">0</div>
+                <div class="potion-hotkey">3</div>
             </div>
         </div>
 

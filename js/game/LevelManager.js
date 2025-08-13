@@ -268,6 +268,8 @@ export class LevelManager {
     // В рогалике НЕ восстанавливаем здоровье автоматически - игрок должен сам лечиться
     console.log(`🎮 Level ${gameState.level} - Player HP: ${gameState.player?.hp}/${gameState.player?.maxHp} (no auto-heal)`);
     
+    // Временные баффы сохраняются между уровнями - они сами истекают по времени
+    
     // Музыка stage1 продолжает играть при переходе на следующий уровень
     // (не прерываем и не перезапускаем)
     
@@ -279,6 +281,7 @@ export class LevelManager {
     (async () => {
       const { GameEngine } = await import('../game/GameEngine.js');
       GameEngine.updateUI();
+      GameEngine.updateQuickPotions();
     })();
   }
 

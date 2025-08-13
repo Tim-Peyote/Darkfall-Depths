@@ -61,11 +61,11 @@ export class InventoryManager {
       // Сбросить все нажатые клавиши после закрытия инвентаря
       Object.keys(gameState.input.keys).forEach(k => gameState.input.keys[k] = false);
       
-      // Обновляем банки здоровья при закрытии инвентаря
+      // Обновляем быстрые слоты при закрытии инвентаря
       if (gameState.screen === 'game') {
         (async () => {
           const { GameEngine } = await import('../game/GameEngine.js');
-          GameEngine.updateHealthPotions();
+          GameEngine.updateQuickPotions();
         })();
       }
     }
@@ -141,6 +141,113 @@ export class InventoryManager {
       equipSlots.appendChild(slot);
     });
     
+    // Быстрые слоты для банок
+    const quickSlotsContainer = document.getElementById('quickSlotsContainer');
+    if (!quickSlotsContainer) {
+      const quickSlotsDiv = document.createElement('div');
+      quickSlotsDiv.id = 'quickSlotsContainer';
+      quickSlotsDiv.style.cssText = `
+        margin: 16px 0;
+        padding: 12px;
+        background: rgba(0,0,0,0.05);
+        border-radius: 8px;
+        border: 1px solid rgba(0,0,0,0.1);
+      `;
+      quickSlotsDiv.innerHTML = '<div style="margin-bottom: 8px; font-weight: bold; color: #666;">Быстрые слоты (1, 2, 3)</div>';
+      equipSlots.parentNode.insertBefore(quickSlotsDiv, equipSlots.nextSibling);
+    }
+    
+    const quickSlotsEl = document.getElementById('quickSlotsContainer');
+    quickSlotsEl.innerHTML = '<div style="margin-bottom: 8px; font-weight: bold; color: #666;">Быстрые слоты (1, 2, 3)</div>';
+    
+    gameState.inventory.quickSlots.forEach((potionType, index) => {
+      const slot = document.createElement('div');
+      slot.className = 'inventory-slot';
+      slot.title = `Быстрый слот ${index + 1}`;
+      slot.setAttribute('data-type', 'quickslot');
+      slot.setAttribute('data-index', index);
+      slot.style.display = 'inline-block';
+      slot.style.margin = '4px';
+      
+      if (potionType) {
+        // Слот с назначенным типом зелья
+        let icon = '🧪';
+        let color = '#ff6666';
+        let name = 'Неизвестное зелье';
+        
+        switch (potionType) {
+          case 'potion':
+            icon = '❤️';
+            color = '#ff6666';
+            name = 'Зелье здоровья';
+            break;
+          case 'speed_potion':
+            icon = '💨';
+            color = '#66ff66';
+            name = 'Зелье скорости';
+            break;
+          case 'strength_potion':
+            icon = '⚔️';
+            color = '#ffaa66';
+            name = 'Зелье силы';
+            break;
+          case 'defense_potion':
+            icon = '🛡️';
+            color = '#6666ff';
+            name = 'Зелье защиты';
+            break;
+          case 'regen_potion':
+            icon = '💚';
+            color = '#ff66ff';
+            name = 'Зелье регенерации';
+            break;
+          case 'combo_potion':
+            icon = '✨';
+            color = '#ffff66';
+            name = 'Комбо зелье';
+            break;
+        }
+        
+        // Подсчитываем количество зелий этого типа в рюкзаке
+        const count = gameState.inventory.backpack.filter(item => 
+          item && item.type === 'consumable' && item.base === potionType
+        ).length;
+        
+        slot.classList.add('filled');
+        slot.innerHTML = `
+          <div class="item-sprite" style="background:${color};font-size:1.5rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">${icon}</div>
+          <div class="item-count" style="position:absolute;bottom:-2px;right:-2px;background:${color};color:white;font-size:10px;padding:1px 3px;border-radius:3px;min-width:12px;text-align:center;">${count}</div>
+        `;
+        const tooltipText = `${name}\nКоличество: ${count}\nКлавиша: ${index + 1}`;
+        
+        // Добавляем обработчики для тултипов
+        slot.addEventListener('mouseenter', (e) => this.showTooltip(e, tooltipText));
+        slot.addEventListener('mouseleave', () => this.hideTooltip());
+        slot.addEventListener('mousemove', (e) => this.updateTooltipPosition(e));
+        
+        // Двойной клик для использования
+        slot.addEventListener('dblclick', () => {
+          (async () => {
+            const { GameEngine } = await import('../game/GameEngine.js');
+            GameEngine.useQuickPotion(index);
+          })();
+        });
+        
+        // Настройка контекстного меню
+        ContextMenuManager.setupSlotContextMenu(slot, { name, type: 'consumable', base: potionType }, 'quickslot', index);
+      } else {
+        // Пустой слот
+        slot.classList.add('empty');
+        slot.innerHTML = `<div style="font-size:1.5rem;color:#666;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">${index + 1}</div>`;
+        slot.title = `Пустой быстрый слот ${index + 1} (перетащите сюда банку)`;
+      }
+      
+      // Настройка drag & drop для всех слотов
+      this.setupDragDropForSlot(slot, 'quickslot', index);
+      
+      quickSlotsEl.appendChild(slot);
+    });
+    
     // Слоты рюкзака
     gameState.inventory.backpack.forEach((item, index) => {
       const slot = document.createElement('div');
@@ -173,7 +280,15 @@ export class InventoryManager {
   }
 
   static useItem(type, index) {
-    const item = type === 'equipment' ? gameState.inventory.equipment[index] : gameState.inventory.backpack[index];
+    let item;
+    if (type === 'equipment') {
+      item = gameState.inventory.equipment[index];
+    } else if (type === 'backpack') {
+      item = gameState.inventory.backpack[index];
+    } else if (type === 'quickslot') {
+      item = gameState.inventory.quickSlots[index];
+    }
+    
     if (!item) return;
     
     if (item.type === 'consumable') {
@@ -181,10 +296,18 @@ export class InventoryManager {
       this.applyItemBonuses(item);
       if (type === 'equipment') {
         gameState.inventory.equipment[index] = null;
-      } else {
+      } else if (type === 'backpack') {
         gameState.inventory.backpack[index] = null;
+      } else if (type === 'quickslot') {
+        gameState.inventory.quickSlots[index] = null;
       }
       this.renderInventory();
+      
+      // Обновляем быстрые слоты в UI
+      (async () => {
+        const { GameEngine } = await import('../game/GameEngine.js');
+        GameEngine.updateQuickPotions();
+      })();
     } else {
       // Для не-расходников - экипировка
       if (type === 'backpack') {
@@ -195,16 +318,27 @@ export class InventoryManager {
 
   static equipItem(backpackIndex) {
     const item = gameState.inventory.backpack[backpackIndex];
-    this.logInventory('equipItem: start', {backpackIndex, item});
     
     if (!item) return;
     
+    // Если это банка, применяем её эффекты
     if (item.type === 'consumable') {
-      console.log('Applying consumable:', item);
-      this.applyItemBonuses(item);
+      // Применяем эффекты банки
+      (async () => {
+        const { BuffManager } = await import('../core/BuffManager.js');
+        BuffManager.applyConsumableEffects(item);
+      })();
+      
+      // Удаляем банку из рюкзака
       gameState.inventory.backpack[backpackIndex] = null;
-      this.logInventory('equipItem: after apply consumable', {backpackIndex});
       this.renderInventory();
+      
+      // Воспроизводим звук использования зелья
+      (async () => {
+        const { audioManager } = await import('../audio/AudioManager.js');
+        audioManager.playHealthPotion();
+      })();
+      
       return;
     }
     
@@ -225,7 +359,6 @@ export class InventoryManager {
     this.applyItemBonuses(item);
     if (oldItem) this.removeItemBonuses(oldItem);
     
-    this.logInventory('equipItem: after swap', {targetSlot});
     this.renderInventory();
   }
 
@@ -270,41 +403,44 @@ export class InventoryManager {
     console.log('applyItemBonuses:', item);
     if (!gameState.player || !item.bonus) return;
     
-    Object.entries(item.bonus).forEach(([stat, value]) => {
-      switch (stat) {
-        case 'damage':
-          gameState.player.damage += value;
-          break;
-        case 'maxHp':
-          gameState.player.maxHp += value;
-          // Увеличиваем шкалу здоровья, но НЕ восстанавливаем здоровье
-          // Текущее здоровье остается прежним, но теперь может быть больше максимума
-          break;
-        case 'moveSpeed':
-          gameState.player.moveSpeed += value;
-          break;
-        case 'heal':
-          gameState.player.hp = Math.min(gameState.player.hp + value, gameState.player.maxHp);
-          break;
-        case 'crit':
-          gameState.player.crit += value;
-          break;
-        case 'defense':
-          gameState.player.defense += value;
-          break;
-        case 'attackSpeed':
-          gameState.player.attackSpeed = Math.max(0.1, gameState.player.attackSpeed - value / 100);
-          break;
-        case 'attackRadius':
-          gameState.player.attackRadius += value;
-          break;
-        case 'fire':
-        case 'ice':
-          // Элементальные бонусы добавляются к урону
-          gameState.player.damage += value;
-          break;
-      }
-    });
+    // Для экипировки применяем постоянные бонусы
+    if (item.type !== 'consumable') {
+      Object.entries(item.bonus).forEach(([stat, value]) => {
+        switch (stat) {
+          case 'damage':
+            gameState.player.damage += value;
+            break;
+          case 'maxHp':
+            gameState.player.maxHp += value;
+            break;
+          case 'moveSpeed':
+            gameState.player.moveSpeed += value;
+            break;
+          case 'crit':
+            gameState.player.crit += value;
+            break;
+          case 'defense':
+            gameState.player.defense += value;
+            break;
+          case 'attackSpeed':
+            gameState.player.attackSpeed = Math.max(0.1, gameState.player.attackSpeed - value / 100);
+            break;
+          case 'attackRadius':
+            gameState.player.attackRadius += value;
+            break;
+          case 'fire':
+          case 'ice':
+            gameState.player.damage += value;
+            break;
+        }
+      });
+    } else {
+      // Для банок используем систему временных баффов
+      (async () => {
+        const { BuffManager } = await import('../core/BuffManager.js');
+        BuffManager.applyConsumableEffects(item);
+      })();
+    }
     
     console.log('Player after applyItemBonuses:', {
       hp: gameState.player.hp,
@@ -322,11 +458,11 @@ export class InventoryManager {
       console.log(`💚 Max HP increased by ${item.bonus.maxHp} (current HP: ${gameState.player.hp}/${gameState.player.maxHp})`);
     }
     
-    // Обновляем банки здоровья в UI
+    // Обновляем быстрые слоты в UI
     if (gameState.screen === 'game') {
       (async () => {
         const { GameEngine } = await import('../game/GameEngine.js');
-        GameEngine.updateHealthPotions();
+        GameEngine.updateQuickPotions();
       })();
     }
   }
@@ -334,6 +470,12 @@ export class InventoryManager {
   static removeItemBonuses(item) {
     console.log('removeItemBonuses:', item);
     if (!gameState.player || !item.bonus) return;
+    
+    // Удаляем бонусы только для экипировки, не для банок
+    if (item.type === 'consumable') {
+      console.log('Skipping removeItemBonuses for consumable item');
+      return;
+    }
     
     Object.entries(item.bonus).forEach(([stat, value]) => {
       switch (stat) {
@@ -368,11 +510,11 @@ export class InventoryManager {
       }
     });
     
-    // Обновляем банки здоровья в UI
+    // Обновляем быстрые слоты в UI
     if (gameState.screen === 'game') {
       (async () => {
         const { GameEngine } = await import('../game/GameEngine.js');
-        GameEngine.updateHealthPotions();
+        GameEngine.updateQuickPotions();
       })();
     }
   }
@@ -381,7 +523,16 @@ export class InventoryManager {
     slot.draggable = true;
     
     slot.addEventListener('dragstart', (e) => {
-      draggedItem = type === 'equipment' ? gameState.inventory.equipment[index] : gameState.inventory.backpack[index];
+      let item;
+      if (type === 'equipment') {
+        item = gameState.inventory.equipment[index];
+      } else if (type === 'backpack') {
+        item = gameState.inventory.backpack[index];
+      } else if (type === 'quickslot') {
+        item = gameState.inventory.quickSlots[index];
+      }
+      
+      draggedItem = item;
       draggedSlot = { type, index };
       e.dataTransfer.effectAllowed = 'move';
       slot.classList.add('dragging');
@@ -421,36 +572,94 @@ export class InventoryManager {
   }
 
   static handleDrop(from, to) {
-    if (from.type === to.type && from.index === to.index) return;
+    if (from.type === to.type && from.index === to.index) {
+      return;
+    }
     
-    const fromItem = from.type === 'equipment' ? gameState.inventory.equipment[from.index] : gameState.inventory.backpack[from.index];
-    const toItem = to.type === 'equipment' ? gameState.inventory.equipment[to.index] : gameState.inventory.backpack[to.index];
+    // Получаем предметы из соответствующих источников
+    let fromItem, toItem;
     
-    // Обмен предметами
     if (from.type === 'equipment') {
-      gameState.inventory.equipment[from.index] = toItem;
-    } else {
-      gameState.inventory.backpack[from.index] = toItem;
+      fromItem = gameState.inventory.equipment[from.index];
+    } else if (from.type === 'backpack') {
+      fromItem = gameState.inventory.backpack[from.index];
+    } else if (from.type === 'quickslot') {
+      fromItem = gameState.inventory.quickSlots[from.index];
     }
     
     if (to.type === 'equipment') {
-      gameState.inventory.equipment[to.index] = fromItem;
-    } else {
-      gameState.inventory.backpack[to.index] = fromItem;
+      toItem = gameState.inventory.equipment[to.index];
+    } else if (to.type === 'backpack') {
+      toItem = gameState.inventory.backpack[to.index];
+    } else if (to.type === 'quickslot') {
+      toItem = gameState.inventory.quickSlots[to.index];
     }
     
-    // Обновляем бонусы
-    if (fromItem) this.removeItemBonuses(fromItem);
-    if (toItem) this.removeItemBonuses(toItem);
-    if (fromItem) this.applyItemBonuses(fromItem);
-    if (toItem) this.applyItemBonuses(toItem);
+    // Проверяем, можно ли поместить банку в быстрый слот
+    if (to.type === 'quickslot' && fromItem && fromItem.type !== 'consumable') {
+      return;
+    }
+    
+    // Если перетаскиваем из быстрого слота в рюкзак или экипировку, очищаем быстрый слот
+    if (from.type === 'quickslot' && (to.type === 'backpack' || to.type === 'equipment')) {
+      gameState.inventory.quickSlots[from.index] = null;
+      this.renderInventory();
+      
+      // Обновляем быстрые слоты в UI
+      (async () => {
+        const { GameEngine } = await import('../game/GameEngine.js');
+        GameEngine.updateQuickPotions();
+      })();
+      
+      return;
+    }
+    
+    if (to.type === 'quickslot' && fromItem && fromItem.type === 'consumable') {
+      // Сохраняем тип зелья, а не конкретный предмет
+      gameState.inventory.quickSlots[to.index] = fromItem.base;
+      
+      this.renderInventory();
+      
+      // Обновляем быстрые слоты в UI
+      (async () => {
+        const { GameEngine } = await import('../game/GameEngine.js');
+        GameEngine.updateQuickPotions();
+      })();
+      
+      return; // Не обмениваем предметы, только назначаем тип
+    }
+    
+    // Обмен предметами (но не для быстрых слотов)
+    if (from.type === 'equipment') {
+      gameState.inventory.equipment[from.index] = toItem;
+    } else if (from.type === 'backpack') {
+      gameState.inventory.backpack[from.index] = toItem;
+    }
+    // Быстрые слоты не участвуют в обмене предметами
+    
+    if (to.type === 'equipment') {
+      gameState.inventory.equipment[to.index] = fromItem;
+    } else if (to.type === 'backpack') {
+      gameState.inventory.backpack[to.index] = fromItem;
+    }
+    // Быстрые слоты обрабатываются отдельно выше
+    
+    // Обновляем бонусы только для экипировки
+    if (fromItem && from.type === 'equipment') this.removeItemBonuses(fromItem);
+    if (toItem && to.type === 'equipment') this.removeItemBonuses(toItem);
+    if (fromItem && to.type === 'equipment') this.applyItemBonuses(fromItem);
+    if (toItem && from.type === 'equipment') this.applyItemBonuses(toItem);
     
     this.renderInventory();
+    
+    // Обновляем быстрые слоты
+    (async () => {
+      const { GameEngine } = await import('../game/GameEngine.js');
+      GameEngine.updateQuickPotions();
+    })();
   }
 
-  static logInventory(action, extra = {}) {
-    console.log('📦 Inventory:', action, extra);
-  }
+
 
   // Обработчики для drag & drop за пределы инвентаря
   static setupDragOutsideHandler() {
