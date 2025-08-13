@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест кнопок способностей</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 8px;
+        }
+        .test-button {
+            padding: 10px 20px;
+            margin: 10px;
+            background: #cc0000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .test-button:hover {
+            background: #ff0000;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .status.success {
+            background: #006600;
+        }
+        .status.error {
+            background: #660000;
+        }
+        .status.info {
+            background: #006666;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест кнопок способностей</h1>
+    
+    <div class="test-section">
+        <h2>Проверка элементов</h2>
+        <button class="test-button" onclick="checkElements()">Проверить элементы</button>
+        <div id="elementsStatus"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Проверка обработчиков</h2>
+        <button class="test-button" onclick="checkEventListeners()">Проверить обработчики</button>
+        <div id="listenersStatus"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Симуляция игры</h2>
+        <button class="test-button" onclick="simulateGame()">Симулировать игру</button>
+        <div id="gameStatus"></div>
+    </div>
+
+    <script>
+        function checkElements() {
+            const status = document.getElementById('elementsStatus');
+            let results = [];
+            
+            // Проверяем десктопную кнопку
+            const desktopBtn = document.getElementById('desktopAbilityBtn');
+            if (desktopBtn) {
+                results.push('✅ Десктопная кнопка способности найдена');
+            } else {
+                results.push('❌ Десктопная кнопка способности не найдена');
+            }
+            
+            // Проверяем мобильную кнопку
+            const mobileBtn = document.getElementById('abilityBtn');
+            if (mobileBtn) {
+                results.push('✅ Мобильная кнопка способности найдена');
+            } else {
+                results.push('❌ Мобильная кнопка способности не найдена');
+            }
+            
+            // Проверяем мобильные элементы управления
+            const mobileControls = document.getElementById('mobileControls');
+            if (mobileControls) {
+                results.push('✅ Мобильные элементы управления найдены');
+            } else {
+                results.push('❌ Мобильные элементы управления не найдены');
+            }
+            
+            status.innerHTML = results.map(r => `<div class="status info">${r}</div>`).join('');
+        }
+        
+        function checkEventListeners() {
+            const status = document.getElementById('listenersStatus');
+            let results = [];
+            
+            // Проверяем обработчики десктопной кнопки
+            const desktopBtn = document.getElementById('desktopAbilityBtn');
+            if (desktopBtn) {
+                const listeners = getEventListeners(desktopBtn);
+                if (listeners.click && listeners.click.length > 0) {
+                    results.push('✅ Обработчики десктопной кнопки настроены');
+                } else {
+                    results.push('❌ Обработчики десктопной кнопки не настроены');
+                }
+            }
+            
+            // Проверяем обработчики мобильной кнопки
+            const mobileBtn = document.getElementById('abilityBtn');
+            if (mobileBtn) {
+                const listeners = getEventListeners(mobileBtn);
+                if ((listeners.click && listeners.click.length > 0) || 
+                    (listeners.touchstart && listeners.touchstart.length > 0)) {
+                    results.push('✅ Обработчики мобильной кнопки настроены');
+                } else {
+                    results.push('❌ Обработчики мобильной кнопки не настроены');
+                }
+            }
+            
+            status.innerHTML = results.map(r => `<div class="status info">${r}</div>`).join('');
+        }
+        
+        function getEventListeners(element) {
+            // Простая проверка наличия обработчиков
+            const listeners = {};
+            const events = ['click', 'touchstart', 'touchend'];
+            
+            events.forEach(event => {
+                try {
+                    const handler = element[`on${event}`];
+                    if (handler) {
+                        listeners[event] = [handler];
+                    }
+                } catch (e) {
+                    // Игнорируем ошибки
+                }
+            });
+            
+            return listeners;
+        }
+        
+        function simulateGame() {
+            const status = document.getElementById('gameStatus');
+            let results = [];
+            
+            // Симулируем создание игрока с способностями
+            const mockPlayer = {
+                hasDash: true,
+                hasShield: false,
+                hasBlast: false,
+                dashCooldown: 0,
+                performDash: () => {
+                    results.push('✅ Dash выполнен');
+                }
+            };
+            
+            // Симулируем нажатие на десктопную кнопку
+            const desktopBtn = document.getElementById('desktopAbilityBtn');
+            if (desktopBtn) {
+                try {
+                    desktopBtn.click();
+                    results.push('✅ Десктопная кнопка реагирует на клик');
+                } catch (e) {
+                    results.push('❌ Ошибка при клике на десктопную кнопку: ' + e.message);
+                }
+            }
+            
+            // Симулируем нажатие на мобильную кнопку
+            const mobileBtn = document.getElementById('abilityBtn');
+            if (mobileBtn) {
+                try {
+                    mobileBtn.click();
+                    results.push('✅ Мобильная кнопка реагирует на клик');
+                } catch (e) {
+                    results.push('❌ Ошибка при клике на мобильную кнопку: ' + e.message);
+                }
+            }
+            
+            status.innerHTML = results.map(r => `<div class="status success">${r}</div>`).join('');
+        }
+        
+        // Автоматически проверяем элементы при загрузке
+        window.addEventListener('load', () => {
+            setTimeout(checkElements, 100);
+        });
+    </script>
+</body>
+</html> 

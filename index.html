@@ -1,0 +1,359 @@
+или <!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Darkfall Depths - Roguelike Dungeon Crawler</title>
+    
+    <!-- Gothic Font Import -->
+    <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css?v=3">
+    
+    <!-- iOS Safari optimizations -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <style>
+        /* Prevent iOS Safari gestures and zoom */
+        body, canvas {
+            touch-action: none;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            overscroll-behavior: none;
+        }
+        
+        /* Prevent zoom */
+        input[type="range"] {
+            touch-action: manipulation;
+        }
+    </style>
+    
+    <!-- ПРЕДУПРЕЖДЕНИЕ О FILE:// ПРОТОКОЛЕ -->
+    <script>
+    // Проверяем протокол сразу при загрузке
+    console.log('🔍 Проверка протокола:', window.location.protocol);
+    
+    if (window.location.protocol === 'file:') {
+      console.log('⚠️ Обнаружен file:// протокол, показываем предупреждение');
+      
+      // Ждем загрузки DOM
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', showFileWarning);
+      } else {
+        showFileWarning();
+      }
+      
+      function showFileWarning() {
+        console.log('📢 Показываем предупреждение о file://');
+        document.body.innerHTML = `
+          <div style="background:#111;color:#fff;padding:2em;margin:2em auto;max-width:600px;border-radius:16px;box-shadow:0 4px 32px #000a;font-size:1.3em;text-align:center;font-family:Arial,sans-serif;">
+            <div style="font-size:2em;margin-bottom:1em;">⚠️</div>
+            <h2 style="color:#ff6b6b;margin-bottom:1em;">Игра не может быть запущена напрямую</h2>
+            <p style="margin-bottom:1.5em;line-height:1.5;">
+              Современные браузеры блокируют загрузку модулей через <code style="background:#222;padding:2px 6px;border-radius:4px;">file://</code> протокол из соображений безопасности.
+            </p>
+            <div style="background:#222;padding:1.5em;border-radius:8px;margin:1.5em 0;">
+              <strong>Для запуска игры:</strong><br><br>
+              1. Откройте терминал в папке с игрой<br>
+              2. Выполните команду:<br>
+              <code style="background:#333;padding:8px 12px;border-radius:6px;display:inline-block;margin:8px 0;font-size:1.1em;">python3 -m http.server 8000</code><br><br>
+              3. Откройте в браузере:<br>
+              <a href="http://localhost:8000" style="color:#4ecdc4;text-decoration:underline;font-size:1.1em;">http://localhost:8000</a>
+            </div>
+            <p style="font-size:0.9em;color:#aaa;margin-top:1.5em;">
+              Это ограничение браузеров, а не баг игры. Все современные JS-проекты требуют HTTP сервер.
+            </p>
+          </div>
+        `;
+      }
+    } else {
+      console.log('✅ HTTP протокол, игра будет работать нормально');
+    }
+    </script>
+</head>
+<body>
+
+    <!-- ЭКРАН ЗАГРУЗКИ -->
+    <div id="loadingScreen" class="screen active flex flex-col items-center justify-center">
+        <div class="loading-content">
+            <h1 class="logo">Darkfall Depths</h1>
+            <div class="loading-bar-container">
+                <div id="loadingBar" class="loading-bar"></div>
+            </div>
+            <div class="loading-text">Погружение в бездну...</div>
+            <div id="loadingProgress" class="loading-progress"></div>
+        </div>
+    </div>
+
+    <!-- ГЛАВНОЕ МЕНЮ -->
+    <div id="menuScreen" class="screen hidden flex flex-col items-center justify-center">
+        <div class="menu-background"></div>
+        <div class="menu-content">
+            <h1 class="logo">Darkfall Depths</h1>
+            <div class="menu-buttons mt-16">
+                <button id="startBtn" class="btn btn--primary gothic-btn">⚔️ Начать игру</button>
+                <button id="recordsBtn" class="btn btn--outline gothic-btn">📊 Рекорды</button>
+                <button id="settingsBtn" class="btn btn--outline gothic-btn">⚙️ Настройки</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ВЫБОР ПЕРСОНАЖА -->
+    <div id="selectScreen" class="screen hidden flex flex-col items-center justify-center">
+        <div class="select-background"></div>
+        <div class="select-content">
+            <h2 class="select-title">Выберите героя</h2>
+            <div id="charList" class="character-grid"></div>
+            <button id="backToMenuFromSelect" class="btn btn--outline mt-16">← Назад в меню</button>
+        </div>
+    </div>
+
+    <!-- ИГРОВОЙ ЭКРАН -->
+    <div id="gameScreen" class="screen hidden">
+        <canvas id="gameCanvas"></canvas>
+        
+        <!-- UI Overlay -->
+        <div class="ui-overlay">
+            <div class="ui-left">
+                <!-- Player Stats -->
+                <div class="player-stats">
+                    <div class="stat-bar">
+                        <div id="hpFill" class="stat-fill hp-fill"></div>
+                        <div id="hpText" class="stat-text">120/120</div>
+                    </div>
+                    <div class="level-info">Уровень: <span id="levelText">1</span></div>
+                </div>
+                
+                <!-- Controls -->
+                <div class="flex gap-8">
+                    <button id="pauseBtn" class="btn btn--outline">⏸️</button>
+                    <button id="inventoryToggle" class="btn btn--outline">🎒</button>
+                </div>
+                
+                <!-- Desktop Ability Button -->
+                <div class="desktop-ability-container">
+                    <button id="desktopAbilityBtn" class="btn btn--primary desktop-ability-btn">
+                        <span class="ability-icon">⚡</span>
+                        <span class="cooldown-text">0s</span>
+                    </button>
+                </div>
+                
+                <!-- Ability Cooldown -->
+                <div id="abilityCooldownUI" class="ability-cooldown-ui hidden">
+                    <div class="ability-icon">⚡</div>
+                    <div class="cooldown-text">0s</div>
+                </div>
+            </div>
+            
+            <div class="ui-right">
+                <!-- Minimap -->
+                <canvas id="minimap" width="120" height="120"></canvas>
+            </div>
+        </div>
+
+        <!-- Health Potions (Bottom Left) -->
+        <div class="health-potions-bottom">
+            <div id="healthPotionSlot" class="potion-slot">
+                <div class="potion-icon">🧪</div>
+                <div id="potionCount" class="potion-count">0</div>
+                <div class="potion-hotkey">1</div>
+            </div>
+        </div>
+
+        <!-- Mobile Controls -->
+        <div id="mobileControls" class="mobile hidden">
+            <div id="joystickContainer" class="joystick">
+                <div id="joystickKnob" class="joystick-knob"></div>
+            </div>
+            
+            <div class="mobile-buttons">
+                <button id="abilityBtn" class="ctrl-btn btn--primary" title="Уникальная способность">⚡</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ЭКРАН РЕКОРДОВ -->
+    <div id="recordsScreen" class="screen hidden flex flex-col items-center justify-center">
+        <div class="records-background"></div>
+        <div class="records-content">
+            <div class="card">
+                <div class="card__header">
+                    <h3>📊 Ваши рекорды</h3>
+                </div>
+                <div class="card__body">
+                    <div id="recordsData"></div>
+                </div>
+                <div class="card__footer">
+                    <div class="flex gap-8 justify-between">
+                        <button id="clearRecords" class="btn btn--outline">🗑️ Очистить</button>
+                        <button id="backToMenuFromRecords" class="btn btn--primary">← Назад</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ЭКРАН НАСТРОЕК -->
+    <div id="settingsScreen" class="screen hidden flex flex-col items-center justify-center">
+        <div class="settings-background"></div>
+        <div class="settings-content">
+            <div class="settings-panel card">
+            <div class="card__header">
+                <h3>⚙️ Настройки</h3>
+            </div>
+            <div class="card__body">
+                <div class="form-group">
+                    <label class="form-label">Общая громкость</label>
+                    <input type="range" id="masterVol" class="form-control" min="0" max="1" step="0.1" value="0.7">
+                    <span id="masterVolText" class="volume-text">70%</span>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Музыка</label>
+                    <input type="range" id="musicVol" class="form-control" min="0" max="1" step="0.1" value="0.5">
+                    <span id="musicVolText" class="volume-text">50%</span>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Звуковые эффекты</label>
+                    <input type="range" id="sfxVol" class="form-control" min="0" max="1" step="0.1" value="0.8">
+                    <span id="sfxVolText" class="volume-text">80%</span>
+                </div>
+                
+                <div class="form-group">
+                    <button id="muteToggle" class="btn btn--secondary btn--full-width">🔇 Выключить звук</button>
+                </div>
+            </div>
+            <div class="card__footer">
+                <button id="backToMenuFromSettings" class="btn btn--primary btn--full-width">← Назад в меню</button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <!-- ОВЕРЛЕЙ ПАУЗЫ -->
+    <div id="pauseOverlay" class="pause-overlay hidden">
+        <div class="pause-backdrop"></div>
+        <div class="pause-content">
+            <div class="pause-panel card">
+                <div class="card__header">
+                    <h3>⏸️ Игра приостановлена</h3>
+                </div>
+                <div class="card__body">
+                    <!-- Кнопка "Продолжить игру" скрыта, используется Escape -->
+                    <!-- <div class="pause-main-actions">
+                        <button id="resumeBtn" class="btn btn--primary btn--lg">
+                            <span class="btn-icon">▶️</span>
+                            <span class="btn-text">Продолжить игру</span>
+                        </button>
+                    </div> -->
+                    
+                    <!-- Настройки звука -->
+                    <div class="audio-settings">
+                        <h5 class="audio-settings-title">🎵 Настройки звука</h5>
+                        
+                        <div class="volume-controls">
+                            <div class="form-group">
+                                <label class="form-label">Общая громкость</label>
+                                <div class="volume-slider-container">
+                                    <input type="range" id="pauseMasterVol" class="form-control volume-slider" min="0" max="1" step="0.1" value="0.7" tabindex="0">
+                                    <span id="pauseMasterVolText" class="volume-text">70%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Музыка</label>
+                                <div class="volume-slider-container">
+                                    <input type="range" id="pauseMusicVol" class="form-control volume-slider" min="0" max="1" step="0.1" value="0.5" tabindex="0">
+                                    <span id="pauseMusicVolText" class="volume-text">50%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Звуковые эффекты</label>
+                                <div class="volume-slider-container">
+                                    <input type="range" id="pauseSfxVol" class="form-control volume-slider" min="0" max="1" step="0.1" value="0.8" tabindex="0">
+                                    <span id="pauseSfxVolText" class="volume-text">80%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="audio-actions">
+                            <button id="pauseMuteToggle" class="btn btn--secondary btn--full-width">🔇 Выключить звук</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card__footer">
+                    <button id="quitBtn" class="btn btn--outline btn--full-width">🏠 В главное меню</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОВЕРЛЕЙ ИНВЕНТАРЯ -->
+    <div id="inventoryOverlay" class="inventory-overlay card hidden">
+        <div class="card__header flex justify-between">
+            <h5>🎒 Инвентарь</h5>
+            <button id="closeInventory" class="btn btn--outline btn--sm">✕</button>
+        </div>
+        <div class="card__body">
+            <div class="inventory-section">
+                <h5>Экипировка</h5>
+                <div id="equipSlots" class="equip-grid"></div>
+            </div>
+            
+            <div class="inventory-section">
+                <h5>Рюкзак</h5>
+                <div id="backpackSlots" class="backpack-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОВЕРЛЕЙ ЗАВЕРШЕНИЯ УРОВНЯ -->
+    <div id="levelCompleteOverlay" class="level-complete-overlay card hidden">
+        <div class="card__header">
+            <h4>🎉 Уровень пройден!</h4>
+        </div>
+        <div class="card__body">
+            <p>Уровень <span id="completedLevel">1</span> завершён!</p>
+            <p>Убито врагов: <span id="enemiesKilled">0</span></p>
+        </div>
+        <div class="card__footer">
+            <button id="nextLevelBtn" class="btn btn--primary btn--full-width">⬇️ Следующий уровень</button>
+        </div>
+    </div>
+
+    <!-- ОВЕРЛЕЙ ОКОНЧАНИЯ ИГРЫ -->
+    <div id="gameOverOverlay" class="game-over-overlay card hidden">
+        <div class="card__header">
+            <h4>💀 Игра окончена</h4>
+        </div>
+        <div class="card__body">
+            <p>Достигнут уровень: <span id="finalLevel">1</span></p>
+            <p>Убито врагов: <span id="finalKills">0</span></p>
+            <p>Время игры: <span id="finalTime">0м 0с</span></p>
+        </div>
+        <div class="card__footer">
+            <div class="flex gap-8">
+                <button id="restartBtn" class="btn btn--primary">🔄 Снова</button>
+                <button id="menuBtn" class="btn btn--outline">🏠 Меню</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Добавляем pop-up корзину для удаления предметов -->
+    <div id="deletePopup" class="hidden" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:20000;background:#222;padding:24px 32px;border-radius:16px;box-shadow:0 4px 32px #000a;color:#fff;display:flex;flex-direction:column;align-items:center;gap:16px;min-width:220px;">
+      <div style="font-size:2.2rem;">🗑️</div>
+      <div style="font-size:1.1rem;">Удалить предмет?</div>
+      <div style="display:flex;gap:16px;">
+        <button id="confirmDeleteBtn" class="btn btn--primary">Удалить</button>
+        <button id="cancelDeleteBtn" class="btn btn--outline">Отмена</button>
+      </div>
+    </div>
+
+            <script type="module" src="js/main.js?v=30"></script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест локальной загрузки</title>
+    <style>
+        body {
+            background: #000;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .test-info {
+            background: #222;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background: #2a5a2a; }
+        .warning { background: #5a5a2a; }
+        .error { background: #5a2a2a; }
+    </style>
+</head>
+<body>
+    <h1>Тест локальной загрузки игры</h1>
+    
+    <div class="test-info">
+        <h3>Информация о протоколе:</h3>
+        <div id="protocolInfo"></div>
+        <div id="audioSupport"></div>
+    </div>
+    
+    <div class="test-info">
+        <h3>Тест аудио загрузки:</h3>
+        <div id="audioTest"></div>
+    </div>
+    
+    <div class="test-info">
+        <h3>Ссылки для тестирования:</h3>
+        <p><a href="index.html" target="_blank">Открыть игру напрямую (file://)</a></p>
+        <p><a href="http://localhost:8000" target="_blank">Открыть игру через HTTP сервер</a></p>
+    </div>
+
+    <script>
+        // Проверяем протокол
+        const protocol = window.location.protocol;
+        const protocolInfo = document.getElementById('protocolInfo');
+        
+        if (protocol === 'file:') {
+            protocolInfo.innerHTML = '<div class="status warning">⚠️ Запущено через file:// протокол</div>';
+        } else {
+            protocolInfo.innerHTML = '<div class="status success">✅ Запущено через HTTP протокол</div>';
+        }
+        
+        // Проверяем поддержку аудио
+        const audioSupport = document.getElementById('audioSupport');
+        if (window.AudioContext || window.webkitAudioContext) {
+            audioSupport.innerHTML = '<div class="status success">✅ Web Audio API поддерживается</div>';
+        } else {
+            audioSupport.innerHTML = '<div class="status error">❌ Web Audio API не поддерживается</div>';
+        }
+        
+        // Тестируем загрузку аудио
+        const audioTest = document.getElementById('audioTest');
+        
+        async function testAudioLoad() {
+            try {
+                const audio = new Audio('Audio/Main.mp3');
+                
+                const timeout = setTimeout(() => {
+                    audioTest.innerHTML = '<div class="status error">❌ Таймаут загрузки аудио (10 сек)</div>';
+                }, 10000);
+                
+                audio.addEventListener('canplaythrough', () => {
+                    clearTimeout(timeout);
+                    audioTest.innerHTML = '<div class="status success">✅ Аудио файл загружен успешно</div>';
+                });
+                
+                audio.addEventListener('error', (e) => {
+                    clearTimeout(timeout);
+                    audioTest.innerHTML = '<div class="status error">❌ Ошибка загрузки аудио: ' + e.message + '</div>';
+                });
+                
+                audio.src = 'Audio/Main.mp3';
+                audio.load();
+                
+            } catch (error) {
+                audioTest.innerHTML = '<div class="status error">❌ Ошибка создания аудио: ' + error.message + '</div>';
+            }
+        }
+        
+        testAudioLoad();
+    </script>
+</body>
+</html> 

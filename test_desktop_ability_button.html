@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест десктопной кнопки способности</title>
+    <style>
+        :root {
+            --color-error: #cc0000;
+            --color-red-500-rgb: 204, 0, 0;
+            --font-size-xs: 0.75rem;
+            --font-size-lg: 1.125rem;
+            --font-size-2xl: 1.5rem;
+            --font-weight-bold: 700;
+            --space-2: 0.5rem;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #1a1a1a;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        
+        .test-container {
+            text-align: center;
+        }
+        
+        /* Desktop Ability Container */
+        .desktop-ability-container {
+            position: relative;
+            margin: 20px;
+        }
+
+        /* Desktop Ability Button */
+        .desktop-ability-btn {
+            position: relative;
+            overflow: hidden;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: var(--space-2);
+            background: radial-gradient(circle, var(--color-error), #cc0000);
+            border: 3px solid #ff6666;
+            border-radius: 50%;
+            padding: 0;
+            box-shadow: 
+                0 0 20px rgba(255, 68, 68, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .desktop-ability-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: var(--cooldown-width, 0%);
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7));
+            border-radius: 0 0 50% 50%;
+            transition: height 0.1s linear;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        .desktop-ability-btn .ability-icon {
+            z-index: 2;
+            position: relative;
+            font-size: 2rem;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .desktop-ability-btn .ability-icon::after {
+            content: 'Q';
+            font-size: 0.6rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            width: 12px;
+            height: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            border: 1px solid #ff6666;
+        }
+
+        .desktop-ability-btn .cooldown-text {
+            z-index: 2;
+            position: relative;
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-bold);
+            color: #ffffff;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            line-height: 1;
+        }
+
+
+
+        .desktop-ability-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .desktop-ability-btn:not(:disabled) {
+            box-shadow: 
+                0 0 20px rgba(255, 68, 68, 0.4),
+                inset 0 2px 4px rgba(255, 255, 255, 0.2),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+            animation: abilityReady 2s ease-in-out infinite alternate;
+        }
+
+        .desktop-ability-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 
+                0 0 30px rgba(255, 68, 68, 0.6),
+                inset 0 2px 4px rgba(255, 255, 255, 0.3),
+                inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        .desktop-ability-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+
+        @keyframes abilityReady {
+            0% {
+                box-shadow: 
+                    0 0 15px rgba(255, 68, 68, 0.3),
+                    inset 0 2px 4px rgba(255, 255, 255, 0.2),
+                    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+            }
+            100% {
+                box-shadow: 
+                    0 0 25px rgba(255, 68, 68, 0.5),
+                    inset 0 2px 4px rgba(255, 255, 255, 0.3),
+                    inset 0 -2px 4px rgba(0, 0, 0, 0.4);
+            }
+        }
+        
+        .test-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        
+        .test-button {
+            padding: 10px 20px;
+            margin: 10px;
+            background: #cc0000;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .test-button:hover {
+            background: #ff0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Тест десктопной кнопки способности</h1>
+        <p>Проверьте, что буква Q отображается в правом верхнем углу кнопки</p>
+        
+        <!-- Desktop Ability Button -->
+        <div class="desktop-ability-container">
+            <button id="desktopAbilityBtn" class="desktop-ability-btn">
+                <span class="ability-icon">⚡</span>
+                <span class="cooldown-text">0s</span>
+            </button>
+        </div>
+        
+        <div class="test-info">
+            <h3>Инструкции:</h3>
+            <ul style="text-align: left;">
+                <li>✅ Буква Q должна быть видна прямо на иконке способности</li>
+                <li>✅ Кнопка должна иметь красный градиентный фон</li>
+                <li>✅ При наведении кнопка должна увеличиваться</li>
+                <li>✅ Кнопка должна анимироваться (пульсировать)</li>
+            </ul>
+        </div>
+        
+        <div>
+            <button class="test-button" onclick="changeAbility('dash')">Dash (💨)</button>
+            <button class="test-button" onclick="changeAbility('shield')">Shield (🛡️)</button>
+            <button class="test-button" onclick="changeAbility('blast')">Blast (💥)</button>
+        </div>
+    </div>
+
+    <script>
+        function changeAbility(type) {
+            const iconElement = document.querySelector('.ability-icon');
+            const cooldownText = document.querySelector('.cooldown-text');
+            
+            switch(type) {
+                case 'dash':
+                    iconElement.textContent = '💨';
+                    cooldownText.textContent = '3s';
+                    break;
+                case 'shield':
+                    iconElement.textContent = '🛡️';
+                    cooldownText.textContent = '8s';
+                    break;
+                case 'blast':
+                    iconElement.textContent = '💥';
+                    cooldownText.textContent = '12s';
+                    break;
+            }
+        }
+        
+        // Добавляем обработчик клика для демонстрации
+        document.getElementById('desktopAbilityBtn').addEventListener('click', function() {
+            alert('Кнопка способности нажата! Буква Q должна быть видна прямо на иконке.');
+        });
+    </script>
+</body>
+</html> 

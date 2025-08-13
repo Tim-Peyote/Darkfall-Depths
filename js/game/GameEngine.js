@@ -1,0 +1,713 @@
+/* Darkfall Depths - Игровой движок */
+
+import { gameState, canvas, ctx, minimapCanvas, minimapCtx, DPR, Utils } from '../core/GameState.js';
+import { audioManager } from '../audio/AudioManager.js';
+import { ScreenManager } from '../ui/ScreenManager.js';
+import { InputManager } from '../input/InputManager.js';
+import { SettingsManager } from '../ui/SettingsManager.js';
+import { RecordsManager } from '../ui/RecordsManager.js';
+import { LevelManager } from './LevelManager.js';
+import { Player } from '../entities/Player.js';
+import { Enemy } from '../entities/Enemy.js';
+import { MapGenerator } from '../map/MapGenerator.js';
+import { FogOfWar } from '../map/FogOfWar.js';
+import { TILE_SIZE, MAP_SIZE, ENEMY_TYPES } from '../config/constants.js';
+
+let lastFrameTime = 0;
+let gameLoopId = null;
+const TARGET_FPS = 60;
+const FRAME_TIME = 1000 / TARGET_FPS;
+
+export class GameEngine {
+  static async init() {
+    console.log('GameEngine initializing...');
+    
+    if (!canvas || !ctx) {
+      console.error('Canvas elements not found');
+      return;
+    }
+    
+    // Инициализация ввода
+    InputManager.init();
+    
+    // Загрузка настроек и рекордов
+    SettingsManager.loadSettings();
+    RecordsManager.loadRecords();
+    
+    // Настройка обработчиков событий будет выполнена при переключении на экраны
+    
+    // Настройка обработчиков банок здоровья
+    this.setupHealthPotionHandlers();
+    
+    // Переключение на главное меню
+    ScreenManager.switchScreen('menu');
+    
+    // Отложим resizeCanvas до показа игрового экрана
+    // this.resizeCanvas();
+    console.log('GameEngine initialized successfully');
+  }
+
+  static async startGame() {
+    console.log('🎮 Starting game...');
+    
+    if (!gameState.selectedCharacter) {
+      console.error('❌ No character selected');
+      return;
+    }
+    
+    // Проверяем, это новый запуск игры или продолжение
+    const isNewGame = !gameState.gameRunning;
+    
+    if (isNewGame) {
+      // Только при новом запуске игры сбрасываем прогрессию
+      console.log(`🎮 Starting new game - resetting level from ${gameState.level} to 1`);
+      gameState.level = 1;
+      gameState.gameTime = 0;
+      gameState.stats.currentSessionKills = 0;
+      
+      // Сброс инвентаря только при новом запуске
+      gameState.inventory.equipment = [null, null, null, null];
+      gameState.inventory.backpack = new Array(8).fill(null);
+      
+      console.log('🎮 Starting new game - resetting progress');
+    } else {
+      // При переходе на следующий уровень сохраняем прогрессию
+      console.log(`🎮 Continuing game - keeping progress, level: ${gameState.level}`);
+    }
+    
+    gameState.gameRunning = true;
+    gameState.isPaused = false;
+    
+    console.log('🗺️ Generating level...');
+    await LevelManager.generateLevel();
+    console.log('✅ Level generated');
+    
+    // Принудительно центрируем камеру на игроке
+    if (gameState.player) {
+      const canvasWidth = canvas ? canvas.width / DPR : 800;
+      const canvasHeight = canvas ? canvas.height / DPR : 600;
+      // Немедленно устанавливаем камеру без плавного перехода
+      gameState.camera.x = gameState.player.x - canvasWidth / 2;
+      gameState.camera.y = gameState.player.y - canvasHeight / 2;
+      console.log('🎯 Forced camera centering:', gameState.camera.x, gameState.camera.y);
+
+    }
+    
+    console.log('🖥️ Switching to game screen...');
+    ScreenManager.switchScreen('game');
+    
+    // Теперь, когда игровой экран видим, настраиваем canvas
+    this.resizeCanvas();
+    
+    // Принудительно обновляем UI после запуска игры
+    this.updateUI();
+    
+    // Запускаем игровой цикл
+    console.log('🔄 Starting game loop...');
+    gameLoopId = requestAnimationFrame(this.gameLoop.bind(this));
+  }
+
+  static gameLoop(currentTime) {
+    if (!gameState.gameRunning) {
+      console.log('❌ Game not running, stopping loop');
+      return;
+    }
+    
+    // Ограничение FPS
+    if (currentTime - lastFrameTime < FRAME_TIME) {
+      gameLoopId = requestAnimationFrame(this.gameLoop.bind(this));
+      return;
+    }
+    
+    const deltaTime = Math.min((currentTime - lastFrameTime) / 1000, 1/30);
+    lastFrameTime = currentTime;
+    
+    try {
+      if (!gameState.isPaused) {
+        this.update(deltaTime);
+      }
+      
+      this.render();
+      gameLoopId = requestAnimationFrame(this.gameLoop.bind(this));
+    } catch (error) {
+      console.error('❌ Error in game loop:', error);
+      console.error('❌ Stack:', error.stack);
+    }
+  }
+
+  static update(dt) {
+    gameState.gameTime += dt;
+    
+    // Обновление игрока
+    if (gameState.player) {
+      gameState.player.update(dt);
+      
+      // Обновление камеры (стабильное следование за игроком)
+      const targetX = gameState.player.x - canvas.width / (2 * DPR);
+      const targetY = gameState.player.y - canvas.height / (2 * DPR);
+      
+      // Используем более медленную интерполяцию для стабильности
+      const cameraSpeed = 3; // Уменьшили с 5 до 3
+      gameState.camera.x = Utils.lerp(gameState.camera.x, targetX, dt * cameraSpeed);
+      gameState.camera.y = Utils.lerp(gameState.camera.y, targetY, dt * cameraSpeed);
+      
+      // Ограничиваем минимальное движение камеры для устранения дрожания
+      const minMovement = 0.1;
+      if (Math.abs(gameState.camera.x - targetX) < minMovement) {
+        gameState.camera.x = targetX;
+      }
+      if (Math.abs(gameState.camera.y - targetY) < minMovement) {
+        gameState.camera.y = targetY;
+      }
+    }
+    
+    // Обновление сущностей (оптимизированная версия)
+    let entityIndex = 0;
+    while (entityIndex < gameState.entities.length) {
+      const entity = gameState.entities[entityIndex];
+      if (entity.isDead) {
+        gameState.entities.splice(entityIndex, 1);
+      } else {
+        entity.update(dt);
+        entityIndex++;
+      }
+    }
+    
+    // Обновление снарядов (оптимизированная версия)
+    let projectileIndex = 0;
+    while (projectileIndex < gameState.projectiles.length) {
+      const projectile = gameState.projectiles[projectileIndex];
+      if (projectile.isDead) {
+        gameState.projectiles.splice(projectileIndex, 1);
+      } else {
+        projectile.update(dt);
+        projectileIndex++;
+      }
+    }
+    
+    // Обновление частиц (оптимизированная версия)
+    let particleIndex = 0;
+    while (particleIndex < gameState.particles.length) {
+      const particle = gameState.particles[particleIndex];
+      if (particle.isDead) {
+        gameState.particles.splice(particleIndex, 1);
+      } else {
+        particle.update(dt);
+        particleIndex++;
+      }
+    }
+    
+    // Обновляем UI только раз в 2 секунды для экономии ресурсов
+    if (Math.floor(gameState.gameTime * 0.5) !== Math.floor((gameState.gameTime - dt) * 0.5)) {
+      this.updateUI();
+    }
+  }
+
+  static render() {
+    if (!ctx) {
+      console.error('❌ Canvas context not available');
+      return;
+    }
+    
+    // Очистка экрана
+    ctx.fillStyle = '#0a0a0a';
+    ctx.fillRect(0, 0, canvas.width / DPR, canvas.height / DPR);
+    
+    if (!gameState.map) {
+      console.error('❌ Game map not available');
+      return;
+    }
+    
+    // Отрисовка карты
+    this.renderMap();
+    
+    // Отрисовка сущностей (оптимизированная версия)
+    for (let i = 0; i < gameState.entities.length; i++) {
+      const entity = gameState.entities[i];
+      if (!entity.isDead) {
+        entity.draw();
+      }
+    }
+    
+    // Отрисовка снарядов (оптимизированная версия)
+    for (let i = 0; i < gameState.projectiles.length; i++) {
+      const projectile = gameState.projectiles[i];
+      if (!projectile.isDead) {
+        projectile.draw();
+      }
+    }
+    
+    // Отрисовка частиц (оптимизированная версия)
+    for (let i = 0; i < gameState.particles.length; i++) {
+      const particle = gameState.particles[i];
+      if (!particle.isDead) {
+        particle.draw();
+      }
+    }
+    
+    // Отрисовка игрока поверх всего
+    if (gameState.player) {
+      gameState.player.draw();
+    }
+    
+    // Отрисовка тумана войны
+    this.renderFogOfWar();
+    
+    // Отрисовка миникарты
+    this.renderMinimap();
+  }
+
+  static renderMap() {
+    if (!gameState.map) {
+      return;
+    }
+    
+    const startX = Math.floor(gameState.camera.x / TILE_SIZE) - 1;
+    const endX = Math.floor((gameState.camera.x + canvas.width / DPR) / TILE_SIZE) + 1;
+    const startY = Math.floor(gameState.camera.y / TILE_SIZE) - 1;
+    const endY = Math.floor((gameState.camera.y + canvas.height / DPR) / TILE_SIZE) + 1;
+    
+    // Кэшируем цвета для оптимизации
+    const wallColor = '#666666';
+    const floorColor = '#444444';
+    
+    // Ограничиваем область рендеринга
+    const clampedStartX = Math.max(0, startX);
+    const clampedEndX = Math.min(MAP_SIZE, endX);
+    const clampedStartY = Math.max(0, startY);
+    const clampedEndY = Math.min(MAP_SIZE, endY);
+    
+    // Рендерим только видимую область
+    for (let y = clampedStartY; y < clampedEndY; y++) {
+      for (let x = clampedStartX; x < clampedEndX; x++) {
+        const screenX = x * TILE_SIZE - gameState.camera.x;
+        const screenY = y * TILE_SIZE - gameState.camera.y;
+        
+        // Проверяем, что тайл находится в видимой области
+        if (screenX >= -TILE_SIZE && screenX <= canvas.width / DPR && 
+            screenY >= -TILE_SIZE && screenY <= canvas.height / DPR) {
+          
+          if (gameState.map[y][x] === 1) {
+            ctx.fillStyle = wallColor;
+            ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+          } else {
+            ctx.fillStyle = floorColor;
+            ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+          }
+        }
+      }
+    }
+  }
+
+  static renderFogOfWar() {
+    if (!gameState.fogOfWar) return;
+    
+    // Обновляем туман войны каждый кадр для плавности
+    // if (Math.floor(gameState.gameTime * 60) % 2 !== 0) {
+    //   return;
+    // }
+    
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; // Еще меньше тумана
+    ctx.fillRect(0, 0, canvas.width / DPR, canvas.height / DPR);
+    
+    // Отрисовка исследованных областей (оптимизированная версия)
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; // Еще меньше непрозрачности
+    
+    const startX = Math.floor(gameState.camera.x / TILE_SIZE) - 1;
+    const endX = Math.floor((gameState.camera.x + canvas.width / DPR) / TILE_SIZE) + 1;
+    const startY = Math.floor(gameState.camera.y / TILE_SIZE) - 1;
+    const endY = Math.floor((gameState.camera.y + canvas.height / DPR) / TILE_SIZE) + 1;
+    
+    const clampedStartX = Math.max(0, startX);
+    const clampedEndX = Math.min(MAP_SIZE, endX);
+    const clampedStartY = Math.max(0, startY);
+    const clampedEndY = Math.min(MAP_SIZE, endY);
+    
+    for (let y = clampedStartY; y < clampedEndY; y++) {
+      for (let x = clampedStartX; x < clampedEndX; x++) {
+        if (gameState.fogOfWar.explored[y] && gameState.fogOfWar.explored[y][x]) {
+          const screenX = x * TILE_SIZE - gameState.camera.x;
+          const screenY = y * TILE_SIZE - gameState.camera.y;
+          
+          // Проверяем, что тайл находится в видимой области
+          if (screenX >= -TILE_SIZE && screenX <= canvas.width / DPR && 
+              screenY >= -TILE_SIZE && screenY <= canvas.height / DPR) {
+            ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+          }
+        }
+      }
+    }
+    
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  static renderMinimap() {
+    if (!minimapCtx || !gameState.map) return;
+    
+    // Обновляем миникарту каждый кадр для плавности
+    // if (Math.floor(gameState.gameTime * 60) % 3 !== 0) {
+    //   return;
+    // }
+    
+    const minimapSize = 100; // Уменьшил размер с 120 до 100
+    const scale = minimapSize / MAP_SIZE;
+    
+    minimapCtx.fillStyle = '#000';
+    minimapCtx.fillRect(0, 0, minimapSize, minimapSize);
+    
+    // Отрисовка карты только в исследованных областях
+    for (let y = 0; y < MAP_SIZE; y++) {
+      for (let x = 0; x < MAP_SIZE; x++) {
+        // Показываем только исследованные области
+        if (gameState.fogOfWar && gameState.fogOfWar.explored[y][x]) {
+          if (gameState.map[y][x] === 1) {
+            minimapCtx.fillStyle = '#555'; // Стены
+            minimapCtx.fillRect(x * scale, y * scale, scale, scale);
+          } else {
+            minimapCtx.fillStyle = '#333'; // Пол
+            minimapCtx.fillRect(x * scale, y * scale, scale, scale);
+          }
+        }
+      }
+    }
+    
+    // Отрисовка игрока
+    if (gameState.player) {
+      const playerX = Math.floor(gameState.player.x / TILE_SIZE);
+      const playerY = Math.floor(gameState.player.y / TILE_SIZE);
+      minimapCtx.fillStyle = '#00ff00';
+      minimapCtx.fillRect(playerX * scale, playerY * scale, scale, scale);
+    }
+    
+    // Отрисовка врагов только в исследованных областях
+    gameState.entities.forEach(entity => {
+      if (entity.constructor.name === 'Enemy' && !entity.isDead) {
+        const enemyX = Math.floor(entity.x / TILE_SIZE);
+        const enemyY = Math.floor(entity.y / TILE_SIZE);
+        
+        // Показываем врага только если область исследована
+        if (gameState.fogOfWar && gameState.fogOfWar.explored[enemyY] && gameState.fogOfWar.explored[enemyY][enemyX]) {
+          minimapCtx.fillStyle = '#ff0000';
+          minimapCtx.fillRect(enemyX * scale, enemyY * scale, scale, scale);
+        }
+      }
+    });
+  }
+
+  static updateUI() {
+    // Обновление UI элементов
+    const levelEl = document.getElementById('levelText');
+    const killsEl = document.getElementById('kills');
+    const timeEl = document.getElementById('time');
+    
+    if (levelEl) levelEl.textContent = gameState.level;
+    if (killsEl) killsEl.textContent = gameState.stats.currentSessionKills;
+    if (timeEl) timeEl.textContent = Utils.formatTime(gameState.gameTime);
+    
+    // Обновляем полоску здоровья
+    if (gameState.player) {
+      const hpFillEl = document.getElementById('hpFill');
+      const hpTextEl = document.getElementById('hpText');
+      
+      if (hpFillEl && hpTextEl) {
+        const healthPercent = gameState.player.hp / gameState.player.maxHp;
+        hpFillEl.style.width = `${healthPercent * 100}%`;
+        hpTextEl.textContent = `${gameState.player.hp}/${gameState.player.maxHp}`;
+      }
+    }
+    
+    // Обновляем банки здоровья
+    this.updateHealthPotions();
+    
+    // Обновляем откат способности
+    this.updateAbilityCooldown();
+  }
+
+  static resizeCanvas() {
+    if (!canvas) {
+      console.error('❌ Canvas not found in resizeCanvas');
+      return;
+    }
+    
+    const rect = canvas.getBoundingClientRect();
+    // Если canvas скрыт, используем размеры окна
+    const width = rect.width > 0 ? rect.width : window.innerWidth;
+    const height = rect.height > 0 ? rect.height : window.innerHeight;
+    
+    canvas.width = width * DPR;
+    canvas.height = height * DPR;
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+
+    
+    if (minimapCanvas) {
+      minimapCanvas.width = 100 * DPR; // Уменьшил с 120 до 100
+      minimapCanvas.height = 100 * DPR; // Уменьшил с 120 до 100
+      minimapCanvas.style.width = '100px'; // Уменьшил с 120px до 100px
+      minimapCanvas.style.height = '100px'; // Уменьшил с 120px до 100px
+      if (minimapCtx) {
+        minimapCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      }
+    }
+    
+    // Перенастраиваем контекст
+    if (ctx) {
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      ctx.imageSmoothingEnabled = false;
+    }
+  }
+  
+  static updateHealthPotions() {
+    const potionSlot = document.getElementById('healthPotionSlot');
+    const potionCount = document.getElementById('potionCount');
+    
+    if (!potionSlot || !potionCount) return;
+    
+    // Подсчитываем количество банок здоровья в инвентаре
+    let healthPotionCount = 0;
+    
+    // Проверяем рюкзак
+    gameState.inventory.backpack.forEach(item => {
+      if (item && item.bonus && item.bonus.heal) {
+        healthPotionCount++;
+      }
+    });
+    
+    // Проверяем экипировку (расходники)
+    if (gameState.inventory.equipment[3] && gameState.inventory.equipment[3].bonus && gameState.inventory.equipment[3].bonus.heal) {
+      healthPotionCount++;
+    }
+    
+    // Обновляем UI
+    potionCount.textContent = healthPotionCount;
+    
+    if (healthPotionCount > 0) {
+      potionSlot.classList.remove('empty');
+    } else {
+      potionSlot.classList.add('empty');
+    }
+  }
+  
+  static setupHealthPotionHandlers() {
+    const potionSlot = document.getElementById('healthPotionSlot');
+    if (potionSlot) {
+      potionSlot.addEventListener('click', () => {
+        // Проверяем, что игра не в паузе
+        if (gameState.isPaused) {
+          console.log('Health potion clicked during pause - ignoring');
+          return;
+        }
+        this.useHealthPotion();
+      });
+    }
+  }
+  
+  static useHealthPotion() {
+    if (!gameState.player) return;
+    
+    // Дополнительная проверка на паузу
+    if (gameState.isPaused) {
+      console.log('Health potion use attempted during pause - ignoring');
+      return;
+    }
+    
+    // Ищем банку здоровья в рюкзаке
+    for (let i = 0; i < gameState.inventory.backpack.length; i++) {
+      const item = gameState.inventory.backpack[i];
+      if (item && item.bonus && item.bonus.heal) {
+        // Используем банку
+        gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + item.bonus.heal);
+        
+        // Удаляем банку из инвентаря
+        gameState.inventory.backpack[i] = null;
+        
+        // Воспроизводим звук использования зелья (асинхронно)
+        (async () => {
+          const { audioManager } = await import('../audio/AudioManager.js');
+          audioManager.playHealthPotion();
+        })();
+        
+        console.log(`🧪 Used health potion: +${item.bonus.heal} HP (${gameState.player.hp}/${gameState.player.maxHp})`);
+        
+        // Обновляем UI
+        this.updateHealthPotions();
+        return;
+      }
+    }
+    
+    // Если в рюкзаке нет, проверяем экипировку
+    const equippedPotion = gameState.inventory.equipment[3];
+    if (equippedPotion && equippedPotion.bonus && equippedPotion.bonus.heal) {
+      gameState.player.hp = Math.min(gameState.player.maxHp, gameState.player.hp + equippedPotion.bonus.heal);
+      
+      // Удаляем банку из экипировки
+      gameState.inventory.equipment[3] = null;
+      
+      // Воспроизводим звук использования зелья (асинхронно)
+      (async () => {
+        const { audioManager } = await import('../audio/AudioManager.js');
+        audioManager.playHealthPotion();
+      })();
+      
+      console.log(`🧪 Used equipped health potion: +${equippedPotion.bonus.heal} HP (${gameState.player.hp}/${gameState.player.maxHp})`);
+      
+      // Обновляем UI
+      this.updateHealthPotions();
+      return;
+    }
+    
+    console.log('🧪 No health potions available');
+  }
+  
+  static updateAbilityCooldown() {
+    if (!gameState.player) return;
+    
+    const cooldownUI = document.getElementById('abilityCooldownUI');
+    const desktopAbilityBtn = document.getElementById('desktopAbilityBtn');
+    
+    let cooldown = 0;
+    let maxCooldown = 1;
+    let abilityIcon = '⚡';
+    let abilityName = '';
+    
+    if (gameState.player.hasDash && gameState.player.dashCooldown > 0) {
+      cooldown = gameState.player.dashCooldown;
+      maxCooldown = 3.0;
+      abilityIcon = '💨';
+      abilityName = 'Dash';
+    } else if (gameState.player.hasShield && gameState.player.shieldCooldown > 0) {
+      cooldown = gameState.player.shieldCooldown;
+      maxCooldown = 8.0;
+      abilityIcon = '🛡️';
+      abilityName = 'Shield';
+    } else if (gameState.player.hasBlast && gameState.player.blastCooldown > 0) {
+      cooldown = gameState.player.blastCooldown;
+      maxCooldown = 12.0;
+      abilityIcon = '💥';
+      abilityName = 'Blast';
+    }
+    
+    // Обновляем мобильный UI
+    if (cooldownUI) {
+      if (cooldown > 0) {
+        cooldownUI.classList.remove('hidden');
+        const cooldownPercent = (cooldown / maxCooldown) * 100;
+        
+        const iconEl = cooldownUI.querySelector('.ability-icon');
+        const textEl = cooldownUI.querySelector('.cooldown-text');
+        
+        if (iconEl) iconEl.textContent = abilityIcon;
+        if (textEl) textEl.textContent = cooldown > 0 ? `${Math.ceil(cooldown)}s` : '';
+        
+        // Устанавливаем высоту заполнения
+        cooldownUI.style.setProperty('--cooldown-width', cooldownPercent + '%');
+      } else {
+        cooldownUI.classList.add('hidden');
+        cooldownUI.style.setProperty('--cooldown-width', '0%');
+      }
+    }
+    
+    // Обновляем мобильную кнопку способности
+    const mobileAbilityBtn = document.getElementById('abilityBtn');
+    if (mobileAbilityBtn) {
+      const cooldownPercent = (cooldown / maxCooldown) * 100;
+      mobileAbilityBtn.style.setProperty('--cooldown-width', cooldownPercent + '%');
+      
+      // Обновляем иконку способности
+      mobileAbilityBtn.textContent = abilityIcon;
+      
+      mobileAbilityBtn.disabled = cooldown > 0;
+      
+      // Показываем кнопку только если у игрока есть способность
+      if (gameState.player.hasDash || gameState.player.hasShield || gameState.player.hasBlast) {
+        mobileAbilityBtn.style.display = 'flex';
+      } else {
+        mobileAbilityBtn.style.display = 'none';
+      }
+    }
+    
+    // Обновляем десктопную кнопку
+    if (desktopAbilityBtn) {
+      const cooldownPercent = (cooldown / maxCooldown) * 100;
+      desktopAbilityBtn.style.setProperty('--cooldown-width', cooldownPercent + '%');
+      
+      const cooldownText = desktopAbilityBtn.querySelector('.cooldown-text');
+      if (cooldownText) {
+        cooldownText.textContent = cooldown > 0 ? `${Math.ceil(cooldown)}s` : '';
+      }
+      
+      const abilityIconElement = desktopAbilityBtn.querySelector('.ability-icon');
+      if (abilityIconElement) {
+        abilityIconElement.textContent = abilityIcon;
+      }
+      
+      desktopAbilityBtn.disabled = cooldown > 0;
+      
+      // Показываем кнопку только если у игрока есть способность
+      if (gameState.player.hasDash || gameState.player.hasShield || gameState.player.hasBlast) {
+        desktopAbilityBtn.style.display = 'flex';
+      } else {
+        desktopAbilityBtn.style.display = 'none';
+      }
+    }
+  }
+  
+  static stopGame() {
+    console.log('🛑 Stopping game...');
+    
+    // Остановить игровой цикл
+    if (gameLoopId) {
+      cancelAnimationFrame(gameLoopId);
+      gameLoopId = null;
+    }
+    
+    // Сбросить состояние игры
+    gameState.entities = [];
+    gameState.projectiles = [];
+    gameState.particles = [];
+    gameState.player = null;
+    gameState.map = null;
+    gameState.rooms = [];
+    gameState.fogOfWar = null;
+    gameState.isPaused = false;
+    gameState.gameRunning = false;
+    
+    // Очистить canvas
+    if (ctx) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+    if (minimapCtx) {
+      minimapCtx.clearRect(0, 0, minimapCanvas.width, minimapCanvas.height);
+    }
+    
+    console.log('✅ Game stopped');
+  }
+
+  static async continueGame() {
+    console.log(`🎮 Continuing game at level ${gameState.level}...`);
+    
+    gameState.gameRunning = true;
+    gameState.isPaused = false;
+    
+    // Принудительно центрируем камеру на игроке
+    if (gameState.player) {
+      const canvasWidth = canvas ? canvas.width / DPR : 800;
+      const canvasHeight = canvas ? canvas.height / DPR : 600;
+      gameState.camera.x = gameState.player.x - canvasWidth / 2;
+      gameState.camera.y = gameState.player.y - canvasHeight / 2;
+    }
+    
+    // Переключаемся на игровой экран
+    const { ScreenManager } = await import('../ui/ScreenManager.js');
+    ScreenManager.switchScreen('game');
+    
+    // Настраиваем canvas и запускаем игровой цикл
+    this.resizeCanvas();
+    this.updateUI();
+    
+    console.log('🔄 Starting game loop...');
+    gameLoopId = requestAnimationFrame(this.gameLoop.bind(this));
+  }
+} 
