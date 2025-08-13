@@ -121,7 +121,7 @@ export class InventoryManager {
       if (item) {
         slot.classList.add('filled', item.rarity);
         slot.innerHTML = `<div class="item-sprite" style="background:${item.color};font-size:2rem;display:flex;align-items:center;justify-content:center;">${item.icon||''}</div>`;
-        const tooltipText = `${item.name}\n${item.description}\n${Object.entries(item.bonus).map(([k,v]) => k==='heal'?`Восстановление: +${v}`:`${k}: +${v}`).join('\n')}`;
+        const tooltipText = `${item.name}\n${item.description}`;
         
         // Добавляем обработчики для тултипов
         slot.addEventListener('mouseenter', (e) => this.showTooltip(e, tooltipText));
@@ -151,7 +151,7 @@ export class InventoryManager {
       if (item) {
         slot.classList.add('filled', item.rarity);
         slot.innerHTML = `<div class="item-sprite" style="background:${item.color};font-size:2rem;display:flex;align-items:center;justify-content:center;">${item.icon||''}</div>`;
-        const tooltipText = `${item.name}\n${item.description}\n${Object.entries(item.bonus).map(([k,v]) => k==='heal'?`Восстановление: +${v}`:`${k}: +${v}`).join('\n')}`;
+        const tooltipText = `${item.name}\n${item.description}`;
         
         // Добавляем обработчики для тултипов
         slot.addEventListener('mouseenter', (e) => this.showTooltip(e, tooltipText));
