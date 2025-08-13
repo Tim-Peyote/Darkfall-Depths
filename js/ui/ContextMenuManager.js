@@ -175,6 +175,12 @@ export class ContextMenuManager {
     if (contextMenu) {
       contextMenu.classList.add('hidden');
     }
+    // НЕ сбрасываем currentItem и currentSlot, так как они нужны для deleteItem
+    // currentItem = null;
+    // currentSlot = null;
+  }
+
+  static resetContextMenu() {
     currentItem = null;
     currentSlot = null;
   }
@@ -182,19 +188,19 @@ export class ContextMenuManager {
   static useItem() {
     if (!currentItem || !currentSlot) return;
 
-    // Вызываем функцию через глобальный объект
-    if (window.InventoryManager) {
-      window.InventoryManager.useItem(currentSlot.type, currentSlot.index);
-    }
+    // Используем InventoryManager для реальной игры
+    import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
+      InventoryManager.useItem(currentSlot.type, currentSlot.index);
+    });
   }
 
   static unequipItem() {
     if (!currentSlot || currentSlot.type !== 'equipment') return;
 
-    // Вызываем функцию через глобальный объект
-    if (window.InventoryManager) {
-      window.InventoryManager.unequipItem(currentSlot.index);
-    }
+    // Используем InventoryManager для реальной игры
+    import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
+      InventoryManager.unequipItem(currentSlot.index);
+    });
   }
 
   static showDeleteConfirmation() {
@@ -203,6 +209,8 @@ export class ContextMenuManager {
 
     const confirmBtn = document.getElementById('confirmDeleteBtn');
     const cancelBtn = document.getElementById('cancelDeleteBtn');
+    
+    if (!confirmBtn || !cancelBtn) return;
 
     // Обновляем текст
     const itemName = currentItem ? currentItem.name : 'предмет';
@@ -231,14 +239,21 @@ export class ContextMenuManager {
   static deleteItem() {
     if (!currentItem || !currentSlot) return;
 
-    // Вызываем функцию через глобальный объект
-    if (window.InventoryManager) {
-      if (currentSlot.type === 'equipment') {
-        window.InventoryManager.deleteEquipItem(currentSlot.index);
+    // Сохраняем значения в локальные переменные
+    const slotType = currentSlot.type;
+    const slotIndex = currentSlot.index;
+
+    // Используем InventoryManager для правильного удаления с обработкой бонусов
+    import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
+      if (slotType === 'equipment') {
+        InventoryManager.deleteEquipItem(slotIndex);
       } else {
-        window.InventoryManager.deleteBackpackItem(currentSlot.index);
+        InventoryManager.deleteBackpackItem(slotIndex);
       }
-    }
+    });
+    
+    // Сбрасываем переменные после выполнения
+    this.resetContextMenu();
   }
 
   // Методы для определения платформы

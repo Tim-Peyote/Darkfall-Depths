@@ -249,7 +249,8 @@ export class InventoryManager {
 
   static deleteBackpackItem(index) {
     const item = gameState.inventory.backpack[index];
-    if (item && confirm(`Удалить предмет "${item.name}"?`)) {
+    
+    if (item) {
       gameState.inventory.backpack[index] = null;
       this.renderInventory();
     }
@@ -257,7 +258,8 @@ export class InventoryManager {
 
   static deleteEquipItem(index) {
     const item = gameState.inventory.equipment[index];
-    if (item && confirm(`Удалить предмет "${item.name}"?`)) {
+    
+    if (item) {
       this.removeItemBonuses(item);
       gameState.inventory.equipment[index] = null;
       this.renderInventory();
