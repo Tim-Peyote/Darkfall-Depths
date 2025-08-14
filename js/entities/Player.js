@@ -391,14 +391,7 @@ export class Player extends Entity {
     
     // Индикатор отката способности (убрали - теперь только в UI)
     
-    // Debug: draw attack radius
-    if (this.attackAnimation > 0) {
-      ctx.strokeStyle = 'rgba(255, 255, 0, 0.3)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.arc(this.x - gameState.camera.x, this.y - gameState.camera.y, this.attackRadius, 0, Math.PI * 2);
-      ctx.stroke();
-    }
+    // Убрали debug отрисовку радиуса атаки для улучшения производительности
   }
   
   drawHealthBar() {

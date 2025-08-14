@@ -12,6 +12,7 @@ import { Enemy } from '../entities/Enemy.js';
 import { MapGenerator } from '../map/MapGenerator.js';
 import { FogOfWar } from '../map/FogOfWar.js';
 import { TILE_SIZE, MAP_SIZE, ENEMY_TYPES } from '../config/constants.js';
+import { PerformanceMonitor } from '../core/PerformanceMonitor.js';
 
 let lastFrameTime = 0;
 let gameLoopId = null;
@@ -26,6 +27,9 @@ export class GameEngine {
       console.error('Canvas elements not found');
       return;
     }
+    
+    // Инициализация мониторинга производительности
+    PerformanceMonitor.init();
     
     // Инициализация ввода
     InputManager.init();
@@ -129,6 +133,9 @@ export class GameEngine {
     
     const deltaTime = Math.min((currentTime - lastFrameTime) / 1000, 1/30);
     lastFrameTime = currentTime;
+    
+    // Обновляем мониторинг производительности
+    PerformanceMonitor.update(currentTime);
     
     try {
       if (!gameState.isPaused) {
@@ -269,6 +276,9 @@ export class GameEngine {
     
     // Отрисовка миникарты
     this.renderMinimap();
+    
+    // Отрисовка FPS индикатора (только в режиме разработки)
+    this.renderFPSIndicator();
   }
 
   static renderMap() {
@@ -408,6 +418,65 @@ export class GameEngine {
         }
       }
     });
+  }
+  
+  static renderFPSIndicator() {
+    // Показываем FPS только в режиме разработки (localhost)
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      const fps = PerformanceMonitor.getFPS();
+      const avgFrameTime = PerformanceMonitor.getAverageFrameTime();
+      const isLowMode = PerformanceMonitor.isLowPerformanceMode();
+      
+      // Определяем размеры экрана и адаптивность
+      const canvasWidth = canvas.width / DPR;
+      const canvasHeight = canvas.height / DPR;
+      const isMobile = window.innerWidth <= 768;
+      
+      // Размеры и позиции для разных экранов
+      let minimapSize, fpsX, fpsY, fpsWidth, fpsHeight, fontSize;
+      
+      if (isMobile) {
+        // Мобильная версия - под миникартой с отступом
+        minimapSize = 100;
+        fpsWidth = 80;
+        fpsHeight = 35;
+        fontSize = 9;
+        fpsX = canvasWidth - minimapSize - 5; // Выровнено по правому краю миникарты
+        fpsY = 150; // Под миникартой с большим отступом (100px миникарта + 50px отступ)
+      } else {
+        // Десктопная версия - под миникартой с отступом
+        minimapSize = 100;
+        fpsWidth = 90;
+        fpsHeight = 45;
+        fontSize = 10;
+        fpsX = canvasWidth - minimapSize - 10; // Выровнено по правому краю миникарты
+        fpsY = 150; // Под миникартой с большим отступом (100px миникарта + 50px отступ)
+      }
+      
+      // FPS теперь всегда под миникартой, дополнительная проверка не нужна
+      
+      // Фон для лучшей читаемости
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      ctx.fillRect(fpsX - 5, fpsY - 15, fpsWidth, fpsHeight);
+      
+      // Рамка
+      ctx.strokeStyle = isLowMode ? '#ff4444' : '#00ff00';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(fpsX - 5, fpsY - 15, fpsWidth, fpsHeight);
+      
+      // Текст
+      ctx.font = `${fontSize}px Arial`;
+      ctx.fillStyle = isLowMode ? '#ff4444' : '#00ff00';
+      ctx.textAlign = 'left';
+      
+      const fpsText = `FPS: ${fps}`;
+      const frameTimeText = `${avgFrameTime.toFixed(1)}ms`;
+      const modeText = isLowMode ? 'LOW' : 'OK';
+      
+      ctx.fillText(fpsText, fpsX, fpsY);
+      ctx.fillText(frameTimeText, fpsX, fpsY + (isMobile ? 10 : 12));
+      ctx.fillText(modeText, fpsX, fpsY + (isMobile ? 20 : 24));
+    }
   }
 
   static updateUI() {

@@ -2,6 +2,7 @@
 
 import { gameState, ctx } from '../core/GameState.js';
 import { ObjectPool } from '../core/ObjectPool.js';
+import { PerformanceMonitor } from '../core/PerformanceMonitor.js';
 
 export class Particle {
   constructor() {
@@ -70,6 +71,11 @@ export const particlePool = new ObjectPool(
 );
 
 export function createParticle(x, y, vx, vy, color, life, size = 2) {
+  // Проверяем лимит частиц в режиме низкой производительности
+  if (!PerformanceMonitor.shouldCreateParticle()) {
+    return null;
+  }
+  
   const particle = particlePool.get();
   particle.init(x, y, vx, vy, color, life, size);
   gameState.particles.push(particle);

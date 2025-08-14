@@ -37,10 +37,12 @@ import { MenuNavigationManager } from './ui/MenuNavigationManager.js';
 
 // Импорты утилит
 import { Utils } from './utils/Utils.js';
+import { Logger } from './utils/Logger.js';
 
 // Импорты игры
 import { GameEngine } from './game/GameEngine.js';
 import { LevelManager } from './game/LevelManager.js';
+import { PerformanceMonitor } from './core/PerformanceMonitor.js';
 
 // Глобальные переменные для совместимости
 window.gameState = gameState;
@@ -50,6 +52,8 @@ window.CHARACTERS = CHARACTERS;
 window.ENEMY_TYPES = ENEMY_TYPES;
 window.generateRandomItem = generateRandomItem;
 window.Utils = Utils;
+window.Logger = Logger;
+window.PerformanceMonitor = PerformanceMonitor;
 window.audioManager = audioManager;
 window.MapGenerator = MapGenerator;
 window.FogOfWar = FogOfWar;
@@ -76,6 +80,8 @@ export {
   ENEMY_TYPES,
   generateRandomItem,
   Utils,
+  Logger,
+  PerformanceMonitor,
   audioManager,
   MapGenerator,
   FogOfWar,

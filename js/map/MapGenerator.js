@@ -1,6 +1,7 @@
 /* Darkfall Depths - Генерация карты */
 
 import { TILE_SIZE, MAP_SIZE, ROOM_MIN_SIZE, ROOM_MAX_SIZE, MIN_ROOMS, MAX_ROOMS } from '../config/constants.js';
+import { Logger } from '../utils/Logger.js';
 import { Utils } from '../core/GameState.js';
 import { gameState } from '../core/GameState.js';
 
@@ -14,7 +15,7 @@ export class MapGenerator {
     const dynamicMinRooms = MIN_ROOMS + Math.floor(level * 0.4); // +0.4 комнаты за уровень
     const dynamicMaxRooms = MAX_ROOMS + Math.floor(level * 0.6); // +0.6 комнаты за уровень
     
-    console.log('🗺️ Generating dungeon - Level:', level, 'Map size:', dynamicMapSize, 'Rooms:', dynamicMinRooms, '-', dynamicMaxRooms);
+    Logger.map('Generating dungeon - Level:', level, 'Map size:', dynamicMapSize, 'Rooms:', dynamicMinRooms, '-', dynamicMaxRooms);
     
     const map = Array.from({ length: dynamicMapSize }, () => Array(dynamicMapSize).fill(1)); // 1 = стена
     const rooms = [];
@@ -35,7 +36,7 @@ export class MapGenerator {
       }
     }
     
-    console.log('🗺️ Created', partitions.length, 'partitions');
+    Logger.map('Created', partitions.length, 'partitions');
     
     // Создаем комнаты в каждом разделе
     partitions.forEach((partition, index) => {
@@ -47,18 +48,18 @@ export class MapGenerator {
             room.y + room.height < dynamicMapSize) {
           rooms.push(room);
           this.carveRoom(map, room);
-          console.log('🏠 Room', index, ':', room);
-        } else {
-          console.warn('⚠️ Room', index, 'out of bounds:', room);
+                Logger.debug('Room', index, ':', room);
+    } else {
+      Logger.warn('Room', index, 'out of bounds:', room);
         }
       }
     });
     
-    console.log('🗺️ Generated', rooms.length, 'rooms');
+    Logger.map('Generated', rooms.length, 'rooms');
     
     // Проверяем, что у нас есть хотя бы одна комната
     if (rooms.length === 0) {
-      console.error('❌ No rooms generated! Creating fallback room');
+      Logger.error('No rooms generated! Creating fallback room');
       const fallbackRoom = {
         x: 5, y: 5, width: 8, height: 8,
         centerX: 9, centerY: 9
