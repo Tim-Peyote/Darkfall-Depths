@@ -22,6 +22,7 @@ export class Player extends Entity {
     this.invulnerabilityTime = 0;
     this.isShieldActive = false;
     this.shieldTime = 0;
+    this.direction = { x: 0, y: 0 }; // Направление движения для фонарика
   }
   
   update(dt) {
@@ -52,6 +53,10 @@ export class Player extends Entity {
     if (inputMagnitude > 0) {
       dx /= inputMagnitude;
       dy /= inputMagnitude;
+      
+      // Обновляем направление движения для фонарика
+      this.direction.x = dx;
+      this.direction.y = dy;
       
       const newX = this.x + dx * this.moveSpeed * dt;
       const newY = this.y + dy * this.moveSpeed * dt;

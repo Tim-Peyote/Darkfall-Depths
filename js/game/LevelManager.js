@@ -2,7 +2,7 @@
 
 import { gameState, Utils, canvas, DPR } from '../core/GameState.js';
 import { MapGenerator } from '../map/MapGenerator.js';
-import { FogOfWar } from '../map/FogOfWar.js';
+import { WebGLFogOfWar } from '../map/WebGLFogOfWar.js';
 import { Player } from '../entities/Player.js';
 import { Enemy } from '../entities/Enemy.js';
 import { TILE_SIZE, ENEMY_TYPES, generateRandomItem } from '../config/constants.js';
@@ -30,7 +30,19 @@ export class LevelManager {
     
     gameState.map = map;
     gameState.rooms = rooms;
-    gameState.fogOfWar = new FogOfWar();
+    
+    // Используем WebGL туман войны
+    const { GameEngine } = await import('./GameEngine.js');
+    console.log('🔍 Проверяем WebGL рендерер:', GameEngine.webglRenderer);
+    console.log('🔍 WebGL поддерживается:', GameEngine.webglRenderer?.isSupported());
+    
+    if (GameEngine.webglRenderer && GameEngine.webglRenderer.isSupported()) {
+      gameState.fogOfWar = new WebGLFogOfWar(GameEngine.webglRenderer);
+      console.log('✅ WebGL туман войны инициализирован');
+    } else {
+      gameState.fogOfWar = new WebGLFogOfWar(null); // Fallback без WebGL
+      console.log('⚠️ Используем Canvas 2D fallback туман войны');
+    }
     
     // Очистка сущностей
     gameState.entities = [];

@@ -88,4 +88,9 @@ export const Utils = {
     const secs = Math.floor(seconds % 60);
     return `${mins}м ${secs}с`;
   }
-}; 
+};
+
+// Делаем gameState доступным глобально для системы тумана войны
+if (typeof window !== 'undefined') {
+  window.gameState = gameState;
+} 

@@ -1,14 +1,17 @@
-или <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Darkfall Depths - Roguelike Dungeon Crawler</title>
     
     <!-- Gothic Font Import -->
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="style.css?v=3">
+    <link rel="stylesheet" href="style.css?v=7">
     
     <!-- iOS Safari optimizations -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -33,6 +36,12 @@
     
     <!-- ПРЕДУПРЕЖДЕНИЕ О FILE:// ПРОТОКОЛЕ -->
     <script>
+    // Принудительное обновление кэша
+    if (window.location.protocol === 'file:') {
+        console.log('🔄 Принудительное обновление при file:// протоколе');
+        window.location.reload(true);
+    }
+    
     // Проверяем протокол сразу при загрузке
     console.log('🔍 Проверка протокола:', window.location.protocol);
     
@@ -367,6 +376,6 @@
       </div>
     </div>
 
-            <script type="module" src="js/main.js?v=30"></script>
+            <script type="module" src="js/main.js?v=36"></script>
 </body>
 </html>

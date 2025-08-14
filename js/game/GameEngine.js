@@ -10,9 +10,10 @@ import { LevelManager } from './LevelManager.js';
 import { Player } from '../entities/Player.js';
 import { Enemy } from '../entities/Enemy.js';
 import { MapGenerator } from '../map/MapGenerator.js';
-import { FogOfWar } from '../map/FogOfWar.js';
 import { TILE_SIZE, MAP_SIZE, ENEMY_TYPES } from '../config/constants.js';
 import { PerformanceMonitor } from '../core/PerformanceMonitor.js';
+import { WebGLRenderer } from '../core/WebGLRenderer.js';
+import { WebGLFogOfWar } from '../map/WebGLFogOfWar.js';
 
 let lastFrameTime = 0;
 let gameLoopId = null;
@@ -20,12 +21,19 @@ const TARGET_FPS = 60;
 const FRAME_TIME = 1000 / TARGET_FPS;
 
 export class GameEngine {
+  static webglRenderer = null;
+  
   static async init() {
-    console.log('GameEngine initializing...');
-    
     if (!canvas || !ctx) {
       console.error('Canvas elements not found');
       return;
+    }
+    
+    // Инициализация WebGL рендерера
+    this.webglRenderer = new WebGLRenderer(canvas);
+    
+    if (this.webglRenderer.isSupported()) {
+      this.webglRenderer.setProjection(canvas.width / DPR, canvas.height / DPR);
     }
     
     // Инициализация мониторинга производительности
@@ -48,12 +56,9 @@ export class GameEngine {
     
     // Отложим resizeCanvas до показа игрового экрана
     // this.resizeCanvas();
-    console.log('GameEngine initialized successfully');
   }
 
   static async startGame() {
-    console.log('🎮 Starting game...');
-    
     if (!gameState.selectedCharacter) {
       console.error('❌ No character selected');
       return;
@@ -64,7 +69,6 @@ export class GameEngine {
     
     if (isNewGame) {
       // Только при новом запуске игры сбрасываем прогрессию
-      console.log(`🎮 Starting new game - resetting level from ${gameState.level} to 1`);
       gameState.level = 1;
       gameState.gameTime = 0;
       gameState.stats.currentSessionKills = 0;
@@ -79,11 +83,6 @@ export class GameEngine {
         const { BuffManager } = await import('../core/BuffManager.js');
         BuffManager.clearAllBuffs();
       })();
-      
-      console.log('🎮 Starting new game - resetting progress');
-    } else {
-      // При переходе на следующий уровень сохраняем прогрессию
-      console.log(`🎮 Continuing game - keeping progress, level: ${gameState.level}`);
     }
     
     gameState.gameRunning = true;
@@ -156,6 +155,14 @@ export class GameEngine {
     // Обновление игрока
     if (gameState.player) {
       gameState.player.update(dt);
+      
+          // Обновление тумана войны (максимально оптимизированное)
+    if (gameState.fogOfWar) {
+      // Обновляем туман войны только каждые 5 кадров для максимальной производительности
+      if (Math.floor(gameState.gameTime * 60) % 5 === 0) {
+        gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y, 8);
+      }
+    }
       
       // Обновление камеры (стабильное следование за игроком)
       const targetX = gameState.player.x - canvas.width / (2 * DPR);
@@ -230,6 +237,66 @@ export class GameEngine {
       return;
     }
     
+    // Используем WebGL рендерер если доступен
+    if (this.webglRenderer && this.webglRenderer.isSupported()) {
+      this.renderWebGL();
+    } else {
+      this.renderCanvas2D();
+    }
+  }
+  
+  static renderWebGL() {
+    // Очистка экрана через WebGL
+    this.webglRenderer.clear();
+    
+    if (!gameState.map) {
+      console.error('❌ Game map not available');
+      return;
+    }
+    
+    // Отрисовка карты через WebGL
+    this.renderMap();
+    
+    // Отрисовка сущностей через Canvas 2D (пока что)
+    for (let i = 0; i < gameState.entities.length; i++) {
+      const entity = gameState.entities[i];
+      if (!entity.isDead) {
+        entity.draw();
+      }
+    }
+    
+    // Отрисовка снарядов через Canvas 2D (пока что)
+    for (let i = 0; i < gameState.projectiles.length; i++) {
+      const projectile = gameState.projectiles[i];
+      if (!projectile.isDead) {
+        projectile.draw();
+      }
+    }
+    
+    // Отрисовка частиц через Canvas 2D (пока что)
+    for (let i = 0; i < gameState.particles.length; i++) {
+      const particle = gameState.particles[i];
+      if (!particle.isDead) {
+        particle.draw();
+      }
+    }
+    
+    // Отрисовка игрока поверх всего
+    if (gameState.player) {
+      gameState.player.draw();
+    }
+    
+    // Отрисовка тумана войны
+    this.renderFogOfWar();
+    
+    // Отрисовка миникарты
+    this.renderMinimap();
+    
+    // Отрисовка FPS индикатора (только в режиме разработки)
+    this.renderFPSIndicator();
+  }
+  
+  static renderCanvas2D() {
     // Очистка экрана
     ctx.fillStyle = '#0a0a0a';
     ctx.fillRect(0, 0, canvas.width / DPR, canvas.height / DPR);
@@ -242,26 +309,29 @@ export class GameEngine {
     // Отрисовка карты
     this.renderMap();
     
-    // Отрисовка сущностей (оптимизированная версия)
+    // Отрисовка сущностей (максимально оптимизированная версия)
     for (let i = 0; i < gameState.entities.length; i++) {
       const entity = gameState.entities[i];
       if (!entity.isDead) {
+        // Временно отключаем проверку видимости для отладки
         entity.draw();
       }
     }
     
-    // Отрисовка снарядов (оптимизированная версия)
+    // Отрисовка снарядов (максимально оптимизированная версия)
     for (let i = 0; i < gameState.projectiles.length; i++) {
       const projectile = gameState.projectiles[i];
       if (!projectile.isDead) {
+        // Временно отключаем проверку видимости для отладки
         projectile.draw();
       }
     }
     
-    // Отрисовка частиц (оптимизированная версия)
+    // Отрисовка частиц (максимально оптимизированная версия)
     for (let i = 0; i < gameState.particles.length; i++) {
       const particle = gameState.particles[i];
       if (!particle.isDead) {
+        // Временно отключаем проверку видимости для отладки
         particle.draw();
       }
     }
@@ -286,14 +356,19 @@ export class GameEngine {
       return;
     }
     
+    // Используем WebGL рендерер если доступен
+    if (this.webglRenderer && this.webglRenderer.isSupported()) {
+      this.renderMapWebGL();
+    } else {
+      this.renderMapCanvas2D();
+    }
+  }
+  
+  static renderMapWebGL() {
     const startX = Math.floor(gameState.camera.x / TILE_SIZE) - 1;
     const endX = Math.floor((gameState.camera.x + canvas.width / DPR) / TILE_SIZE) + 1;
     const startY = Math.floor(gameState.camera.y / TILE_SIZE) - 1;
     const endY = Math.floor((gameState.camera.y + canvas.height / DPR) / TILE_SIZE) + 1;
-    
-    // Кэшируем цвета для оптимизации
-    const wallColor = '#666666';
-    const floorColor = '#444444';
     
     // Ограничиваем область рендеринга
     const clampedStartX = Math.max(0, startX);
@@ -301,20 +376,66 @@ export class GameEngine {
     const clampedStartY = Math.max(0, startY);
     const clampedEndY = Math.min(MAP_SIZE, endY);
     
-    // Рендерим только видимую область
+    // Рендерим карту через WebGL для максимальной производительности
     for (let y = clampedStartY; y < clampedEndY; y++) {
       for (let x = clampedStartX; x < clampedEndX; x++) {
         const screenX = x * TILE_SIZE - gameState.camera.x;
         const screenY = y * TILE_SIZE - gameState.camera.y;
         
-        // Проверяем, что тайл находится в видимой области
+        // Проверяем, что тайл находится в видимой области экрана
         if (screenX >= -TILE_SIZE && screenX <= canvas.width / DPR && 
             screenY >= -TILE_SIZE && screenY <= canvas.height / DPR) {
           
+          // Временно отключаем проверку видимости для отладки
           if (gameState.map[y][x] === 1) {
+            // Стена
+            this.webglRenderer.drawRect(screenX, screenY, TILE_SIZE, TILE_SIZE, {
+              r: 0.17, g: 0.24, b: 0.31, a: 1.0
+            });
+          } else {
+            // Пол
+            this.webglRenderer.drawRect(screenX, screenY, TILE_SIZE, TILE_SIZE, {
+              r: 0.33, g: 0.33, b: 0.33, a: 1.0
+            });
+          }
+        }
+      }
+    }
+  }
+  
+  static renderMapCanvas2D() {
+    const startX = Math.floor(gameState.camera.x / TILE_SIZE) - 1;
+    const endX = Math.floor((gameState.camera.x + canvas.width / DPR) / TILE_SIZE) + 1;
+    const startY = Math.floor(gameState.camera.y / TILE_SIZE) - 1;
+    const endY = Math.floor((gameState.camera.y + canvas.height / DPR) / TILE_SIZE) + 1;
+    
+    // Кэшируем цвета для оптимизации
+    const wallColor = '#2c3e50';
+    const floorColor = '#555';
+    
+    // Ограничиваем область рендеринга
+    const clampedStartX = Math.max(0, startX);
+    const clampedEndX = Math.min(MAP_SIZE, endX);
+    const clampedStartY = Math.max(0, startY);
+    const clampedEndY = Math.min(MAP_SIZE, endY);
+    
+    // Рендерим карту через Canvas 2D
+    for (let y = clampedStartY; y < clampedEndY; y++) {
+      for (let x = clampedStartX; x < clampedEndX; x++) {
+        const screenX = x * TILE_SIZE - gameState.camera.x;
+        const screenY = y * TILE_SIZE - gameState.camera.y;
+        
+        // Проверяем, что тайл находится в видимой области экрана
+        if (screenX >= -TILE_SIZE && screenX <= canvas.width / DPR && 
+            screenY >= -TILE_SIZE && screenY <= canvas.height / DPR) {
+          
+          // Временно отключаем проверку видимости для отладки
+          if (gameState.map[y][x] === 1) {
+            // Стена
             ctx.fillStyle = wallColor;
             ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
           } else {
+            // Пол
             ctx.fillStyle = floorColor;
             ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
           }
@@ -326,54 +447,37 @@ export class GameEngine {
   static renderFogOfWar() {
     if (!gameState.fogOfWar) return;
     
-    // Обновляем туман войны каждый кадр для плавности
-    // if (Math.floor(gameState.gameTime * 60) % 2 !== 0) {
-    //   return;
-    // }
+    // Отрисовка тумана войны
+    const fogCanvas = gameState.fogOfWar.render(
+      gameState.camera.x, 
+      gameState.camera.y, 
+      canvas.width / DPR, 
+      canvas.height / DPR
+    );
     
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; // Еще меньше тумана
-    ctx.fillRect(0, 0, canvas.width / DPR, canvas.height / DPR);
-    
-    // Отрисовка исследованных областей (оптимизированная версия)
-    ctx.globalCompositeOperation = 'destination-out';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; // Еще меньше непрозрачности
-    
-    const startX = Math.floor(gameState.camera.x / TILE_SIZE) - 1;
-    const endX = Math.floor((gameState.camera.x + canvas.width / DPR) / TILE_SIZE) + 1;
-    const startY = Math.floor(gameState.camera.y / TILE_SIZE) - 1;
-    const endY = Math.floor((gameState.camera.y + canvas.height / DPR) / TILE_SIZE) + 1;
-    
-    const clampedStartX = Math.max(0, startX);
-    const clampedEndX = Math.min(MAP_SIZE, endX);
-    const clampedStartY = Math.max(0, startY);
-    const clampedEndY = Math.min(MAP_SIZE, endY);
-    
-    for (let y = clampedStartY; y < clampedEndY; y++) {
-      for (let x = clampedStartX; x < clampedEndX; x++) {
-        if (gameState.fogOfWar.explored[y] && gameState.fogOfWar.explored[y][x]) {
-          const screenX = x * TILE_SIZE - gameState.camera.x;
-          const screenY = y * TILE_SIZE - gameState.camera.y;
-          
-          // Проверяем, что тайл находится в видимой области
-          if (screenX >= -TILE_SIZE && screenX <= canvas.width / DPR && 
-              screenY >= -TILE_SIZE && screenY <= canvas.height / DPR) {
-            ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
-          }
-        }
-      }
+    // Если вернулся canvas, отрисовываем его
+    if (fogCanvas) {
+      ctx.drawImage(
+        fogCanvas,
+        gameState.camera.x,
+        gameState.camera.y,
+        canvas.width / DPR,
+        canvas.height / DPR,
+        0,
+        0,
+        canvas.width / DPR,
+        canvas.height / DPR
+      );
     }
-    
-    ctx.globalCompositeOperation = 'source-over';
   }
 
   static renderMinimap() {
     if (!minimapCtx || !gameState.map) return;
     
-    // Обновляем миникарту каждый кадр для плавности
-    // if (Math.floor(gameState.gameTime * 60) % 3 !== 0) {
-    //   return;
-    // }
+    // Оптимизированная отрисовка миникарты - обновляем реже
+    if (Math.floor(gameState.gameTime * 30) % 2 !== 0) {
+      return;
+    }
     
     const minimapSize = 100; // Уменьшил размер с 120 до 100
     const scale = minimapSize / MAP_SIZE;
@@ -421,62 +525,65 @@ export class GameEngine {
   }
   
   static renderFPSIndicator() {
-    // Показываем FPS только в режиме разработки (localhost)
-    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-      const fps = PerformanceMonitor.getFPS();
-      const avgFrameTime = PerformanceMonitor.getAverageFrameTime();
-      const isLowMode = PerformanceMonitor.isLowPerformanceMode();
+    // Показываем FPS всегда без мигания
+    
+
+    
+    const fps = PerformanceMonitor.getFPS();
+    const avgFrameTime = PerformanceMonitor.getAverageFrameTime();
+    const isLowMode = PerformanceMonitor.isLowPerformanceMode();
       
-      // Определяем размеры экрана и адаптивность
-      const canvasWidth = canvas.width / DPR;
-      const canvasHeight = canvas.height / DPR;
-      const isMobile = window.innerWidth <= 768;
-      
-      // Размеры и позиции для разных экранов
-      let minimapSize, fpsX, fpsY, fpsWidth, fpsHeight, fontSize;
-      
-      if (isMobile) {
-        // Мобильная версия - под миникартой с отступом
+    // Определяем размеры экрана и адаптивность
+    const canvasWidth = canvas.width / DPR;
+    const canvasHeight = canvas.height / DPR;
+    const isMobile = window.innerWidth <= 768;
+    
+    // Размеры и позиции для разных экранов
+    let minimapSize, fpsX, fpsY, fpsWidth, fpsHeight, fontSize;
+    
+          if (isMobile) {
+        // Мобильная версия - под миникартой
         minimapSize = 100;
         fpsWidth = 80;
         fpsHeight = 35;
-        fontSize = 9;
-        fpsX = canvasWidth - minimapSize - 5; // Выровнено по правому краю миникарты
-        fpsY = 150; // Под миникартой с большим отступом (100px миникарта + 50px отступ)
+        fontSize = 12;
+        fpsX = canvasWidth - fpsWidth - 10; // Выровнено по правому краю экрана
+        fpsY = 120 + 24; // Миникарта (100px) + отступ (24px) + дополнительный отступ (20px)
       } else {
-        // Десктопная версия - под миникартой с отступом
+        // Десктопная версия - под миникартой
         minimapSize = 100;
         fpsWidth = 90;
         fpsHeight = 45;
-        fontSize = 10;
-        fpsX = canvasWidth - minimapSize - 10; // Выровнено по правому краю миникарты
-        fpsY = 150; // Под миникартой с большим отступом (100px миникарта + 50px отступ)
+        fontSize = 14;
+        fpsX = canvasWidth - fpsWidth - 10; // Выровнено по правому краю экрана
+        fpsY = 120 + 24; // Миникарта (100px) + отступ (24px) + дополнительный отступ (20px)
       }
-      
-      // FPS теперь всегда под миникартой, дополнительная проверка не нужна
-      
-      // Фон для лучшей читаемости
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-      ctx.fillRect(fpsX - 5, fpsY - 15, fpsWidth, fpsHeight);
-      
-      // Рамка
-      ctx.strokeStyle = isLowMode ? '#ff4444' : '#00ff00';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(fpsX - 5, fpsY - 15, fpsWidth, fpsHeight);
-      
-      // Текст
-      ctx.font = `${fontSize}px Arial`;
-      ctx.fillStyle = isLowMode ? '#ff4444' : '#00ff00';
-      ctx.textAlign = 'left';
-      
-      const fpsText = `FPS: ${fps}`;
-      const frameTimeText = `${avgFrameTime.toFixed(1)}ms`;
-      const modeText = isLowMode ? 'LOW' : 'OK';
-      
-      ctx.fillText(fpsText, fpsX, fpsY);
-      ctx.fillText(frameTimeText, fpsX, fpsY + (isMobile ? 10 : 12));
-      ctx.fillText(modeText, fpsX, fpsY + (isMobile ? 20 : 24));
-    }
+    
+    // FPS теперь всегда под миникартой, дополнительная проверка не нужна
+    
+    // Фон для лучшей читаемости
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+    ctx.fillRect(fpsX - 5, fpsY - 15, fpsWidth, fpsHeight);
+    
+    // Рамка
+    ctx.strokeStyle = isLowMode ? '#ff4444' : '#00ff00';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(fpsX - 5, fpsY - 15, fpsWidth, fpsHeight);
+    
+    // Текст
+    ctx.font = `bold ${fontSize}px Arial`;
+    ctx.fillStyle = isLowMode ? '#ff4444' : '#00ff00';
+    ctx.textAlign = 'left';
+    
+    const fpsText = `FPS: ${fps}`;
+    const frameTimeText = `${avgFrameTime.toFixed(1)}ms`;
+    const modeText = isLowMode ? 'LOW' : 'OK';
+    
+    ctx.fillText(fpsText, fpsX, fpsY);
+    ctx.fillText(frameTimeText, fpsX, fpsY + (isMobile ? 10 : 12));
+    ctx.fillText(modeText, fpsX, fpsY + (isMobile ? 20 : 24));
+    
+
   }
 
   static updateUI() {

@@ -11,7 +11,7 @@ import { audioManager } from './audio/AudioManager.js';
 
 // Импорты карты
 import { MapGenerator } from './map/MapGenerator.js';
-import { FogOfWar } from './map/FogOfWar.js';
+import { WebGLFogOfWar } from './map/WebGLFogOfWar.js';
 
 // Импорты сущностей
 import { Entity } from './entities/Entity.js';
@@ -56,7 +56,7 @@ window.Logger = Logger;
 window.PerformanceMonitor = PerformanceMonitor;
 window.audioManager = audioManager;
 window.MapGenerator = MapGenerator;
-window.FogOfWar = FogOfWar;
+window.WebGLFogOfWar = WebGLFogOfWar;
 window.Entity = Entity;
 window.Player = Player;
 window.Enemy = Enemy;
@@ -84,7 +84,7 @@ export {
   PerformanceMonitor,
   audioManager,
   MapGenerator,
-  FogOfWar,
+  WebGLFogOfWar,
   Entity,
   Player,
   Enemy,
