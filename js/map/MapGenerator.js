@@ -11,9 +11,9 @@ export class MapGenerator {
     const level = gameState.level || 1;
     
     // Динамический размер карты - растет бесконечно с уровнем
-    const dynamicMapSize = MAP_SIZE + Math.floor(level * 1.5); // +1.5 тайла за уровень
-    const dynamicMinRooms = MIN_ROOMS + Math.floor(level * 0.4); // +0.4 комнаты за уровень
-    const dynamicMaxRooms = MAX_ROOMS + Math.floor(level * 0.6); // +0.6 комнаты за уровень
+    const dynamicMapSize = MAP_SIZE + Math.floor(level * 3.5); // +3.5 тайла за уровень (было 1.5)
+    const dynamicMinRooms = MIN_ROOMS + Math.floor(level * 0.8); // +0.8 комнаты за уровень (было 0.4)
+    const dynamicMaxRooms = MAX_ROOMS + Math.floor(level * 1.2); // +1.2 комнаты за уровень (было 0.6)
     
     Logger.map('Generating dungeon - Level:', level, 'Map size:', dynamicMapSize, 'Rooms:', dynamicMinRooms, '-', dynamicMaxRooms);
     
@@ -104,7 +104,7 @@ export class MapGenerator {
     const { x, y, width, height } = partition;
     
     // Увеличиваем размер комнат с уровнем (более агрессивная прогрессия)
-    const roomSizeMultiplier = 1 + (level - 1) * 0.08; // 8% увеличение за уровень
+    const roomSizeMultiplier = 1 + (level - 1) * 0.15; // 15% увеличение за уровень (было 8%)
     const dynamicMinSize = Math.floor(ROOM_MIN_SIZE * roomSizeMultiplier);
     const dynamicMaxSize = Math.floor(ROOM_MAX_SIZE * roomSizeMultiplier);
     

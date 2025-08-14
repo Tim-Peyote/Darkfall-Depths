@@ -2,11 +2,11 @@
 
 // ==================== КОНСТАНТЫ И НАСТРОЙКИ ====================
 export const TILE_SIZE = 32;
-export const MAP_SIZE = 50;
-export const ROOM_MIN_SIZE = 6;
-export const ROOM_MAX_SIZE = 12;
-export const MIN_ROOMS = 8;
-export const MAX_ROOMS = 12;
+export const MAP_SIZE = 60; // было 50
+export const ROOM_MIN_SIZE = 8; // было 6
+export const ROOM_MAX_SIZE = 16; // было 12
+export const MIN_ROOMS = 10; // было 8
+export const MAX_ROOMS = 15; // было 12
 export const FPS_TARGET = 60;
 export const FRAME_TIME = 1000 / FPS_TARGET;
 
