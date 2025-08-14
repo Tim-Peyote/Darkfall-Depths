@@ -97,26 +97,26 @@ export class RecordsManager {
     }
     
     let html = `
-      <div class="record-item" style="font-weight: bold; background: rgba(0,0,0,0.1); padding: 8px; margin-bottom: 8px; border-radius: 4px;">
-        <span style="width: 30px; display: inline-block;">#</span>
-        <span style="width: 80px; display: inline-block;">Герой</span>
-        <span style="width: 60px; display: inline-block;">Класс</span>
-        <span style="width: 50px; display: inline-block;">Уровень</span>
-        <span style="width: 50px; display: inline-block;">Враги</span>
-        <span style="width: 80px; display: inline-block;">Время</span>
+      <div class="record-item" style="font-weight: bold; background: rgba(0,0,0,0.1); padding: 8px; margin-bottom: 8px; border-radius: 4px; font-family: monospace; display: flex; align-items: center;">
+        <span style="width: 40px; flex-shrink: 0;">#</span>
+        <span style="width: 90px; flex-shrink: 0;">Герой</span>
+        <span style="width: 70px; flex-shrink: 0;">Класс</span>
+        <span style="width: 70px; flex-shrink: 0;">Уровень</span>
+        <span style="width: 70px; flex-shrink: 0;">Враги</span>
+        <span style="width: 90px; flex-shrink: 0; text-align: right;">Время</span>
       </div>
     `;
     
     top.forEach((rec, i) => {
       const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : '';
       html += `
-        <div class="record-item" style="padding: 6px 8px; margin-bottom: 4px; border-radius: 4px; background: rgba(0,0,0,0.05);">
-          <span style="width: 30px; display: inline-block;">${medal}${i+1}</span>
-          <span style="width: 80px; display: inline-block; font-weight: bold;">${rec.name}</span>
-          <span style="width: 60px; display: inline-block;">${rec.class}</span>
-          <span style="width: 50px; display: inline-block;">${rec.level}</span>
-          <span style="width: 50px; display: inline-block;">${rec.enemiesKilled}</span>
-          <span style="width: 80px; display: inline-block;">${Utils.formatTime(rec.playTime)}</span>
+        <div class="record-item" style="padding: 6px 8px; margin-bottom: 4px; border-radius: 4px; background: rgba(0,0,0,0.05); font-family: monospace; display: flex; align-items: center;">
+          <span style="width: 40px; flex-shrink: 0;">${medal}${i+1}</span>
+          <span style="width: 90px; flex-shrink: 0; font-weight: bold;">${rec.name}</span>
+          <span style="width: 70px; flex-shrink: 0;">${rec.class}</span>
+          <span style="width: 70px; flex-shrink: 0;">${rec.level}</span>
+          <span style="width: 70px; flex-shrink: 0;">${rec.enemiesKilled}</span>
+          <span style="width: 90px; flex-shrink: 0; text-align: right;">${Utils.formatTime(rec.playTime)}</span>
         </div>
       `;
     });

@@ -1611,6 +1611,15 @@ select.form-control {
   border-bottom: none;
 }
 
+/* Стили для таблицы рекордов */
+.record-item[style*="font-weight: bold"] {
+  letter-spacing: 0.5px;
+}
+
+.record-item[style*="background: rgba(0,0,0,0.05)"] {
+  letter-spacing: 0.5px;
+}
+
 .record-value {
   color: var(--color-success);
   font-weight: var(--font-weight-bold);

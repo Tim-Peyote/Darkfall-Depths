@@ -111,7 +111,10 @@ export class Player extends Entity {
   
   updateAttack(dt) {
     if (this.attackCooldown <= 0) {
-      this.performAttack();
+      const attackResult = this.performAttack();
+      if (attackResult && this.id === 'dimon') {
+        console.log('🎯 Dimon автоатака выполнена');
+      }
     }
   }
   

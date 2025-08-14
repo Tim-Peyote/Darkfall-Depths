@@ -160,7 +160,7 @@ export class GameEngine {
     if (gameState.fogOfWar) {
       // Обновляем туман войны только каждые 5 кадров для максимальной производительности
       if (Math.floor(gameState.gameTime * 60) % 5 === 0) {
-        gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y, 8);
+        gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y);
       }
     }
       
