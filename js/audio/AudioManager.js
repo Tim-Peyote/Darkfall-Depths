@@ -11,6 +11,7 @@ export class AudioManager {
     this.sfxTracks = {};
     this.isMusicLoaded = false;
     this.isSfxLoaded = false;
+    this.inventorySoundPlaying = false;
   }
 
   async init() {
@@ -288,7 +289,29 @@ export class AudioManager {
 
   // Специфичные методы для звуковых эффектов
   playInventoryOpen() {
+    // Защита от множественного воспроизведения
+    if (this.inventorySoundPlaying) return;
+    this.inventorySoundPlaying = true;
+    
     this.playSfx('inventoryOpen');
+    
+    // Сбрасываем флаг через 500мс
+    setTimeout(() => {
+      this.inventorySoundPlaying = false;
+    }, 500);
+  }
+
+  playInventoryClose() {
+    // Защита от множественного воспроизведения
+    if (this.inventorySoundPlaying) return;
+    this.inventorySoundPlaying = true;
+    
+    this.playSfx('inventoryOpen'); // Используем тот же звук для закрытия, пока нет отдельного
+    
+    // Сбрасываем флаг через 500мс
+    setTimeout(() => {
+      this.inventorySoundPlaying = false;
+    }, 500);
   }
 
   playHealthPotion() {

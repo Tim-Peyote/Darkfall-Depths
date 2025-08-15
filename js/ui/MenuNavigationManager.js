@@ -11,6 +11,12 @@ export class MenuNavigationManager {
     
     // Добавляем обработчики клавиатуры для навигации по меню
     window.addEventListener('keydown', (e) => {
+      // Проверяем, не открыт ли инвентарь
+      const inventoryOverlay = document.getElementById('inventoryOverlay');
+      if (inventoryOverlay && !inventoryOverlay.classList.contains('hidden')) {
+        return; // Не обрабатываем навигацию, если инвентарь открыт
+      }
+      
       // Не обрабатываем в игре когда НЕ в паузе, НО обрабатываем ESC всегда
       if (gameState.screen === 'game' && !gameState.isPaused && e.code !== 'Escape') return;
       
@@ -187,6 +193,12 @@ export class MenuNavigationManager {
   }
   
   static handleEscape() {
+    // Проверяем, не открыт ли инвентарь
+    const inventoryOverlay = document.getElementById('inventoryOverlay');
+    if (inventoryOverlay && !inventoryOverlay.classList.contains('hidden')) {
+      return; // Не обрабатываем Escape, если инвентарь открыт
+    }
+    
     // Если мы в игре - переключаем паузу (открываем/закрываем)
     if (gameState.screen === 'game') {
       (async () => {

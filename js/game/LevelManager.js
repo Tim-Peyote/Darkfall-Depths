@@ -9,6 +9,7 @@ import { TILE_SIZE, ENEMY_TYPES, generateRandomItem } from '../config/constants.
 
 export class LevelManager {
   static async generateLevel() {
+    console.log('🗺️ generateLevel called - starting level generation...');
     
     if (!gameState.selectedCharacter) {
       console.error('❌ No character selected!');
@@ -52,13 +53,17 @@ export class LevelManager {
     // Спавн игрока в первой комнате
     const startRoom = rooms[0];
     
+    console.log('🗺️ Rooms array:', rooms);
+    console.log('🗺️ Start room:', startRoom);
+    console.log('🗺️ Map size:', gameState.map.length, 'x', gameState.map[0].length);
+    
     if (gameState.selectedCharacter) {
       console.log('👤 Creating player with character:', gameState.selectedCharacter);
-      console.log('🗺️ Start room:', startRoom);
-      console.log('🗺️ Map size:', gameState.map.length, 'x', gameState.map[0].length);
       
-      // Проверяем, что комната находится в пределах карты
-      if (startRoom && startRoom.centerX >= 0 && startRoom.centerX < gameState.map[0].length &&
+      // Проверяем, что комната существует и находится в пределах карты
+      if (startRoom && typeof startRoom === 'object' && 
+          startRoom.centerX !== undefined && startRoom.centerY !== undefined &&
+          startRoom.centerX >= 0 && startRoom.centerX < gameState.map[0].length &&
           startRoom.centerY >= 0 && startRoom.centerY < gameState.map.length) {
         
         const playerX = (startRoom.centerX + 0.5) * TILE_SIZE;
@@ -126,21 +131,79 @@ export class LevelManager {
           gameState.camera.y = gameState.player.y - canvasHeight / 2;
           
           console.log('📷 Camera position:', gameState.camera.x, gameState.camera.y);
+          
+          // Принудительно инициализируем туман войны для игрока
+          if (gameState.fogOfWar) {
+            gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y);
+            console.log('🌫️ Fog of war initialized for player position');
+          }
         } else {
           console.error('❌ Player spawn position is in wall:', tileX, tileY, 'Tile value:', gameState.map[tileY]?.[tileX]);
           // Fallback: ищем свободное место в первой комнате
           this.findSafeSpawnPosition(startRoom, gameState.map);
+          
+          // Инициализируем туман войны для fallback позиции
+          if (gameState.player && gameState.fogOfWar) {
+            gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y);
+            console.log('🌫️ Fog of war initialized for fallback position');
+          }
         }
       } else {
         console.error('❌ Invalid start room position:', startRoom);
-        // Fallback: спавним в центре карты
-        const centerX = Math.floor(gameState.map[0].length / 2);
-        const centerY = Math.floor(gameState.map.length / 2);
-        gameState.player = new Player(
-          { ...gameState.selectedCharacter },
-          (centerX + 0.5) * TILE_SIZE,
-          (centerY + 0.5) * TILE_SIZE
-        );
+        
+        // Fallback: ищем любую подходящую комнату
+        let fallbackRoom = null;
+        for (let i = 0; i < rooms.length; i++) {
+          const room = rooms[i];
+          if (room && typeof room === 'object' && 
+              room.centerX !== undefined && room.centerY !== undefined &&
+              room.centerX >= 0 && room.centerX < gameState.map[0].length &&
+              room.centerY >= 0 && room.centerY < gameState.map.length) {
+            fallbackRoom = room;
+            console.log('🔄 Using fallback room:', i, room);
+            break;
+          }
+        }
+        
+        if (fallbackRoom) {
+          // Используем найденную комнату
+          const playerX = (fallbackRoom.centerX + 0.5) * TILE_SIZE;
+          const playerY = (fallbackRoom.centerY + 0.5) * TILE_SIZE;
+          
+          gameState.player = new Player(
+            { ...gameState.selectedCharacter },
+            playerX,
+            playerY
+          );
+          
+          // Центрируем камеру
+          const canvasWidth = canvas ? canvas.width / DPR : 800;
+          const canvasHeight = canvas ? canvas.height / DPR : 600;
+          gameState.camera.x = gameState.player.x - canvasWidth / 2;
+          gameState.camera.y = gameState.player.y - canvasHeight / 2;
+          
+          // Инициализируем туман войны
+          if (gameState.fogOfWar) {
+            gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y);
+            console.log('🌫️ Fog of war initialized for fallback room');
+          }
+        } else {
+          // Последний fallback: спавним в центре карты
+          console.error('❌ No valid rooms found, spawning in center');
+          const centerX = Math.floor(gameState.map[0].length / 2);
+          const centerY = Math.floor(gameState.map.length / 2);
+          gameState.player = new Player(
+            { ...gameState.selectedCharacter },
+            (centerX + 0.5) * TILE_SIZE,
+            (centerY + 0.5) * TILE_SIZE
+          );
+          
+          // Инициализируем туман войны для центра карты
+          if (gameState.fogOfWar) {
+            gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y);
+            console.log('🌫️ Fog of war initialized for center position');
+          }
+        }
       }
     }
     
@@ -170,11 +233,35 @@ export class LevelManager {
           enemyType = availableEnemies[Utils.random(0, availableEnemies.length - 1)].type;
         }
         
-        const enemy = new Enemy(
-          (room.centerX + Utils.random(-1, 1) + 0.5) * TILE_SIZE, // Position closer to center
-          (room.centerY + Utils.random(-1, 1) + 0.5) * TILE_SIZE,
-          enemyType
+        // Ищем безопасную позицию для врага (на полу, не на стене)
+        let enemyX, enemyY;
+        let tileX, tileY;
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        do {
+          enemyX = (room.centerX + Utils.random(-1, 1) + 0.5) * TILE_SIZE;
+          enemyY = (room.centerY + Utils.random(-1, 1) + 0.5) * TILE_SIZE;
+          
+          // Проверяем, что позиция находится на полу (тайл 0)
+          tileX = Math.floor(enemyX / TILE_SIZE);
+          tileY = Math.floor(enemyY / TILE_SIZE);
+          
+          attempts++;
+        } while (
+          attempts < maxAttempts && 
+          (tileX < 0 || tileX >= gameState.map[0].length || 
+           tileY < 0 || tileY >= gameState.map.length || 
+           gameState.map[tileY][tileX] !== 0) // 0 = пол, 1 = стена
         );
+        
+        // Если не нашли безопасную позицию, используем центр комнаты
+        if (attempts >= maxAttempts) {
+          enemyX = (room.centerX + 0.5) * TILE_SIZE;
+          enemyY = (room.centerY + 0.5) * TILE_SIZE;
+        }
+        
+        const enemy = new Enemy(enemyX, enemyY, enemyType);
         
         // Усиление врагов с уровнем (более сбалансированная прогрессия)
         if (gameState.level > 1) {
@@ -222,16 +309,33 @@ export class LevelManager {
       }
     }
     if (portalRoom) {
-      try {
-        const { Portal } = await import('../entities/Portal.js');
-        const portal = new Portal(
-          (portalRoom.centerX + 0.5) * TILE_SIZE,
-          (portalRoom.centerY + 0.5) * TILE_SIZE
-        );
-        gameState.entities.push(portal);
-        console.log('Портал успешно создан в комнате:', portalRoom);
-      } catch (e) {
-        console.error('Ошибка при создании портала:', e);
+      // Проверяем, нет ли уже портала в игре
+      const existingPortal = gameState.entities.find(entity => entity.constructor.name === 'Portal');
+      if (existingPortal) {
+        console.log('Портал уже существует, пропускаем создание нового');
+      } else {
+        try {
+          const { Portal } = await import('../entities/Portal.js');
+          
+          // Проверяем, что позиция портала находится в пределах карты
+          const portalX = (portalRoom.centerX + 0.5) * TILE_SIZE;
+          const portalY = (portalRoom.centerY + 0.5) * TILE_SIZE;
+          const tileX = Math.floor(portalX / TILE_SIZE);
+          const tileY = Math.floor(portalY / TILE_SIZE);
+          
+          if (tileX >= 0 && tileX < gameState.map[0].length && 
+              tileY >= 0 && tileY < gameState.map.length && 
+              gameState.map[tileY][tileX] === 0) {
+            
+            const portal = new Portal(portalX, portalY);
+            gameState.entities.push(portal);
+            console.log('Портал успешно создан в комнате:', portalRoom);
+          } else {
+            console.warn('Портал не может быть создан - позиция вне карты или на стене');
+          }
+        } catch (e) {
+          console.error('Ошибка при создании портала:', e);
+        }
       }
     } else {
       console.warn('Портал не был создан, потому что нет подходящей комнаты! rooms:', rooms);
@@ -254,20 +358,50 @@ export class LevelManager {
         
         const item = generateRandomItem(itemLevel, gameState.selectedCharacter?.class || null);
         const { DroppedItem } = await import('../entities/DroppedItem.js');
-        const droppedItem = new DroppedItem(
-          (room.centerX + Utils.random(-1, 1) + 0.5) * TILE_SIZE,
-          (room.centerY + Utils.random(-1, 1) + 0.5) * TILE_SIZE,
-          item
+        
+        // Ищем безопасную позицию для предмета (на полу, не на стене)
+        let itemX, itemY;
+        let tileX, tileY;
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        do {
+          itemX = (room.centerX + Utils.random(-1, 1) + 0.5) * TILE_SIZE;
+          itemY = (room.centerY + Utils.random(-1, 1) + 0.5) * TILE_SIZE;
+          
+          // Проверяем, что позиция находится на полу (тайл 0)
+          tileX = Math.floor(itemX / TILE_SIZE);
+          tileY = Math.floor(itemY / TILE_SIZE);
+          
+          attempts++;
+        } while (
+          attempts < maxAttempts && 
+          (tileX < 0 || tileX >= gameState.map[0].length || 
+           tileY < 0 || tileY >= gameState.map.length || 
+           gameState.map[tileY][tileX] !== 0) // 0 = пол, 1 = стена
         );
+        
+        // Если не нашли безопасную позицию, используем центр комнаты
+        if (attempts >= maxAttempts) {
+          itemX = (room.centerX + 0.5) * TILE_SIZE;
+          itemY = (room.centerY + 0.5) * TILE_SIZE;
+        }
+        
+        const droppedItem = new DroppedItem(itemX, itemY, item);
         gameState.entities.push(droppedItem);
       }
     }
+    
+    console.log('🗺️ Level generation completed - Player:', gameState.player ? 'exists' : 'missing', 'Entities:', gameState.entities.length);
   }
 
   static async nextLevel() {
     console.log(`🎮 nextLevel called - current level: ${gameState.level}`);
+    
+    // Увеличиваем уровень ДО генерации нового уровня
     gameState.level++;
     console.log(`🎮 nextLevel - level increased to: ${gameState.level}`);
+    
     gameState.stats.levelsCompleted++;
     gameState.stats.bestLevel = Math.max(gameState.stats.bestLevel, gameState.level);
     
@@ -285,6 +419,11 @@ export class LevelManager {
     // Музыка stage1 продолжает играть при переходе на следующий уровень
     // (не прерываем и не перезапускаем)
     
+    // Останавливаем текущий игровой цикл перед генерацией нового уровня
+    if (gameState.gameRunning) {
+      gameState.gameRunning = false;
+    }
+    
     await this.generateLevel();
     
     console.log(`🎮 nextLevel completed - final level: ${gameState.level}`);
@@ -292,8 +431,39 @@ export class LevelManager {
     // Принудительно обновляем UI после генерации нового уровня
     (async () => {
       const { GameEngine } = await import('../game/GameEngine.js');
+      const { SettingsManager } = await import('../ui/SettingsManager.js');
+      
+      // Убеждаемся, что игрок существует и правильно позиционирован
+      if (gameState.player) {
+        // Центрируем камеру на игроке
+        const canvas = document.getElementById('gameCanvas');
+        if (canvas) {
+          const canvasWidth = canvas.width / (window.devicePixelRatio || 1);
+          const canvasHeight = canvas.height / (window.devicePixelRatio || 1);
+          gameState.camera.x = gameState.player.x - canvasWidth / 2;
+          gameState.camera.y = gameState.player.y - canvasHeight / 2;
+        }
+        
+        // Принудительно обновляем туман войны
+        if (gameState.fogOfWar) {
+          gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y);
+        }
+      }
+      
+      // Обновляем UI
       GameEngine.updateUI();
       GameEngine.updateQuickPotions();
+      SettingsManager.reinitEventListeners();
+      
+      // Перезапускаем игровой цикл
+      gameState.gameRunning = true;
+      gameState.isPaused = false;
+      
+      // Принудительно запускаем игровой цикл
+      if (GameEngine.gameLoopId) {
+        cancelAnimationFrame(GameEngine.gameLoopId);
+      }
+      GameEngine.gameLoopId = requestAnimationFrame(GameEngine.gameLoop.bind(GameEngine));
     })();
   }
 
@@ -305,6 +475,7 @@ export class LevelManager {
     const enemiesKilledEl = document.getElementById('enemiesKilled');
     
     if (completedLevelEl) {
+      // Показываем текущий уровень (который только что завершили)
       completedLevelEl.textContent = gameState.level;
     }
     
@@ -323,6 +494,12 @@ export class LevelManager {
     if (overlay) {
       overlay.classList.remove('hidden');
     }
+    
+    // Переинициализируем обработчики событий
+    (async () => {
+      const { SettingsManager } = await import('../ui/SettingsManager.js');
+      SettingsManager.reinitEventListeners();
+    })();
     
     console.log(`🎮 showLevelComplete completed - gameRunning: ${gameState.gameRunning}`);
   }
@@ -369,6 +546,12 @@ export class LevelManager {
     if (overlay) {
       overlay.classList.remove('hidden');
     }
+    
+    // Переинициализируем обработчики событий
+    (async () => {
+      const { SettingsManager } = await import('../ui/SettingsManager.js');
+      SettingsManager.reinitEventListeners();
+    })();
   }
 
   static endGame() {
@@ -416,6 +599,12 @@ export class LevelManager {
           gameState.camera.x = gameState.player.x - canvasWidth / 2;
           gameState.camera.y = gameState.player.y - canvasHeight / 2;
           
+          // Инициализируем туман войны
+          if (gameState.fogOfWar) {
+            gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y);
+            console.log('🌫️ Fog of war initialized for safe spawn position');
+          }
+          
           return;
         }
       }
@@ -437,5 +626,11 @@ export class LevelManager {
     const canvasHeight = canvas ? canvas.height / DPR : 600;
     gameState.camera.x = gameState.player.x - canvasWidth / 2;
     gameState.camera.y = gameState.player.y - canvasHeight / 2;
+    
+    // Инициализируем туман войны
+    if (gameState.fogOfWar) {
+      gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y);
+      console.log('🌫️ Fog of war initialized for room center position');
+    }
   }
 } 

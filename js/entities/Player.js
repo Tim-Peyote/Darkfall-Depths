@@ -3,7 +3,7 @@
 import { Entity } from './Entity.js';
 import { gameState, canvas, ctx, DPR } from '../core/GameState.js';
 import { audioManager } from '../audio/AudioManager.js';
-import { Projectile } from './Projectile.js';
+import { Projectile, FireballProjectile } from './Projectile.js';
 import { createParticle } from '../effects/Particle.js';
 import { Utils } from '../utils/Utils.js';
 import { TILE_SIZE } from '../config/constants.js';
@@ -23,6 +23,7 @@ export class Player extends Entity {
     this.isShieldActive = false;
     this.shieldTime = 0;
     this.direction = { x: 0, y: 0 }; // Направление движения для фонарика
+    this.gold = 0; // Добавляем золото
   }
   
   update(dt) {
@@ -215,15 +216,18 @@ export class Player extends Entity {
     }
     
     if (closestEnemy) {
-      // Создаем снаряд (используем уже загруженный модуль)
-      const projectile = new Projectile(this.x, this.y, closestEnemy, this.damage, this.projectileSpeed);
-      gameState.projectiles.push(projectile);
-      
-      // Воспроизводим звук атаки для мага
+      // Создаем снаряд в зависимости от персонажа
+      let projectile;
       if (this.id === 'dimon') {
+        // Для мага используем специальный фаербол
+        projectile = new FireballProjectile(this.x, this.y, closestEnemy, this.damage, this.projectileSpeed);
         audioManager.playFireballAttack();
+      } else {
+        // Для других персонажей используем обычный снаряд
+        projectile = new Projectile(this.x, this.y, closestEnemy, this.damage, this.projectileSpeed);
       }
       
+      gameState.projectiles.push(projectile);
       return true;
     }
     return false;

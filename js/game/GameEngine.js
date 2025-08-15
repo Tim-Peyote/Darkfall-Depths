@@ -84,8 +84,8 @@ export class GameEngine {
       gameState.stats.currentSessionKills = 0;
       
       // Сброс инвентаря только при новом запуске
-      gameState.inventory.equipment = [null, null, null, null];
-      gameState.inventory.backpack = new Array(8).fill(null);
+      gameState.inventory.equipment = new Array(9).fill(null); // 9 слотов экипировки
+      gameState.inventory.backpack = new Array(42).fill(null); // 42 слота рюкзака
       gameState.inventory.quickSlots = [null, null, null];
       
       // Очищаем все временные баффы при новом запуске
@@ -131,6 +131,7 @@ export class GameEngine {
 
   static gameLoop(currentTime) {
     if (!gameState.gameRunning) {
+      console.log('🎮 Game loop stopped - game not running');
       return;
     }
     
@@ -968,37 +969,29 @@ export class GameEngine {
       
       if (potionType) {
         // Слот с назначенным типом зелья
-        // Определяем иконку и цвет в зависимости от типа
-        let icon = '🧪';
+        // Определяем цвет в зависимости от типа
         let borderColor = '#ff6666';
         
         switch (potionType) {
           case 'potion':
-            icon = '❤️';
             borderColor = '#ff6666'; // Красный для здоровья
             break;
           case 'speed_potion':
-            icon = '💨';
             borderColor = '#66ff66'; // Зеленый для скорости
             break;
           case 'strength_potion':
-            icon = '⚔️';
             borderColor = '#ffaa66'; // Оранжевый для силы
             break;
           case 'defense_potion':
-            icon = '🛡️';
             borderColor = '#6666ff'; // Синий для защиты
             break;
           case 'regen_potion':
-            icon = '💚';
             borderColor = '#ff66ff'; // Розовый для регенерации
             break;
           case 'combo_potion':
-            icon = '✨';
             borderColor = '#ffff66'; // Желтый для комбо
             break;
           default:
-            icon = '🧪';
             borderColor = '#ff6666';
         }
         
@@ -1007,7 +1000,48 @@ export class GameEngine {
           item && item.type === 'consumable' && item.base === potionType
         ).length;
         
-        potionIcon.textContent = icon;
+        // Создаем спрайт зелья
+        const potionItem = { base: potionType, type: 'consumable', rarity: 'common' };
+        
+        // Импортируем рендерер спрайтов асинхронно
+        (async () => {
+          try {
+            const { InventorySpriteRenderer } = await import('../ui/InventorySpriteRenderer.js');
+            const spriteElement = InventorySpriteRenderer.createSpriteElement(potionItem, 32);
+            
+            if (spriteElement) {
+              // Очищаем старую иконку и добавляем спрайт
+              potionIcon.innerHTML = '';
+              potionIcon.appendChild(spriteElement);
+            } else {
+              // Fallback на эмодзи
+              let icon = '🧪';
+              switch (potionType) {
+                case 'potion': icon = '❤️'; break;
+                case 'speed_potion': icon = '💨'; break;
+                case 'strength_potion': icon = '⚔️'; break;
+                case 'defense_potion': icon = '🛡️'; break;
+                case 'regen_potion': icon = '💚'; break;
+                case 'combo_potion': icon = '✨'; break;
+              }
+              potionIcon.textContent = icon;
+            }
+          } catch (error) {
+            console.warn('Не удалось загрузить рендерер спрайтов:', error);
+            // Fallback на эмодзи
+            let icon = '🧪';
+            switch (potionType) {
+              case 'potion': icon = '❤️'; break;
+              case 'speed_potion': icon = '💨'; break;
+              case 'strength_potion': icon = '⚔️'; break;
+              case 'defense_potion': icon = '🛡️'; break;
+              case 'regen_potion': icon = '💚'; break;
+              case 'combo_potion': icon = '✨'; break;
+            }
+            potionIcon.textContent = icon;
+          }
+        })();
+        
         potionCount.textContent = count.toString();
         
         // Если зелья закончились, показываем "пустое" состояние
@@ -1273,6 +1307,8 @@ export class GameEngine {
   }
 
   static async continueGame() {
+    console.log('🎮 continueGame called - starting game loop...');
+    
     gameState.gameRunning = true;
     gameState.isPaused = false;
     
@@ -1282,6 +1318,7 @@ export class GameEngine {
       const canvasHeight = canvas ? canvas.height / DPR : 600;
       gameState.camera.x = gameState.player.x - canvasWidth / 2;
       gameState.camera.y = gameState.player.y - canvasHeight / 2;
+      console.log('🎮 Camera centered on player:', gameState.camera.x, gameState.camera.y);
     }
     
     // Переключаемся на игровой экран
@@ -1293,6 +1330,13 @@ export class GameEngine {
     this.updateUI();
     this.updateQuickPotions();
     
+    // Убеждаемся, что игровой цикл запускается
+    if (gameLoopId) {
+      cancelAnimationFrame(gameLoopId);
+    }
+    
+    console.log('🎮 Starting game loop...');
     gameLoopId = requestAnimationFrame(this.gameLoop.bind(this));
+    console.log('🎮 Game loop started, gameLoopId:', gameLoopId);
   }
 } 

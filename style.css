@@ -1161,19 +1161,23 @@ select.form-control {
   position: relative;
   width: 48px;
   height: 48px;
-  background: rgba(0, 0, 0, 0.7);
+  background: linear-gradient(145deg, rgba(0,0,0,0.8), rgba(255,255,255,0.02));
   border: 2px solid var(--color-error);
-  border-radius: var(--radius-base);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
 }
 
 .potion-slot:hover {
   border-color: #ff6666;
-  box-shadow: 0 0 8px rgba(255, 102, 102, 0.4);
+  box-shadow: 0 0 15px rgba(255, 102, 102, 0.6);
+  transform: scale(1.1);
+  background: linear-gradient(145deg, rgba(0,0,0,0.9), rgba(255,255,255,0.03));
 }
 
 .potion-slot:active {
@@ -1188,20 +1192,40 @@ select.form-control {
 .potion-icon {
   font-size: 24px;
   color: var(--color-error);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.potion-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+  transition: all 0.2s ease;
+}
+
+.potion-slot:hover .potion-icon img {
+  transform: scale(1.1);
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.7));
 }
 
 .potion-count {
   position: absolute;
-  bottom: -2px;
-  right: -2px;
+  bottom: -3px;
+  right: -3px;
   background: var(--color-error);
   color: var(--color-cream-50);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
   padding: 2px 4px;
-  border-radius: var(--radius-sm);
+  border-radius: 6px;
   min-width: 16px;
   text-align: center;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .potion-hotkey {
@@ -1342,75 +1366,255 @@ select.form-control {
 
 /* Inventory */
 .inventory-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(600px, 95vw);
-  max-height: 90vh;
-  overflow-y: auto;
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
   z-index: 1000;
-  background: var(--color-surface);
+  backdrop-filter: blur(5px);
+  transition: all 0.3s ease;
+}
+
+.inventory-overlay.hidden {
+  transform: translateX(100%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.inventory-overlay:not(.hidden) {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: all;
+}
+
+.inventory-content {
+  width: 520px;
+  height: 100%;
+  background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
+  border-left: 3px solid var(--color-error);
+  box-shadow: -10px 0 30px rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.inventory-header {
+  padding: 20px;
+  background: linear-gradient(145deg, rgba(231, 76, 60, 0.2), rgba(231, 76, 60, 0.1));
+  border-bottom: 2px solid rgba(231, 76, 60, 0.4);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.inventory-header h2 {
+  color: var(--color-error);
+  font-size: 1.8rem;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.close-btn {
+  background: none;
   border: 2px solid var(--color-error);
+  color: var(--color-error);
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-btn:hover {
+  background: var(--color-error);
+  color: white;
+  box-shadow: 0 0 15px rgba(231, 76, 60, 0.6);
+}
+
+.inventory-body {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .inventory-section {
-  margin-bottom: var(--space-20);
+  margin-bottom: 20px;
+  background: linear-gradient(145deg, rgba(0,0,0,0.4), rgba(255,255,255,0.02));
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid rgba(231, 76, 60, 0.2);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Дополнительный отступ для секции рюкзака */
+.inventory-section:has(.backpack-grid) {
+  margin-bottom: 30px;
 }
 
 .inventory-section h5 {
   color: var(--color-error);
   margin-bottom: var(--space-12);
-  border-bottom: 1px solid rgba(var(--color-red-500-rgb), 0.3);
-  padding-bottom: var(--space-4);
-  font-size: 1.3rem;
+  border-bottom: 2px solid rgba(231, 76, 60, 0.4);
+  padding-bottom: var(--space-8);
+  font-size: 1.4rem;
+  text-shadow: 0 0 10px rgba(231, 76, 60, 0.5);
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.equip-grid {
+.equipment-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-12);
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  justify-items: center;
+}
+
+.quick-slots-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  justify-items: center;
 }
 
 .backpack-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-10);
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  justify-items: center;
+}
+
+.currency-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 15px;
+  background: linear-gradient(145deg, rgba(255, 215, 0, 0.1), rgba(255, 215, 0, 0.05));
+  border: 2px solid rgba(255, 215, 0, 0.3);
+  border-radius: 12px;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.3);
+}
+
+.currency-icon {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.5));
+}
+
+.currency-amount {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
 .inventory-slot {
   width: 80px;
   height: 80px;
-  background: linear-gradient(145deg, rgba(0,0,0,0.3), rgba(255,255,255,0.05));
-  border: 2px dashed rgba(var(--color-border-secondary, 167, 169, 169), 0.4);
-  border-radius: var(--radius-base);
+  background: linear-gradient(145deg, rgba(0,0,0,0.6), rgba(255,255,255,0.03));
+  border: 2px dashed rgba(167, 169, 169, 0.4);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
   cursor: pointer;
-  transition: all var(--duration-fast) ease;
+  transition: all 0.3s ease;
   font-size: 1.2rem;
+  box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(5px);
 }
 
 .inventory-slot:hover {
   border-color: var(--color-primary);
-  background: rgba(var(--color-teal-500-rgb), 0.1);
+  background: linear-gradient(145deg, rgba(0,0,0,0.7), rgba(255,255,255,0.05));
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(0, 150, 136, 0.5), inset 0 0 15px rgba(0, 0, 0, 0.4);
 }
 
 .inventory-slot.filled {
   border-color: var(--color-success);
   border-style: solid;
+  border-width: 3px;
+  box-shadow: 0 0 15px rgba(46, 204, 113, 0.4), inset 0 0 15px rgba(0, 0, 0, 0.4);
 }
 
 .inventory-slot.rare {
-  border-color: var(--color-warning);
-  box-shadow: 0 0 8px rgba(var(--color-orange-400-rgb), 0.4);
+  border-color: #3498db;
+  border-style: solid;
+  border-width: 3px;
+  box-shadow: 0 0 20px rgba(52, 152, 219, 0.6), inset 0 0 15px rgba(0, 0, 0, 0.4);
+  animation: rareGlow 2s ease-in-out infinite alternate;
+}
+
+.inventory-slot.epic {
+  border-color: #e67e22;
+  border-style: solid;
+  border-width: 3px;
+  box-shadow: 0 0 25px rgba(230, 126, 34, 0.7), inset 0 0 15px rgba(0, 0, 0, 0.4);
+  animation: epicGlow 2s ease-in-out infinite alternate;
 }
 
 .inventory-slot.legendary {
   border-color: var(--color-error);
-  box-shadow: 0 0 12px rgba(var(--color-red-400-rgb), 0.6);
+  border-style: solid;
+  border-width: 3px;
+  box-shadow: 0 0 30px rgba(231, 76, 60, 0.8), inset 0 0 15px rgba(0, 0, 0, 0.4);
+  animation: legendaryGlow 1.5s ease-in-out infinite alternate;
+}
+
+.inventory-slot.incompatible {
+  border-color: var(--color-error);
+  background: linear-gradient(145deg, rgba(231, 76, 60, 0.2), rgba(231, 76, 60, 0.1));
+  opacity: 0.7;
+  position: relative;
+}
+
+.inventory-slot.incompatible::after {
+  content: '⚠️';
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  font-size: 12px;
+  background: var(--color-error);
+  border-radius: 50%;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+@keyframes rareGlow {
+  0% { box-shadow: 0 0 15px rgba(52, 152, 219, 0.4), inset 0 0 15px rgba(0, 0, 0, 0.4); }
+  100% { box-shadow: 0 0 25px rgba(52, 152, 219, 0.8), inset 0 0 15px rgba(0, 0, 0, 0.4); }
+}
+
+@keyframes epicGlow {
+  0% { box-shadow: 0 0 20px rgba(230, 126, 34, 0.5), inset 0 0 15px rgba(0, 0, 0, 0.4); }
+  100% { box-shadow: 0 0 30px rgba(230, 126, 34, 0.9), inset 0 0 15px rgba(0, 0, 0, 0.4); }
+}
+
+@keyframes legendaryGlow {
+  0% { box-shadow: 0 0 25px rgba(231, 76, 60, 0.6), inset 0 0 15px rgba(0, 0, 0, 0.4); }
+  100% { box-shadow: 0 0 40px rgba(231, 76, 60, 1), inset 0 0 15px rgba(0, 0, 0, 0.4); }
 }
 
 .inventory-slot.dragging {
@@ -1430,8 +1634,67 @@ select.form-control {
 .item-sprite {
   width: 80%;
   height: 80%;
-  border-radius: var(--radius-sm);
+  border-radius: 8px;
   font-size: 2.2rem !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  transition: all 0.3s ease;
+}
+
+.inventory-slot:hover .item-sprite {
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.7));
+}
+
+.inventory-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  transition: all 0.3s ease;
+}
+
+.equipment-slot {
+  position: relative;
+}
+
+.equipment-slot .slot-icon {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  font-size: 12px;
+  opacity: 0.7;
+  color: #ccc;
+}
+
+.equipment-slot .slot-label {
+  position: absolute;
+  bottom: 5px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  opacity: 0.7;
+  color: #ccc;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.equipment-slot.filled .slot-icon,
+.equipment-slot.filled .slot-label {
+  display: none;
+}
+
+.backpack-slot {
+  width: 60px;
+  height: 60px;
+}
+
+.inventory-slot:hover img {
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.7));
 }
 
 /* Удаляем корзину из инвентаря */
@@ -1442,31 +1705,36 @@ select.form-control {
 .inventory-context-menu {
   position: absolute;
   z-index: 20000;
-  background: #222;
+  background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
   color: #fff;
-  border-radius: 10px;
-  box-shadow: 0 4px 24px #000a;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), 0 0 20px rgba(231, 76, 60, 0.3);
   padding: 8px 0;
-  min-width: 140px;
+  min-width: 160px;
   font-size: 1.1rem;
-  border: 1px solid #444;
+  border: 2px solid rgba(231, 76, 60, 0.4);
   display: flex;
   flex-direction: column;
   gap: 0;
+  backdrop-filter: blur(10px);
 }
 .inventory-context-menu button {
   background: none;
   border: none;
   color: inherit;
   text-align: left;
-  padding: 10px 18px;
+  padding: 12px 20px;
   width: 100%;
   cursor: pointer;
   font-size: inherit;
-  transition: background 0.15s;
+  transition: all 0.2s ease;
+  border-radius: 0;
+  font-weight: 500;
 }
 .inventory-context-menu button:hover {
-  background: #444;
+  background: linear-gradient(90deg, rgba(231, 76, 60, 0.2), rgba(231, 76, 60, 0.1));
+  color: #ff6b6b;
+  text-shadow: 0 0 5px rgba(255, 107, 107, 0.5);
 }
 .inventory-context-menu .danger {
   color: #e74c3c;

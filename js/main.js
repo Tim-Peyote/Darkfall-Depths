@@ -17,7 +17,7 @@ import { WebGLFogOfWar } from './map/WebGLFogOfWar.js';
 import { Entity } from './entities/Entity.js';
 import { Player } from './entities/Player.js';
 import { Enemy } from './entities/Enemy.js';
-import { Projectile, EnemyProjectile } from './entities/Projectile.js';
+import { Projectile, FireballProjectile, EnemyProjectile } from './entities/Projectile.js';
 import { DroppedItem } from './entities/DroppedItem.js';
 import { Portal } from './entities/Portal.js';
 
@@ -34,6 +34,7 @@ import { RecordsManager } from './ui/RecordsManager.js';
 import { SettingsManager } from './ui/SettingsManager.js';
 import { ContextMenuManager } from './ui/ContextMenuManager.js';
 import { MenuNavigationManager } from './ui/MenuNavigationManager.js';
+import { InventorySpriteRenderer } from './ui/InventorySpriteRenderer.js';
 
 // Импорты утилит
 import { Utils } from './utils/Utils.js';
@@ -61,6 +62,7 @@ window.Entity = Entity;
 window.Player = Player;
 window.Enemy = Enemy;
 window.Projectile = Projectile;
+window.FireballProjectile = FireballProjectile;
 window.EnemyProjectile = EnemyProjectile;
 window.DroppedItem = DroppedItem;
 window.Portal = Portal;
@@ -70,6 +72,7 @@ window.GameEngine = GameEngine;
 window.LevelManager = LevelManager;
 window.InventoryManager = InventoryManager;
 window.ContextMenuManager = ContextMenuManager;
+window.InventorySpriteRenderer = InventorySpriteRenderer;
 
 // Экспортируем все для использования в других модулях
 export {
@@ -89,6 +92,7 @@ export {
   Player,
   Enemy,
   Projectile,
+  FireballProjectile,
   EnemyProjectile,
   DroppedItem,
   Portal,
@@ -99,7 +103,8 @@ export {
   ScreenManager,
   InventoryManager,
   RecordsManager,
-  SettingsManager
+  SettingsManager,
+  InventorySpriteRenderer
 };
 
 // Временный код для тестирования звуковых эффектов
@@ -189,6 +194,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         console.log('🎯 Инициализируем навигацию по меню...');
         MenuNavigationManager.init();
         console.log('✅ Навигация по меню инициализирована');
+        
+        // Инициализируем рендерер спрайтов для инвентаря
+        console.log('🎨 Инициализируем рендерер спрайтов инвентаря...');
+        InventorySpriteRenderer.init();
+        console.log('✅ Рендерер спрайтов инвентаря инициализирован');
+        
+        // Инициализируем менеджер настроек
+        console.log('⚙️ Инициализируем менеджер настроек...');
+        SettingsManager.init();
+        console.log('✅ Менеджер настроек инициализирован');
       } catch (gameError) {
         console.warn('⚠️ Ошибка инициализации игры:', gameError);
         console.log('🎮 Продолжаем с базовой инициализацией...');

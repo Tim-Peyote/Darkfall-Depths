@@ -4,6 +4,22 @@ import { gameState, canvas, DPR } from '../core/GameState.js';
 import { audioManager } from '../audio/AudioManager.js';
 
 export class SettingsManager {
+  static escapeListenerAdded = false;
+  static delegatedListenerAdded = false;
+  
+  static init() {
+    console.log('⚙️ Инициализация SettingsManager...');
+    this.loadSettings();
+    this.setupEventListeners();
+    console.log('✅ SettingsManager инициализирован');
+  }
+
+  static reinitEventListeners() {
+    console.log('🔄 Переинициализация обработчиков событий...');
+    this.setupEventListeners();
+    console.log('✅ Обработчики событий переинициализированы');
+  }
+
   static saveSettings() {
     const settings = {
       enabled: gameState.audio.enabled,
@@ -258,14 +274,113 @@ export class SettingsManager {
       console.error('❌ Pause button not found!');
     }
     
-    // Кнопка закрытия инвентаря
+    // Кнопка закрытия инвентаря (только в игровом экране)
     const closeInventoryBtn = document.getElementById('closeInventory');
-    if (closeInventoryBtn) {
-      closeInventoryBtn.addEventListener('click', async () => {
-        console.log('Close inventory button clicked');
+    if (closeInventoryBtn && gameState.screen === 'game') {
+      console.log('✅ Кнопка закрытия инвентаря найдена и настроена');
+      
+      // Удаляем старые обработчики, если они есть
+      const newCloseInventoryBtn = closeInventoryBtn.cloneNode(true);
+      closeInventoryBtn.parentNode.replaceChild(newCloseInventoryBtn, closeInventoryBtn);
+      
+      newCloseInventoryBtn.addEventListener('click', async (e) => {
+        console.log('🔴 Close inventory button clicked');
+        e.preventDefault();
+        e.stopPropagation();
         const { InventoryManager } = await import('../ui/InventoryManager.js');
         InventoryManager.toggleInventory();
       });
+      
+      // Обработчик клика на шторку инвентаря для закрытия
+      const inventoryOverlay = document.getElementById('inventoryOverlay');
+      if (inventoryOverlay) {
+        inventoryOverlay.addEventListener('click', async (e) => {
+          if (e.target === inventoryOverlay) {
+            console.log('🔴 Inventory overlay clicked - closing');
+            const { InventoryManager } = await import('../ui/InventoryManager.js');
+            InventoryManager.toggleInventory();
+          }
+        });
+      }
+      
+      // Дополнительные обработчики через делегирование событий
+      if (!SettingsManager.delegatedListenerAdded) {
+        SettingsManager.delegatedListenerAdded = true;
+        document.addEventListener('click', async (e) => {
+        if (e.target && e.target.id === 'closeInventory') {
+          console.log('🔴 Close inventory button clicked (delegated)');
+          e.preventDefault();
+          e.stopPropagation();
+          const { InventoryManager } = await import('../ui/InventoryManager.js');
+          InventoryManager.toggleInventory();
+        } else if (e.target && e.target.id === 'restartBtn') {
+          console.log('🔄 Restart button clicked (delegated)');
+          e.preventDefault();
+          e.stopPropagation();
+          const { GameEngine } = await import('../game/GameEngine.js');
+          const { LevelManager } = await import('../game/LevelManager.js');
+          
+          // Закрыть экран окончания игры
+          const gameOverOverlay = document.getElementById('gameOverOverlay');
+          if (gameOverOverlay) {
+            gameOverOverlay.classList.add('hidden');
+          }
+          
+          // Сбросить игру и начать заново
+          LevelManager.endGame();
+          GameEngine.startGame();
+        } else if (e.target && e.target.id === 'menuBtn') {
+          console.log('🏠 Menu button clicked (delegated)');
+          e.preventDefault();
+          e.stopPropagation();
+          const { ScreenManager } = await import('../ui/ScreenManager.js');
+          const { LevelManager } = await import('../game/LevelManager.js');
+          
+          // Закрыть экран окончания игры
+          const gameOverOverlay = document.getElementById('gameOverOverlay');
+          if (gameOverOverlay) {
+            gameOverOverlay.classList.add('hidden');
+          }
+          
+          // Сбросить игру и перейти в меню
+          LevelManager.endGame();
+          ScreenManager.switchScreen('menu');
+        } else if (e.target && e.target.id === 'nextLevelBtn') {
+          // Убираем дублирующий обработчик - используем только прямой обработчик
+          console.log('⬇️ Next level button clicked (delegated) - IGNORED');
+          // Не выполняем никаких действий - прямой обработчик справится
+        }
+      });
+      
+
+      
+      // Обработчик клавиши Escape для закрытия инвентаря
+      if (!SettingsManager.escapeListenerAdded) {
+        SettingsManager.escapeListenerAdded = true;
+        document.addEventListener('keydown', async (e) => {
+          if (e.key === 'Escape') {
+            const inventoryOverlay = document.getElementById('inventoryOverlay');
+            if (inventoryOverlay && !inventoryOverlay.classList.contains('hidden')) {
+              console.log('🔴 Escape key pressed - closing inventory');
+              const { InventoryManager } = await import('../ui/InventoryManager.js');
+              InventoryManager.toggleInventory();
+              e.preventDefault(); // Предотвращаем срабатывание других обработчиков Escape
+              e.stopPropagation();
+              e.stopImmediatePropagation(); // Останавливаем все последующие обработчики
+              return false; // Прерываем выполнение, чтобы другие обработчики не сработали
+            }
+          }
+        });
+      }
+    } else if (closeInventoryBtn && gameState.screen !== 'game') {
+      // Кнопка есть, но мы не в игре - это нормально
+      console.log('ℹ️ Кнопка закрытия инвентаря найдена, но не в игровом экране - пропускаем');
+    } else if (!closeInventoryBtn && gameState.screen === 'game') {
+      // Кнопки нет, но мы в игре - это ошибка
+      console.error('❌ Кнопка закрытия инвентаря не найдена в игровом экране!');
+    } else {
+      // Кнопки нет и мы не в игре - это нормально
+      console.log('ℹ️ Кнопка закрытия инвентаря не найдена (не в игровом экране)');
     }
     
     // Кнопка открытия инвентаря на экране (только в игре)
@@ -320,26 +435,42 @@ export class SettingsManager {
     // Кнопка следующего уровня
     const nextLevelBtn = document.getElementById('nextLevelBtn');
     if (nextLevelBtn) {
-      nextLevelBtn.addEventListener('click', async () => {
-        console.log('Next level button clicked');
+      console.log('✅ Кнопка следующего уровня найдена и настроена');
+      
+      // Удаляем старые обработчики, если они есть
+      const newNextLevelBtn = nextLevelBtn.cloneNode(true);
+      nextLevelBtn.parentNode.replaceChild(newNextLevelBtn, nextLevelBtn);
+      
+      newNextLevelBtn.addEventListener('click', async () => {
+        console.log('🎮 Next level button clicked');
         console.log(`🎮 Button click - level: ${gameState.level}, gameRunning: ${gameState.gameRunning}`);
-        const { GameEngine } = await import('../game/GameEngine.js');
-        const { LevelManager } = await import('../game/LevelManager.js');
         
-        // Закрыть окно статистики
-        const levelCompleteOverlay = document.getElementById('levelCompleteOverlay');
-        if (levelCompleteOverlay) {
-          levelCompleteOverlay.classList.add('hidden');
+        try {
+          const { GameEngine } = await import('../game/GameEngine.js');
+          const { LevelManager } = await import('../game/LevelManager.js');
+          
+          // Закрыть окно статистики
+          const levelCompleteOverlay = document.getElementById('levelCompleteOverlay');
+          if (levelCompleteOverlay) {
+            levelCompleteOverlay.classList.add('hidden');
+            console.log('🎮 Level complete overlay hidden');
+          }
+          
+          // Переход на следующий уровень через LevelManager
+          console.log(`🎮 Before nextLevel: level ${gameState.level}, gameRunning: ${gameState.gameRunning}`);
+          await LevelManager.nextLevel();
+          console.log(`🎮 After nextLevel: level ${gameState.level}, gameRunning: ${gameState.gameRunning}`);
+          
+          // Продолжаем игру с новым уровнем
+          console.log('🎮 Continuing game...');
+          await GameEngine.continueGame();
+          console.log('🎮 Game continued successfully');
+        } catch (error) {
+          console.error('❌ Error in next level button handler:', error);
         }
-        
-        // Переход на следующий уровень через LevelManager
-        console.log(`🎮 Before nextLevel: level ${gameState.level}, gameRunning: ${gameState.gameRunning}`);
-        await LevelManager.nextLevel();
-        console.log(`🎮 After nextLevel: level ${gameState.level}, gameRunning: ${gameState.gameRunning}`);
-        
-        // Продолжаем игру с новым уровнем
-        await GameEngine.continueGame();
       });
+    } else {
+      console.error('❌ Кнопка следующего уровня не найдена!');
     }
     
     // Возвраты в меню
@@ -385,7 +516,11 @@ export class SettingsManager {
     const menuBtn = document.getElementById('menuBtn');
     
     if (restartBtn) {
-      restartBtn.addEventListener('click', async () => {
+      // Удаляем старые обработчики, если они есть
+      const newRestartBtn = restartBtn.cloneNode(true);
+      restartBtn.parentNode.replaceChild(newRestartBtn, restartBtn);
+      
+      newRestartBtn.addEventListener('click', async () => {
         console.log('Restart button clicked');
         const { GameEngine } = await import('../game/GameEngine.js');
         const { LevelManager } = await import('../game/LevelManager.js');
@@ -403,7 +538,11 @@ export class SettingsManager {
     }
     
     if (menuBtn) {
-      menuBtn.addEventListener('click', async () => {
+      // Удаляем старые обработчики, если они есть
+      const newMenuBtn = menuBtn.cloneNode(true);
+      menuBtn.parentNode.replaceChild(newMenuBtn, menuBtn);
+      
+      newMenuBtn.addEventListener('click', async () => {
         console.log('Menu button clicked');
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         const { LevelManager } = await import('../game/LevelManager.js');
@@ -418,6 +557,7 @@ export class SettingsManager {
         LevelManager.endGame();
         ScreenManager.switchScreen('menu');
       });
+    }
     }
     } catch (error) {
       console.error('❌ Error in setupEventListeners:', error);

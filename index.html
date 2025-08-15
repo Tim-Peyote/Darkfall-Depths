@@ -7,6 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Darkfall Depths - Roguelike Dungeon Crawler</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
     
     <!-- Gothic Font Import -->
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
@@ -316,20 +317,46 @@
     </div>
 
     <!-- ОВЕРЛЕЙ ИНВЕНТАРЯ -->
-    <div id="inventoryOverlay" class="inventory-overlay card hidden">
-        <div class="card__header flex justify-between">
-            <h5>🎒 Инвентарь</h5>
-            <button id="closeInventory" class="btn btn--outline btn--sm">✕</button>
-        </div>
-        <div class="card__body">
-            <div class="inventory-section">
-                <h5>Экипировка</h5>
-                <div id="equipSlots" class="equip-grid"></div>
+    <div id="inventoryOverlay" class="inventory-overlay hidden">
+        <div class="inventory-content">
+            <div class="inventory-header">
+                <h2>ИНВЕНТАРЬ</h2>
+                <button id="closeInventory" class="close-btn">×</button>
             </div>
             
-            <div class="inventory-section">
-                <h5>Рюкзак</h5>
-                <div id="backpackSlots" class="backpack-grid"></div>
+            <div class="inventory-body">
+                <!-- Секция экипировки -->
+                <div class="inventory-section">
+                    <h5>ЭКИПИРОВКА</h5>
+                    <div id="equipmentSlots" class="equipment-grid">
+                        <!-- Слоты экипировки будут созданы динамически -->
+                    </div>
+                </div>
+                
+                <!-- Секция быстрых слотов -->
+                <div class="inventory-section">
+                    <h5>⚡ БЫСТРЫЕ СЛОТЫ</h5>
+                    <div id="quickSlotsContainer" class="quick-slots-grid">
+                        <!-- Быстрые слоты будут созданы динамически -->
+                    </div>
+                </div>
+                
+                <!-- Секция рюкзака -->
+                <div class="inventory-section">
+                    <h5>РЮКЗАК</h5>
+                    <div id="backpackSlots" class="backpack-grid">
+                        <!-- Слоты рюкзака будут созданы динамически -->
+                    </div>
+                </div>
+                
+                <!-- Секция валюты -->
+                <div class="inventory-section">
+                    <h5>ВАЛЮТА</h5>
+                    <div id="currencyDisplay" class="currency-display">
+                        <span class="currency-icon">🪙</span>
+                        <span id="playerGold" class="currency-amount">0</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -376,6 +403,6 @@
       </div>
     </div>
 
-            <script type="module" src="js/main.js?v=36"></script>
+            <script type="module" src="js/main.js?v=79"></script>
 </body>
 </html>

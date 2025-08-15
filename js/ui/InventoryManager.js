@@ -2,6 +2,8 @@
 
 import { gameState } from '../core/GameState.js';
 import { ContextMenuManager } from './ContextMenuManager.js';
+import { InventorySpriteRenderer } from './InventorySpriteRenderer.js';
+import { BASE_ITEMS } from '../config/constants.js';
 
 let tooltipElement = null;
 let draggedItem = null;
@@ -36,9 +38,16 @@ export class InventoryManager {
       }
     } else {
       // Закрываем инвентарь в любом случае (даже в паузе)
+      console.log('Закрываем инвентарь...');
       overlay.classList.add('hidden');
       // Скрываем тултипы при закрытии инвентаря
       this.hideTooltip();
+      
+      // Воспроизводим звук закрытия инвентаря (асинхронно)
+      (async () => {
+        const { audioManager } = await import('../audio/AudioManager.js');
+        audioManager.playInventoryClose();
+      })();
       
       // Сбрасываем паузу при закрытии инвентаря, если игра была поставлена на паузу из-за инвентаря
       if (gameState.screen === 'game' && gameState.isPaused) {
@@ -72,12 +81,41 @@ export class InventoryManager {
   }
 
   static renderInventory() {
-    const equipSlots = document.getElementById('equipSlots');
+    const equipmentSlots = document.getElementById('equipmentSlots');
     const backpackSlots = document.getElementById('backpackSlots');
-    if (!equipSlots || !backpackSlots) return;
+    const quickSlotsContainer = document.getElementById('quickSlotsContainer');
+    const currencyDisplay = document.getElementById('playerGold');
     
-    equipSlots.innerHTML = '';
+    if (!equipmentSlots || !backpackSlots || !quickSlotsContainer) return;
+    
+    // Проверяем и исправляем размер массива экипировки
+    if (!gameState.inventory.equipment || gameState.inventory.equipment.length !== 9) {
+      const oldEquipment = gameState.inventory.equipment || [];
+      gameState.inventory.equipment = new Array(9).fill(null);
+      // Копируем существующие предметы
+      for (let i = 0; i < Math.min(oldEquipment.length, 9); i++) {
+        gameState.inventory.equipment[i] = oldEquipment[i];
+      }
+    }
+    
+    // Проверяем и исправляем размер рюкзака
+    if (!gameState.inventory.backpack || gameState.inventory.backpack.length !== 42) {
+      const oldBackpack = gameState.inventory.backpack || [];
+      gameState.inventory.backpack = new Array(42).fill(null);
+      // Копируем существующие предметы
+      for (let i = 0; i < Math.min(oldBackpack.length, 42); i++) {
+        gameState.inventory.backpack[i] = oldBackpack[i];
+      }
+    }
+    
+    equipmentSlots.innerHTML = '';
     backpackSlots.innerHTML = '';
+    quickSlotsContainer.innerHTML = '';
+    
+    // Обновляем валюту
+    if (currencyDisplay) {
+      currencyDisplay.textContent = gameState.player?.gold || gameState.gold || 0;
+    }
     
     // --- Новый блок: параметры персонажа ---
     let statsBlock = document.getElementById('inventoryStats');
@@ -90,75 +128,114 @@ export class InventoryManager {
       statsBlock.style.padding = '10px 12px';
       statsBlock.style.fontSize = '15px';
       statsBlock.style.lineHeight = '1.6';
-      const parent = document.getElementById('inventoryOverlay').querySelector('.card__body');
-      parent.insertBefore(statsBlock, parent.firstChild);
+      const parent = document.getElementById('inventoryOverlay').querySelector('.inventory-body');
+      if (parent) {
+        parent.insertBefore(statsBlock, parent.firstChild);
+      }
     }
     
     if (gameState.player) {
       statsBlock.innerHTML = `
-        <b>Параметры персонажа</b><br>
-        HP: <span style="color:#e74c3c">${gameState.player.hp}</span> / <span style="color:#e74c3c">${gameState.player.maxHp}</span><br>
-        Урон: <span style="color:#e67e22">${gameState.player.damage}</span><br>
-        Защита: <span style="color:#7f8c8d">${gameState.player.defense||0}</span><br>
-        Крит: <span style="color:#3498db">${gameState.player.crit||0}%</span><br>
-        Скорость: <span style="color:#27ae60">${gameState.player.moveSpeed}</span><br>
-        Скорость атаки: <span style="color:#3498db">${gameState.player.attackSpeed}</span> сек<br>
-        Дальность атаки: <span style="color:#9b59b6">${gameState.player.attackRadius}</span> px<br>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
+          <div style="color: #e74c3c; font-weight: bold;">❤️ HP: ${gameState.player.hp}/${gameState.player.maxHp}</div>
+          <div style="color: #e67e22; font-weight: bold;">⚔️ Урон: ${gameState.player.damage}</div>
+          <div style="color: #7f8c8d; font-weight: bold;">🛡️ Защита: ${gameState.player.defense||0}</div>
+          <div style="color: #3498db; font-weight: bold;">💥 Крит: ${gameState.player.crit||0}%</div>
+          <div style="color: #27ae60; font-weight: bold;">💨 Скорость: ${gameState.player.moveSpeed}</div>
+          <div style="color: #3498db; font-weight: bold;">⚡ Атака: ${gameState.player.attackSpeed}с</div>
+          <div style="color: #9b59b6; font-weight: bold; grid-column: 1 / -1;">🎯 Дальность: ${gameState.player.attackRadius}px</div>
+        </div>
       `;
     } else {
       statsBlock.innerHTML = '';
     }
     
-    // Слоты экипировки
-    const slotNames = ['Оружие', 'Броня', 'Аксессуар', 'Расходник'];
-    gameState.inventory.equipment.forEach((item, index) => {
+    // Слоты экипировки - правильная компоновка
+    const equipmentStructure = [
+      { type: 'head', label: 'Голова', icon: '👑', allowedTypes: ['head'], row: 1, col: 2 },
+      { type: 'weapon1', label: 'Оружие 1', icon: '⚔️', allowedTypes: ['weapon'], row: 2, col: 1 },
+      { type: 'chest', label: 'Броня', icon: '🥋', allowedTypes: ['armor'], row: 2, col: 2 },
+      { type: 'weapon2', label: 'Оружие 2', icon: '🛡️', allowedTypes: ['weapon', 'shield'], row: 2, col: 3 },
+      { type: 'accessory1', label: 'Украшение 1', icon: '💍', allowedTypes: ['accessory'], row: 3, col: 1 },
+      { type: 'gloves', label: 'Перчатки', icon: '🧤', allowedTypes: ['gloves'], row: 3, col: 2 },
+      { type: 'accessory2', label: 'Украшение 2', icon: '📿', allowedTypes: ['accessory'], row: 3, col: 3 },
+      { type: 'belt', label: 'Ремень', icon: '🎗️', allowedTypes: ['belt'], row: 4, col: 2 },
+      { type: 'boots', label: 'Ботинки', icon: '👢', allowedTypes: ['boots'], row: 5, col: 2 }
+    ];
+    
+    equipmentStructure.forEach((slotConfig, index) => {
       const slot = document.createElement('div');
-      slot.className = 'inventory-slot';
-      slot.title = slotNames[index];
+      slot.className = 'inventory-slot equipment-slot';
+      slot.title = slotConfig.label;
       slot.setAttribute('data-type', 'equipment');
       slot.setAttribute('data-index', index);
+      slot.setAttribute('data-slot-type', slotConfig.type);
+      slot.setAttribute('data-allowed-types', slotConfig.allowedTypes.join(','));
       
+      // Позиционируем слот в правильной ячейке сетки
+      slot.style.gridRow = slotConfig.row;
+      slot.style.gridColumn = slotConfig.col;
+      
+      // Добавляем иконку и подпись слота
+      slot.innerHTML = `
+        <div class="slot-icon">${slotConfig.icon}</div>
+        <div class="slot-label">${slotConfig.label}</div>
+      `;
+      
+      // Проверяем, есть ли предмет в этом слоте
+      const item = gameState.inventory.equipment[index];
       if (item) {
-        slot.classList.add('filled', item.rarity);
-        slot.innerHTML = `<div class="item-sprite" style="background:${item.color};font-size:2rem;display:flex;align-items:center;justify-content:center;">${item.icon||''}</div>`;
-        const tooltipText = `${item.name}\n${item.description}`;
-        
-        // Добавляем обработчики для тултипов
-        slot.addEventListener('mouseenter', (e) => this.showTooltip(e, tooltipText));
-        slot.addEventListener('mouseleave', () => this.hideTooltip());
-        slot.addEventListener('mousemove', (e) => this.updateTooltipPosition(e));
-        
-        // Двойной клик для использования
-        slot.addEventListener('dblclick', () => this.useItem('equipment', index));
-        
-        // Настройка контекстного меню
-        ContextMenuManager.setupSlotContextMenu(slot, item, 'equipment', index);
-        
-        slot.addEventListener('click', () => this.unequipItem(index));
-        this.setupDragDropForSlot(slot, 'equipment', index);
+        // Проверяем совместимость типа предмета со слотом
+        if (this.isItemCompatibleWithSlot(item, slotConfig.allowedTypes)) {
+          slot.classList.add('filled', item.rarity);
+          
+          // Создаем спрайт предмета
+          const spriteElement = InventorySpriteRenderer.createSpriteElement(item, 48);
+          if (spriteElement) {
+            slot.innerHTML = '';
+            slot.appendChild(spriteElement);
+          } else {
+            // Fallback на старый способ с эмодзи
+            slot.innerHTML = `<div class="item-sprite" style="background:${item.color};font-size:2rem;display:flex;align-items:center;justify-content:center;">${item.icon||''}</div>`;
+          }
+          
+          const tooltipText = `${item.name}\n${item.description}`;
+          
+          // Добавляем обработчики для тултипов
+          slot.addEventListener('mouseenter', (e) => this.showTooltip(e, tooltipText));
+          slot.addEventListener('mouseleave', () => this.hideTooltip());
+          slot.addEventListener('mousemove', (e) => this.updateTooltipPosition(e));
+          
+          // Двойной клик для снятия
+          slot.addEventListener('dblclick', () => this.unequipItem(index));
+          
+          // Настройка контекстного меню
+          ContextMenuManager.setupSlotContextMenu(slot, item, 'equipment', index);
+          
+          slot.addEventListener('click', () => this.unequipItem(index));
+          this.setupDragDropForSlot(slot, 'equipment', index);
+        } else {
+          // Предмет несовместим со слотом - перемещаем в рюкзак
+          
+          // Находим свободное место в рюкзаке
+          const backpackIndex = gameState.inventory.backpack.findIndex(slot => !slot);
+          if (backpackIndex !== -1) {
+            // Перемещаем предмет в рюкзак
+            gameState.inventory.backpack[backpackIndex] = item;
+            gameState.inventory.equipment[index] = null;
+          } else {
+            // Рюкзак полон - показываем предупреждение
+            slot.classList.add('incompatible');
+            slot.title = `Несовместимый предмет: ${item.name} (рюкзак полон)`;
+          }
+        }
       }
       
-      equipSlots.appendChild(slot);
+      equipmentSlots.appendChild(slot);
     });
     
-    // Быстрые слоты для банок
-    const quickSlotsContainer = document.getElementById('quickSlotsContainer');
-    if (!quickSlotsContainer) {
-      const quickSlotsDiv = document.createElement('div');
-      quickSlotsDiv.id = 'quickSlotsContainer';
-      quickSlotsDiv.style.cssText = `
-        margin: 16px 0;
-        padding: 12px;
-        background: rgba(0,0,0,0.05);
-        border-radius: 8px;
-        border: 1px solid rgba(0,0,0,0.1);
-      `;
-      quickSlotsDiv.innerHTML = '<div style="margin-bottom: 8px; font-weight: bold; color: #666;">Быстрые слоты (1, 2, 3)</div>';
-      equipSlots.parentNode.insertBefore(quickSlotsDiv, equipSlots.nextSibling);
-    }
-    
-    const quickSlotsEl = document.getElementById('quickSlotsContainer');
-    quickSlotsEl.innerHTML = '<div style="margin-bottom: 8px; font-weight: bold; color: #666;">Быстрые слоты (1, 2, 3)</div>';
+    // Быстрые слоты для зелий - 3 слота
+    quickSlotsContainer.innerHTML = '';
     
     gameState.inventory.quickSlots.forEach((potionType, index) => {
       const slot = document.createElement('div');
@@ -214,10 +291,42 @@ export class InventoryManager {
         ).length;
         
         slot.classList.add('filled');
-        slot.innerHTML = `
-          <div class="item-sprite" style="background:${color};font-size:1.5rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">${icon}</div>
-          <div class="item-count" style="position:absolute;bottom:-2px;right:-2px;background:${color};color:white;font-size:10px;padding:1px 3px;border-radius:3px;min-width:12px;text-align:center;">${count}</div>
-        `;
+        
+        // Создаем спрайт зелья
+        const potionItem = { base: potionType, type: 'consumable', rarity: 'common' };
+        const spriteElement = InventorySpriteRenderer.createSpriteElement(potionItem, 40);
+        
+        if (spriteElement) {
+          slot.innerHTML = '';
+          slot.appendChild(spriteElement);
+          
+          // Добавляем счетчик поверх спрайта
+          const countElement = document.createElement('div');
+          countElement.className = 'item-count';
+          countElement.style.cssText = `
+            position: absolute;
+            bottom: -3px;
+            right: -3px;
+            background: ${color};
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 2px 4px;
+            border-radius: 6px;
+            min-width: 14px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+          `;
+          countElement.textContent = count;
+          slot.appendChild(countElement);
+        } else {
+          // Fallback на старый способ с эмодзи
+          slot.innerHTML = `
+            <div class="item-sprite" style="background:${color};font-size:1.5rem;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">${icon}</div>
+            <div class="item-count" style="position:absolute;bottom:-2px;right:-2px;background:${color};color:white;font-size:10px;padding:1px 3px;border-radius:3px;min-width:12px;text-align:center;">${count}</div>
+          `;
+        }
         const tooltipText = `${name}\nКоличество: ${count}\nКлавиша: ${index + 1}`;
         
         // Добавляем обработчики для тултипов
@@ -238,26 +347,44 @@ export class InventoryManager {
       } else {
         // Пустой слот
         slot.classList.add('empty');
-        slot.innerHTML = `<div style="font-size:1.5rem;color:#666;display:flex;align-items:center;justify-content:center;width:100%;height:100%;">${index + 1}</div>`;
-        slot.title = `Пустой быстрый слот ${index + 1} (перетащите сюда банку)`;
+        slot.innerHTML = `<div style="font-size:1.2rem;color:#888;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-weight:bold;">${index + 1}</div>`;
+        slot.title = `Быстрый слот ${index + 1} (перетащите сюда зелье)`;
       }
       
       // Настройка drag & drop для всех слотов
       this.setupDragDropForSlot(slot, 'quickslot', index);
       
-      quickSlotsEl.appendChild(slot);
+      quickSlotsContainer.appendChild(slot);
     });
     
-    // Слоты рюкзака
-    gameState.inventory.backpack.forEach((item, index) => {
+    // Слоты рюкзака - 42 слота (6x7 сетка)
+    const backpackSize = 42; // 6 колонок x 7 строк
+    
+    // Расширяем массив рюкзака если нужно
+    while (gameState.inventory.backpack.length < backpackSize) {
+      gameState.inventory.backpack.push(null);
+    }
+    
+    for (let index = 0; index < backpackSize; index++) {
+      const item = gameState.inventory.backpack[index];
       const slot = document.createElement('div');
-      slot.className = 'inventory-slot';
+      slot.className = 'inventory-slot backpack-slot';
       slot.setAttribute('data-type', 'backpack');
       slot.setAttribute('data-index', index);
       
       if (item) {
         slot.classList.add('filled', item.rarity);
-        slot.innerHTML = `<div class="item-sprite" style="background:${item.color};font-size:2rem;display:flex;align-items:center;justify-content:center;">${item.icon||''}</div>`;
+        
+        // Создаем спрайт предмета
+        const spriteElement = InventorySpriteRenderer.createSpriteElement(item, 48);
+        if (spriteElement) {
+          slot.innerHTML = '';
+          slot.appendChild(spriteElement);
+        } else {
+          // Fallback на старый способ с эмодзи
+          slot.innerHTML = `<div class="item-sprite" style="background:${item.color};font-size:2rem;display:flex;align-items:center;justify-content:center;">${item.icon||''}</div>`;
+        }
+        
         const tooltipText = `${item.name}\n${item.description}`;
         
         // Добавляем обработчики для тултипов
@@ -271,12 +398,49 @@ export class InventoryManager {
         // Настройка контекстного меню
         ContextMenuManager.setupSlotContextMenu(slot, item, 'backpack', index);
         
+        // Одинарный клик для экипировки
         slot.addEventListener('click', () => this.equipItem(index));
         this.setupDragDropForSlot(slot, 'backpack', index);
       }
       
       backpackSlots.appendChild(slot);
-    });
+    }
+  }
+
+  // Функция проверки совместимости предмета со слотом
+  static isItemCompatibleWithSlot(item, allowedTypes) {
+    if (!item || !allowedTypes) return false;
+    
+    // Определяем тип предмета на основе его свойств
+    let itemType = 'unknown';
+    
+    if (item.slot) {
+      itemType = item.slot;
+    } else if (item.type) {
+      itemType = item.type;
+    } else if (item.base) {
+      // Определяем тип по базовому предмету
+      const baseItem = BASE_ITEMS.find(bi => bi.base === item.base);
+      if (baseItem) {
+        itemType = baseItem.slot || baseItem.type;
+      }
+    }
+    
+    // Специальная обработка для мантии (robe) - она должна идти в слот armor
+    if (item.base === 'robe') {
+      itemType = 'armor';
+    }
+    
+    // Специальная обработка для перчаток (gloves) - они должны идти в слот gloves
+    if (item.base === 'gloves') {
+      itemType = 'gloves';
+    }
+    
+    const isCompatible = allowedTypes.includes(itemType);
+    
+
+    
+    return isCompatible;
   }
 
   static useItem(type, index) {
@@ -321,6 +485,8 @@ export class InventoryManager {
     
     if (!item) return;
     
+
+    
     // Если это банка, применяем её эффекты
     if (item.type === 'consumable') {
       // Применяем эффекты банки
@@ -342,22 +508,63 @@ export class InventoryManager {
       return;
     }
     
-    const slotMap = { weapon: 0, armor: 1, accessory: 2, consumable: 3 };
-    let targetSlot = slotMap[item.slot];
+    // Находим подходящий слот экипировки для предмета
+    const equipmentStructure = [
+      { type: 'head', allowedTypes: ['head'] },
+      { type: 'weapon1', allowedTypes: ['weapon'] },
+      { type: 'chest', allowedTypes: ['armor'] },
+      { type: 'weapon2', allowedTypes: ['weapon', 'shield'] },
+      { type: 'accessory1', allowedTypes: ['accessory'] },
+      { type: 'gloves', allowedTypes: ['gloves'] },
+      { type: 'accessory2', allowedTypes: ['accessory'] },
+      { type: 'belt', allowedTypes: ['belt'] },
+      { type: 'boots', allowedTypes: ['boots'] }
+    ];
     
-    if (targetSlot === undefined) {
-      targetSlot = gameState.inventory.equipment.findIndex(slot => !slot);
-      if (targetSlot === -1) targetSlot = 0;
+    // Ищем подходящий слот
+    let targetSlot = -1;
+    let emptySlot = -1;
+    
+    for (let i = 0; i < equipmentStructure.length; i++) {
+      const slotConfig = equipmentStructure[i];
+      const isCompatible = this.isItemCompatibleWithSlot(item, slotConfig.allowedTypes);
+      const isOccupied = !!gameState.inventory.equipment[i];
+      
+      if (isCompatible) {
+        // Если слот пустой, запоминаем его
+        if (!isOccupied) {
+          if (emptySlot === -1) {
+            emptySlot = i;
+          }
+        } else {
+          // Если слот занят, используем его для замены
+          targetSlot = i;
+          break;
+        }
+      }
     }
     
-    const oldItem = gameState.inventory.equipment[targetSlot];
-    // console.log('Swapping:', {fromBackpack: item, toEquipment: oldItem, targetSlot});
+    // Если не нашли занятый слот, используем пустой
+    if (targetSlot === -1) {
+      targetSlot = emptySlot;
+    }
     
+    if (targetSlot === -1) {
+      alert('Нет подходящего слота для этого предмета!');
+      return;
+    }
+    
+
+    
+    const oldItem = gameState.inventory.equipment[targetSlot];
+    
+    // Меняем местами предметы
     gameState.inventory.equipment[targetSlot] = item;
     gameState.inventory.backpack[backpackIndex] = oldItem;
     
-    this.applyItemBonuses(item);
+    // Применяем/убираем бонусы
     if (oldItem) this.removeItemBonuses(oldItem);
+    this.applyItemBonuses(item);
     
     this.renderInventory();
   }
@@ -575,6 +782,8 @@ export class InventoryManager {
     if (from.type === to.type && from.index === to.index) {
       return;
     }
+    
+
     
     // Получаем предметы из соответствующих источников
     let fromItem, toItem;
@@ -829,18 +1038,22 @@ export class InventoryManager {
       tooltipElement.style.cssText = `
         position: fixed;
         z-index: 9999;
-        background: #222;
+        background: linear-gradient(145deg, #1a1a1a, #2a2a2a);
         color: #fff;
-        padding: 8px 12px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        padding: 12px 16px;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.8), 0 0 20px rgba(231, 76, 60, 0.3);
         white-space: pre-line;
         font-size: 14px;
+        font-weight: 500;
         pointer-events: none;
-        max-width: 220px;
-        opacity: 0.97;
-        transition: opacity 0.1s;
+        max-width: 250px;
+        opacity: 0.98;
+        transition: all 0.2s ease;
         display: none;
+        border: 2px solid rgba(231, 76, 60, 0.4);
+        backdrop-filter: blur(10px);
+        line-height: 1.4;
       `;
       document.body.appendChild(tooltipElement);
     }

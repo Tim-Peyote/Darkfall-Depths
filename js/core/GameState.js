@@ -7,6 +7,7 @@ export const gameState = {
   gameTime: 0,
   player: null,
   selectedCharacter: null,
+  gold: 0,
   entities: [],
   projectiles: [],
   particles: [],
@@ -20,8 +21,8 @@ export const gameState = {
     joystick: { active: false, x: 0, y: 0, dx: 0, dy: 0 }
   },
   inventory: {
-    equipment: [null, null, null, null], // weapon, armor, accessory, consumable
-    backpack: new Array(8).fill(null),
+    equipment: new Array(9).fill(null), // head, weapon1, weapon2, chest, accessory1, accessory2, gloves, belt, boots
+    backpack: new Array(42).fill(null), // 6x7 = 42 слота
     quickSlots: [null, null, null] // Хранит типы зелий: 'potion', 'speed_potion', 'strength_potion', etc. // Быстрые слоты для банок (1, 2, 3)
   },
   buffs: {
