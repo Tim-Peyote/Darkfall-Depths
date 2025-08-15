@@ -1332,6 +1332,30 @@ select.form-control {
   display: block !important;
 }
 
+/* Увеличенная миникарта для десктопа */
+@media (min-width: 1920px) {
+  #minimap {
+    width: 200px !important;
+    height: 200px !important;
+  }
+}
+
+/* Еще больше для 4K мониторов */
+@media (min-width: 2560px) {
+  #minimap {
+    width: 300px !important;
+    height: 300px !important;
+  }
+}
+
+/* Максимальный размер для очень больших экранов */
+@media (min-width: 3840px) {
+  #minimap {
+    width: 400px !important;
+    height: 400px !important;
+  }
+}
+
 /* Mobile Controls */
 .mobile {
   position: absolute;
@@ -1500,6 +1524,8 @@ select.form-control {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* Улучшаем touch взаимодействие */
+  touch-action: pan-y;
 }
 
 .inventory-header {
@@ -1549,6 +1575,9 @@ select.form-control {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  /* Улучшаем прокрутку на мобильных устройствах */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
 .inventory-section {
@@ -1637,6 +1666,9 @@ select.form-control {
   font-size: 1.2rem;
   box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.4);
   backdrop-filter: blur(5px);
+  /* Улучшаем touch взаимодействие */
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .inventory-slot:hover {
@@ -2947,6 +2979,9 @@ select.form-control {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     flex: 1;
+    /* Улучшаем прокрутку на мобильных */
+    scroll-behavior: smooth;
+    touch-action: pan-y;
   }
   
   .inventory-section {
@@ -2978,6 +3013,8 @@ select.form-control {
     width: 64px;
     height: 64px;
     font-size: var(--font-size-lg);
+    /* Улучшаем touch взаимодействие */
+    touch-action: manipulation;
   }
   
   .close-btn {
@@ -2985,6 +3022,8 @@ select.form-control {
     height: 48px;
     font-size: var(--font-size-2xl);
     touch-action: manipulation;
+    /* Предотвращаем двойной тап для зума */
+    -webkit-tap-highlight-color: transparent;
   }
   
   .close-btn:active {

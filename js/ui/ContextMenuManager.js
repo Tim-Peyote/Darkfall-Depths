@@ -110,6 +110,9 @@ export class ContextMenuManager {
     const isEquipped = currentSlot.type === 'equipment';
     const isConsumable = currentItem.type === 'consumable';
     const isQuickSlot = currentSlot.type === 'quickslot';
+    const isBackpack = currentSlot.type === 'backpack';
+    
+
 
     // Специальная обработка для быстрых слотов
     if (isQuickSlot) {
@@ -120,12 +123,20 @@ export class ContextMenuManager {
       return;
     }
 
-    // Пункт "Применить" для расходников
-    if (isConsumable) {
+    // Пункт "Применить" для расходников в рюкзаке
+    if (isConsumable && isBackpack) {
       const applyItem = this.createMenuItem('Применить', () => {
         this.useItem();
       });
       contextMenu.appendChild(applyItem);
+    }
+
+    // Пункт "Надеть" для предметов в рюкзаке (не расходников)
+    if (!isConsumable && isBackpack) {
+      const equipItem = this.createMenuItem('Надеть', () => {
+        this.equipItem();
+      });
+      contextMenu.appendChild(equipItem);
     }
 
     // Пункт "Снять" для экипированных предметов
@@ -137,7 +148,7 @@ export class ContextMenuManager {
     }
 
     // Разделитель
-    if ((isConsumable && !isEquipped) || isEquipped) {
+    if ((isConsumable && isBackpack) || (!isConsumable && isBackpack) || isEquipped) {
       const separator = document.createElement('div');
       separator.style.cssText = `
         height: 1px;
@@ -191,6 +202,7 @@ export class ContextMenuManager {
   }
 
   static resetContextMenu() {
+    console.log('🎮 Context menu reset');
     currentItem = null;
     currentSlot = null;
   }
@@ -210,6 +222,15 @@ export class ContextMenuManager {
     // Используем InventoryManager для реальной игры
     import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
       InventoryManager.unequipItem(currentSlot.index);
+    });
+  }
+
+  static equipItem() {
+    if (!currentSlot || currentSlot.type !== 'backpack') return;
+
+    // Используем InventoryManager для реальной игры
+    import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
+      InventoryManager.equipItem(currentSlot.index);
     });
   }
 
@@ -320,11 +341,6 @@ export class ContextMenuManager {
       });
     }
 
-    // Для Windows - правый клик мыши
-    slot.addEventListener('contextmenu', (e) => {
-      this.showContextMenu(e, item, slotType, slotIndex);
-    });
-
     // Для мобильных устройств - долгое нажатие
     if (this.isMobile()) {
       let longPressTimer = null;
@@ -354,5 +370,8 @@ export class ContextMenuManager {
         }
       });
     }
+    
+    // Обработчик contextmenu теперь добавляется в InventoryManager.setupDesktopClickEvents
+    // чтобы избежать дублирования
   }
 } 

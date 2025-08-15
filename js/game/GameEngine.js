@@ -684,6 +684,18 @@ export class GameEngine {
     }
   }
 
+  static getMinimapSize() {
+    // Адаптивные размеры миникарты в зависимости от разрешения экрана
+    if (window.innerWidth >= 3840) {
+      return 400; // Очень большие экраны (4K+)
+    } else if (window.innerWidth >= 2560) {
+      return 300; // 4K мониторы
+    } else if (window.innerWidth >= 1920) {
+      return 200; // Full HD и выше
+    }
+    return 100; // Базовый размер
+  }
+
   static renderMinimap() {
     if (!minimapCtx || !gameState.map) return;
     
@@ -692,7 +704,7 @@ export class GameEngine {
       return;
     }
     
-    const minimapSize = 100; // Уменьшил размер с 120 до 100
+    const minimapSize = this.getMinimapSize();
     const scale = minimapSize / MAP_SIZE;
     
     minimapCtx.fillStyle = '#000';
@@ -755,13 +767,29 @@ export class GameEngine {
     const canvasWidth = canvas.width / DPR;
     const canvasHeight = canvas.height / DPR;
     
-    // Размеры и позиции для десктопной версии
-    const minimapSize = 100;
-    const fpsWidth = 90;
-    const fpsHeight = 45;
-    const fontSize = 14;
+    // Адаптивные размеры миникарты в зависимости от разрешения экрана
+    const minimapSize = this.getMinimapSize();
+    
+    // Адаптивные размеры счетчика FPS в зависимости от размера миникарты
+    let fpsWidth = 90;
+    let fpsHeight = 45;
+    if (minimapSize >= 300) {
+      fpsWidth = 120;
+      fpsHeight = 60;
+    } else if (minimapSize >= 200) {
+      fpsWidth = 100;
+      fpsHeight = 50;
+    }
+    
+    // Адаптивный размер шрифта в зависимости от размера миникарты
+    let fontSize = 14;
+    if (minimapSize >= 300) {
+      fontSize = 18; // Больший шрифт для больших миникарт
+    } else if (minimapSize >= 200) {
+      fontSize = 16; // Средний шрифт для средних миникарт
+    }
     const fpsX = canvasWidth - fpsWidth - 10; // Выровнено по правому краю экрана
-    const fpsY = 120 + 24; // Миникарта (100px) + отступ (24px) + дополнительный отступ (20px)
+    const fpsY = minimapSize + 40; // Миникарта + увеличенный отступ (40px) для лучшей видимости
     
     // FPS теперь всегда под миникартой, дополнительная проверка не нужна
     
@@ -840,10 +868,13 @@ export class GameEngine {
 
     
     if (minimapCanvas) {
-      minimapCanvas.width = 100 * DPR; // Уменьшил с 120 до 100
-      minimapCanvas.height = 100 * DPR; // Уменьшил с 120 до 100
-      minimapCanvas.style.width = '100px'; // Уменьшил с 120px до 100px
-      minimapCanvas.style.height = '100px'; // Уменьшил с 120px до 100px
+      // Адаптивные размеры миникарты в зависимости от разрешения экрана
+      const minimapSize = this.getMinimapSize();
+      
+      minimapCanvas.width = minimapSize * DPR;
+      minimapCanvas.height = minimapSize * DPR;
+      minimapCanvas.style.width = minimapSize + 'px';
+      minimapCanvas.style.height = minimapSize + 'px';
       if (minimapCtx) {
         minimapCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
       }
