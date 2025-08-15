@@ -116,8 +116,11 @@
         <div class="select-background"></div>
         <div class="select-content">
             <h2 class="select-title">Выберите героя</h2>
-            <div id="charList" class="character-grid"></div>
-            <button id="backToMenuFromSelect" class="btn btn--outline mt-16">← Назад в меню</button>
+                <div id="charList" class="character-grid"></div>
+    <div class="select-buttons">
+      <button id="backToMenuFromSelect" class="btn btn--outline">← Назад в меню</button>
+      <button id="startGameBtn" class="btn btn--primary" style="display: none;">🎮 Начать игру</button>
+    </div>
         </div>
     </div>
 
@@ -195,6 +198,9 @@
             <div class="mobile-buttons">
                 <button id="abilityBtn" class="ctrl-btn btn--primary" title="Уникальная способность">⚡</button>
             </div>
+            
+            <!-- Мобильная кнопка инвентаря - отдельно от других кнопок -->
+            <button id="mobileInventoryBtn" class="ctrl-btn btn--inventory" title="Инвентарь">🎒</button>
         </div>
     </div>
 
@@ -264,6 +270,7 @@
             <div class="pause-panel card">
                 <div class="card__header">
                     <h3>⏸️ Игра приостановлена</h3>
+                    <button id="closePause" class="close-btn">×</button>
                 </div>
                 <div class="card__body">
                     <!-- Кнопка "Продолжить игру" скрыта, используется Escape -->

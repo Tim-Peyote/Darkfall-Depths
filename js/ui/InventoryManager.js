@@ -10,6 +10,15 @@ let draggedItem = null;
 let draggedSlot = null;
 let dropSuccessful = false; // Флаг успешного размещения предмета
 
+// Переменные для мобильного управления
+let touchStartTime = 0;
+let touchStartX = 0;
+let touchStartY = 0;
+let touchMoved = false;
+let longPressTimer = null;
+let lastClickTime = 0;
+let lastClickSlot = null;
+
 export class InventoryManager {
   static init() {
     // Настраиваем обработчик кнопки закрытия инвентаря
@@ -23,22 +32,29 @@ export class InventoryManager {
       closeBtn.replaceWith(closeBtn.cloneNode(true));
       const newCloseBtn = document.getElementById('closeInventory');
       
-      newCloseBtn.addEventListener('click', (e) => {
+      const handleCloseClick = (e) => {
         e.preventDefault();
         e.stopPropagation();
         this.toggleInventory();
-      });
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      newCloseBtn.addEventListener('click', handleCloseClick);
+      newCloseBtn.addEventListener('touchend', handleCloseClick);
+      newCloseBtn.addEventListener('touchstart', (e) => e.preventDefault());
     }
   }
   
   static toggleInventory() {
     const overlay = document.getElementById('inventoryOverlay');
-    if (!overlay) return;
+    if (!overlay) {
+      console.error('🎒 Inventory overlay not found!');
+      return;
+    }
     
     if (overlay.classList.contains('hidden')) {
       // Проверяем, что игра не в паузе перед открытием инвентаря
       if (gameState.isPaused) {
-        console.log('Inventory toggle attempted during pause - ignoring');
         return;
       }
       
@@ -62,10 +78,11 @@ export class InventoryManager {
       }
     } else {
       // Закрываем инвентарь в любом случае (даже в паузе)
-      console.log('Закрываем инвентарь...');
       overlay.classList.add('hidden');
       // Скрываем тултипы при закрытии инвентаря
       this.hideTooltip();
+      // Удаляем все элементы перетаскивания
+      this.removeAllDragElements();
       
       // Воспроизводим звук закрытия инвентаря (асинхронно)
       (async () => {
@@ -230,13 +247,8 @@ export class InventoryManager {
           slot.addEventListener('mouseleave', () => this.hideTooltip());
           slot.addEventListener('mousemove', (e) => this.updateTooltipPosition(e));
           
-          // Двойной клик для снятия
-          slot.addEventListener('dblclick', () => this.unequipItem(index));
-          
           // Настройка контекстного меню
           ContextMenuManager.setupSlotContextMenu(slot, item, 'equipment', index);
-          
-          slot.addEventListener('click', () => this.unequipItem(index));
           this.setupDragDropForSlot(slot, 'equipment', index);
         } else {
           // Предмет несовместим со слотом - перемещаем в рюкзак
@@ -317,7 +329,14 @@ export class InventoryManager {
         slot.classList.add('filled');
         
         // Создаем спрайт зелья
-        const potionItem = { base: potionType, type: 'consumable', rarity: 'common' };
+        const potionItem = { 
+          base: potionType, 
+          type: 'consumable', 
+          rarity: 'common',
+          name: name,
+          icon: icon,
+          color: color
+        };
         const spriteElement = InventorySpriteRenderer.createSpriteElement(potionItem, 40);
         
         if (spriteElement) {
@@ -358,13 +377,7 @@ export class InventoryManager {
         slot.addEventListener('mouseleave', () => this.hideTooltip());
         slot.addEventListener('mousemove', (e) => this.updateTooltipPosition(e));
         
-        // Двойной клик для использования
-        slot.addEventListener('dblclick', () => {
-          (async () => {
-            const { GameEngine } = await import('../game/GameEngine.js');
-            GameEngine.useQuickPotion(index);
-          })();
-        });
+        // Обработчики событий настраиваются в setupMobileSlotEvents
         
         // Настройка контекстного меню
         ContextMenuManager.setupSlotContextMenu(slot, { name, type: 'consumable', base: potionType }, 'quickslot', index);
@@ -416,14 +429,8 @@ export class InventoryManager {
         slot.addEventListener('mouseleave', () => this.hideTooltip());
         slot.addEventListener('mousemove', (e) => this.updateTooltipPosition(e));
         
-        // Двойной клик для использования
-        slot.addEventListener('dblclick', () => this.useItem('backpack', index));
-        
         // Настройка контекстного меню
         ContextMenuManager.setupSlotContextMenu(slot, item, 'backpack', index);
-        
-        // Одинарный клик для экипировки
-        slot.addEventListener('click', () => this.equipItem(index));
         this.setupDragDropForSlot(slot, 'backpack', index);
       }
       
@@ -507,7 +514,9 @@ export class InventoryManager {
   static equipItem(backpackIndex) {
     const item = gameState.inventory.backpack[backpackIndex];
     
-    if (!item) return;
+    if (!item) {
+      return;
+    }
     
 
     
@@ -585,6 +594,8 @@ export class InventoryManager {
     // Меняем местами предметы
     gameState.inventory.equipment[targetSlot] = item;
     gameState.inventory.backpack[backpackIndex] = oldItem;
+    
+
     
     // Применяем/убираем бонусы
     if (oldItem) this.removeItemBonuses(oldItem);
@@ -751,7 +762,11 @@ export class InventoryManager {
   }
 
   static setupDragDropForSlot(slot, type, index) {
+    // Настройка drag & drop для десктопа
     slot.draggable = true;
+    
+    // Настройка мобильных событий
+    this.setupMobileSlotEvents(slot, type, index);
     
     slot.addEventListener('dragstart', (e) => {
       let item;
@@ -843,28 +858,13 @@ export class InventoryManager {
     if (from.type === 'quickslot' && (to.type === 'backpack' || to.type === 'equipment')) {
       gameState.inventory.quickSlots[from.index] = null;
       this.renderInventory();
-      
-      // Обновляем быстрые слоты в UI
-      (async () => {
-        const { GameEngine } = await import('../game/GameEngine.js');
-        GameEngine.updateQuickPotions();
-      })();
-      
       return true; // Успешное перемещение
     }
     
     if (to.type === 'quickslot' && fromItem && fromItem.type === 'consumable') {
       // Сохраняем тип зелья, а не конкретный предмет
       gameState.inventory.quickSlots[to.index] = fromItem.base;
-      
       this.renderInventory();
-      
-      // Обновляем быстрые слоты в UI
-      (async () => {
-        const { GameEngine } = await import('../game/GameEngine.js');
-        GameEngine.updateQuickPotions();
-      })();
-      
       return true; // Успешное назначение зелья на быстрый слот
     }
     
@@ -889,13 +889,8 @@ export class InventoryManager {
     if (fromItem && to.type === 'equipment') this.applyItemBonuses(fromItem);
     if (toItem && from.type === 'equipment') this.applyItemBonuses(toItem);
     
+    // Перерисовываем инвентарь после обмена
     this.renderInventory();
-    
-    // Обновляем быстрые слоты
-    (async () => {
-      const { GameEngine } = await import('../game/GameEngine.js');
-      GameEngine.updateQuickPotions();
-    })();
     
     return true; // Успешный обмен предметами
   }
@@ -1117,7 +1112,7 @@ export class InventoryManager {
     if (!tooltipElement) return;
     
     const x = event.clientX + 10;
-    const y = event.clientY + 10;
+    const y = event.clientY - 10; // Поднимаем тултип выше курсора
     
     // Проверяем, не выходит ли тултип за пределы экрана
     const tooltipRect = tooltipElement.getBoundingClientRect();
@@ -1127,15 +1122,295 @@ export class InventoryManager {
     let finalX = x;
     let finalY = y;
     
+    // Если тултип выходит за правый край экрана
     if (x + tooltipRect.width > windowWidth) {
       finalX = event.clientX - tooltipRect.width - 10;
     }
     
+    // Если тултип выходит за верхний край экрана
+    if (y - tooltipRect.height < 0) {
+      finalY = event.clientY + 30; // Показываем под курсором
+    }
+    
+    // Если тултип выходит за нижний край экрана
     if (y + tooltipRect.height > windowHeight) {
-      finalY = event.clientY - tooltipRect.height - 10;
+      finalY = windowHeight - tooltipRect.height - 10;
     }
     
     tooltipElement.style.left = finalX + 'px';
     tooltipElement.style.top = finalY + 'px';
+  }
+
+  static setupMobileSlotEvents(slot, type, index) {
+    // Touch события для мобильного управления
+    slot.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const touch = e.touches[0];
+      touchStartTime = Date.now();
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchMoved = false;
+      
+      // Запускаем таймер для долгого нажатия
+      longPressTimer = setTimeout(() => {
+        if (!touchMoved) {
+          this.handleLongPress(slot, type, index);
+        }
+      }, 500); // 500ms для долгого нажатия
+    });
+
+    slot.addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      const deltaX = Math.abs(touch.clientX - touchStartX);
+      const deltaY = Math.abs(touch.clientY - touchStartY);
+      
+      // Если палец сдвинулся больше чем на 10px, считаем что это перетаскивание
+      if (deltaX > 10 || deltaY > 10) {
+        touchMoved = true;
+        if (longPressTimer) {
+          clearTimeout(longPressTimer);
+          longPressTimer = null;
+        }
+        
+        // Начинаем перетаскивание
+        this.startMobileDrag(slot, type, index, e);
+      }
+    });
+
+    slot.addEventListener('touchend', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (longPressTimer) {
+        clearTimeout(longPressTimer);
+        longPressTimer = null;
+      }
+      
+      if (!touchMoved) {
+        this.handleTap(slot, type, index);
+      } else {
+        // Завершаем перетаскивание
+        this.endMobileDrag(e);
+      }
+    });
+  }
+
+  static handleLongPress(slot, type, index) {
+    // Долгое нажатие - показываем контекстное меню
+    
+    let item;
+    if (type === 'equipment') {
+      item = gameState.inventory.equipment[index];
+    } else if (type === 'backpack') {
+      item = gameState.inventory.backpack[index];
+    } else if (type === 'quickslot') {
+      item = gameState.inventory.quickSlots[index];
+    }
+    
+    if (item) {
+      // Создаем фейковое событие для контекстного меню
+      const fakeEvent = {
+        preventDefault: () => {},
+        stopPropagation: () => {},
+        clientX: slot.getBoundingClientRect().left + slot.offsetWidth / 2,
+        clientY: slot.getBoundingClientRect().top + slot.offsetHeight / 2
+      };
+      
+      // Показываем контекстное меню
+      ContextMenuManager.showContextMenu(fakeEvent, item, type, index);
+    }
+  }
+
+  static handleTap(slot, type, index) {
+    const currentTime = Date.now();
+    const timeDiff = currentTime - lastClickTime;
+    const isSameSlot = lastClickSlot === `${type}-${index}`;
+    
+    if (timeDiff < 300 && isSameSlot) {
+      // Двойной клик - используем/надеваем/снимаем предмет
+      this.handleDoubleTap(slot, type, index);
+      lastClickTime = 0;
+      lastClickSlot = null;
+    } else {
+      // Один клик - показываем описание
+      this.handleSingleTap(slot, type, index);
+      lastClickTime = currentTime;
+      lastClickSlot = `${type}-${index}`;
+    }
+  }
+
+  static handleSingleTap(slot, type, index) {
+    // Один клик - показываем описание предмета
+    let item;
+    if (type === 'equipment') {
+      item = gameState.inventory.equipment[index];
+    } else if (type === 'backpack') {
+      item = gameState.inventory.backpack[index];
+    } else if (type === 'quickslot') {
+      item = gameState.inventory.quickSlots[index];
+    }
+    
+    if (item) {
+      const tooltipText = `${item.name}\n${item.description}`;
+      const rect = slot.getBoundingClientRect();
+      this.showTooltip({ 
+        clientX: rect.left + rect.width / 2, 
+        clientY: rect.top - 10 
+      }, tooltipText);
+      
+      // Скрываем тултип через 3 секунды
+      setTimeout(() => {
+        this.hideTooltip();
+      }, 3000);
+    }
+  }
+
+  static handleDoubleTap(slot, type, index) {
+    // Двойной клик - используем/надеваем/снимаем предмет
+    
+    if (type === 'equipment') {
+      this.unequipItem(index);
+    } else if (type === 'backpack') {
+      this.equipItem(index);
+    } else if (type === 'quickslot') {
+      // Для быстрых слотов используем зелье
+      (async () => {
+        const { GameEngine } = await import('../game/GameEngine.js');
+        GameEngine.useQuickPotion(index);
+      })();
+    }
+  }
+
+  static startMobileDrag(slot, type, index, e) {
+    // Начинаем перетаскивание на мобильном
+    let item;
+    if (type === 'equipment') {
+      item = gameState.inventory.equipment[index];
+    } else if (type === 'backpack') {
+      item = gameState.inventory.backpack[index];
+    } else if (type === 'quickslot') {
+      item = gameState.inventory.quickSlots[index];
+    }
+    
+    if (item) {
+      // Очищаем предыдущие элементы перетаскивания
+      this.removeAllDragElements();
+      
+      draggedItem = item;
+      draggedSlot = { type, index };
+      dropSuccessful = false;
+      slot.classList.add('dragging');
+      
+      // Создаем визуальный элемент для перетаскивания
+      this.createMobileDragElement(item, e);
+    }
+  }
+
+  static endMobileDrag(e) {
+    // Завершаем перетаскивание на мобильном
+    this.removeAllDragElements();
+    
+    // Находим слот под пальцем
+    const touch = e.changedTouches[0];
+    const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+    const targetSlot = elementUnderTouch?.closest('.inventory-slot');
+    
+    if (targetSlot && draggedItem && draggedSlot) {
+      const targetType = targetSlot.getAttribute('data-type');
+      const targetIndex = parseInt(targetSlot.getAttribute('data-index'));
+      
+      if (targetType && targetIndex !== undefined) {
+        // Проверяем, что это не тот же слот
+        if (!(draggedSlot.type === targetType && draggedSlot.index === targetIndex)) {
+          const success = this.handleDrop(draggedSlot, { type: targetType, index: targetIndex });
+          if (success) {
+            // Обновляем быстрые слоты в UI
+            (async () => {
+              const { GameEngine } = await import('../game/GameEngine.js');
+              GameEngine.updateQuickPotions();
+            })();
+          }
+        }
+      }
+    }
+    
+    // Очищаем состояние
+    document.querySelectorAll('.inventory-slot').forEach(slot => {
+      slot.classList.remove('dragging');
+      slot.classList.remove('drag-over');
+    });
+    draggedItem = null;
+    draggedSlot = null;
+    dropSuccessful = false;
+  }
+
+  static createMobileDragElement(item, e) {
+    // Удаляем старые элементы перетаскивания
+    this.removeAllDragElements();
+    
+    // Создаем визуальный элемент для перетаскивания
+    const dragElement = document.createElement('div');
+    dragElement.className = 'mobile-drag-element';
+    dragElement.style.cssText = `
+      position: fixed;
+      top: ${e.touches[0].clientY - 25}px;
+      left: ${e.touches[0].clientX - 25}px;
+      width: 50px;
+      height: 50px;
+      background: ${item.color || '#666'};
+      border: 2px solid #fff;
+      border-radius: 8px;
+      z-index: 10000;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    `;
+    
+    // Используем только спрайты, никаких эмоджи
+    if (item.sprite) {
+      dragElement.innerHTML = `<img src="${item.sprite}" style="width: 100%; height: 100%; object-fit: contain;">`;
+    } else {
+      // Создаем простой цветной квадрат вместо эмоджи
+      dragElement.style.background = item.color || '#666';
+      dragElement.style.border = '2px solid #fff';
+    }
+    
+    document.body.appendChild(dragElement);
+    
+    // Обновляем позицию при движении пальца
+    const updatePosition = (e) => {
+      if (dragElement && dragElement.parentNode) {
+        const touch = e.touches[0];
+        dragElement.style.top = `${touch.clientY - 25}px`;
+        dragElement.style.left = `${touch.clientX - 25}px`;
+      }
+    };
+    
+    const removeElement = () => {
+      if (dragElement && dragElement.parentNode) {
+        dragElement.remove();
+      }
+      document.removeEventListener('touchmove', updatePosition);
+      document.removeEventListener('touchend', removeElement);
+      document.removeEventListener('touchcancel', removeElement);
+    };
+    
+    document.addEventListener('touchmove', updatePosition, { passive: false });
+    document.addEventListener('touchend', removeElement, { once: true });
+    document.addEventListener('touchcancel', removeElement, { once: true });
+  }
+
+  static removeAllDragElements() {
+    // Удаляем все элементы перетаскивания
+    const dragElements = document.querySelectorAll('.mobile-drag-element');
+    dragElements.forEach(element => {
+      if (element && element.parentNode) {
+        element.remove();
+      }
+    });
   }
 } 

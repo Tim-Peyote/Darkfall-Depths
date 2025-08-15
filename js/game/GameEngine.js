@@ -740,8 +740,11 @@ export class GameEngine {
   }
   
   static renderFPSIndicator() {
-    // Показываем FPS всегда без мигания
-    
+    // Скрываем FPS на мобильных устройствах
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+      return; // Не отображаем FPS на мобильных
+    }
 
     
     const fps = PerformanceMonitor.getFPS();
@@ -751,28 +754,14 @@ export class GameEngine {
     // Определяем размеры экрана и адаптивность
     const canvasWidth = canvas.width / DPR;
     const canvasHeight = canvas.height / DPR;
-    const isMobile = window.innerWidth <= 768;
     
-    // Размеры и позиции для разных экранов
-    let minimapSize, fpsX, fpsY, fpsWidth, fpsHeight, fontSize;
-    
-          if (isMobile) {
-        // Мобильная версия - под миникартой
-        minimapSize = 100;
-        fpsWidth = 80;
-        fpsHeight = 35;
-        fontSize = 12;
-        fpsX = canvasWidth - fpsWidth - 10; // Выровнено по правому краю экрана
-        fpsY = 120 + 24; // Миникарта (100px) + отступ (24px) + дополнительный отступ (20px)
-      } else {
-        // Десктопная версия - под миникартой
-        minimapSize = 100;
-        fpsWidth = 90;
-        fpsHeight = 45;
-        fontSize = 14;
-        fpsX = canvasWidth - fpsWidth - 10; // Выровнено по правому краю экрана
-        fpsY = 120 + 24; // Миникарта (100px) + отступ (24px) + дополнительный отступ (20px)
-      }
+    // Размеры и позиции для десктопной версии
+    const minimapSize = 100;
+    const fpsWidth = 90;
+    const fpsHeight = 45;
+    const fontSize = 14;
+    const fpsX = canvasWidth - fpsWidth - 10; // Выровнено по правому краю экрана
+    const fpsY = 120 + 24; // Миникарта (100px) + отступ (24px) + дополнительный отступ (20px)
     
     // FPS теперь всегда под миникартой, дополнительная проверка не нужна
     
@@ -795,8 +784,8 @@ export class GameEngine {
     const modeText = isLowMode ? 'LOW' : 'OK';
     
     ctx.fillText(fpsText, fpsX, fpsY);
-    ctx.fillText(frameTimeText, fpsX, fpsY + (isMobile ? 10 : 12));
-    ctx.fillText(modeText, fpsX, fpsY + (isMobile ? 20 : 24));
+    ctx.fillText(frameTimeText, fpsX, fpsY + 12);
+    ctx.fillText(modeText, fpsX, fpsY + 24);
     
 
   }

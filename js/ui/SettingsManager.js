@@ -8,16 +8,12 @@ export class SettingsManager {
   static delegatedListenerAdded = false;
   
   static init() {
-    console.log('⚙️ Инициализация SettingsManager...');
     this.loadSettings();
     this.setupEventListeners();
-    console.log('✅ SettingsManager инициализирован');
   }
 
   static reinitEventListeners() {
-    console.log('🔄 Переинициализация обработчиков событий...');
     this.setupEventListeners();
-    console.log('✅ Обработчики событий переинициализированы');
   }
 
   static saveSettings() {
@@ -52,6 +48,11 @@ export class SettingsManager {
 
     if (masterVol && !masterVol.hasAttribute('data-audio-listener')) {
       masterVol.setAttribute('data-audio-listener', 'true');
+      
+      // Добавляем touch поддержку
+      masterVol.style.touchAction = 'manipulation';
+      masterVol.style.webkitTapHighlightColor = 'transparent';
+      
       masterVol.addEventListener('input', () => {
         gameState.audio.masterVolume = parseFloat(masterVol.value);
         const masterVolText = document.getElementById('masterVolText');
@@ -59,10 +60,31 @@ export class SettingsManager {
         audioManager.updateMusicVolume();
         this.saveSettings();
       });
+      
+      // Добавляем touch события для лучшей поддержки мобильных
+      masterVol.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
+      
+      masterVol.addEventListener('touchmove', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
+      
+      masterVol.addEventListener('touchend', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
     }
 
     if (musicVol && !musicVol.hasAttribute('data-audio-listener')) {
       musicVol.setAttribute('data-audio-listener', 'true');
+      
+      // Добавляем touch поддержку
+      musicVol.style.touchAction = 'manipulation';
+      musicVol.style.webkitTapHighlightColor = 'transparent';
+      
       musicVol.addEventListener('input', () => {
         gameState.audio.musicVolume = parseFloat(musicVol.value);
         const musicVolText = document.getElementById('musicVolText');
@@ -70,21 +92,59 @@ export class SettingsManager {
         audioManager.updateMusicVolume();
         this.saveSettings();
       });
+      
+      // Добавляем touch события для лучшей поддержки мобильных
+      musicVol.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
+      
+      musicVol.addEventListener('touchmove', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
+      
+      musicVol.addEventListener('touchend', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
     }
 
     if (sfxVol && !sfxVol.hasAttribute('data-audio-listener')) {
       sfxVol.setAttribute('data-audio-listener', 'true');
+      
+      // Добавляем touch поддержку
+      sfxVol.style.touchAction = 'manipulation';
+      sfxVol.style.webkitTapHighlightColor = 'transparent';
+      
       sfxVol.addEventListener('input', () => {
         gameState.audio.sfxVolume = parseFloat(sfxVol.value);
         const sfxVolText = document.getElementById('sfxVolText');
         if (sfxVolText) sfxVolText.textContent = Math.round(gameState.audio.sfxVolume * 100) + '%';
         this.saveSettings();
       });
+      
+      // Добавляем touch события для лучшей поддержки мобильных
+      sfxVol.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
+      
+      sfxVol.addEventListener('touchmove', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
+      
+      sfxVol.addEventListener('touchend', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
     }
 
     if (muteToggle && !muteToggle.hasAttribute('data-audio-listener')) {
       muteToggle.setAttribute('data-audio-listener', 'true');
-      muteToggle.addEventListener('click', () => {
+      
+      const handleMuteToggle = () => {
         gameState.audio.enabled = !gameState.audio.enabled;
         muteToggle.textContent = gameState.audio.enabled ? '🔇 Выключить звук' : '🔊 Включить звук';
         
@@ -101,7 +161,12 @@ export class SettingsManager {
         }
         
         this.saveSettings();
-      });
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      muteToggle.addEventListener('click', handleMuteToggle);
+      muteToggle.addEventListener('touchend', handleMuteToggle);
+      muteToggle.addEventListener('touchstart', (e) => e.preventDefault());
     }
 
     // Обработчики для элементов управления звуком в паузе
@@ -112,6 +177,11 @@ export class SettingsManager {
 
     if (pauseMasterVol && !pauseMasterVol.hasAttribute('data-audio-listener')) {
       pauseMasterVol.setAttribute('data-audio-listener', 'true');
+      
+      // Добавляем touch поддержку
+      pauseMasterVol.style.touchAction = 'manipulation';
+      pauseMasterVol.style.webkitTapHighlightColor = 'transparent';
+      
       pauseMasterVol.addEventListener('input', () => {
         gameState.audio.masterVolume = parseFloat(pauseMasterVol.value);
         const pauseMasterVolText = document.getElementById('pauseMasterVolText');
@@ -120,11 +190,30 @@ export class SettingsManager {
         this.saveSettings();
       });
       
-      // Поддержка клавиатуры для слайдера теперь управляется через MenuNavigationManager
+      // Добавляем touch события для лучшей поддержки мобильных
+      pauseMasterVol.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
+      
+      pauseMasterVol.addEventListener('touchmove', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
+      
+      pauseMasterVol.addEventListener('touchend', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
     }
 
     if (pauseMusicVol && !pauseMusicVol.hasAttribute('data-audio-listener')) {
       pauseMusicVol.setAttribute('data-audio-listener', 'true');
+      
+      // Добавляем touch поддержку
+      pauseMusicVol.style.touchAction = 'manipulation';
+      pauseMusicVol.style.webkitTapHighlightColor = 'transparent';
+      
       pauseMusicVol.addEventListener('input', () => {
         gameState.audio.musicVolume = parseFloat(pauseMusicVol.value);
         const pauseMusicVolText = document.getElementById('pauseMusicVolText');
@@ -133,11 +222,30 @@ export class SettingsManager {
         this.saveSettings();
       });
       
-      // Поддержка клавиатуры для слайдера теперь управляется через MenuNavigationManager
+      // Добавляем touch события для лучшей поддержки мобильных
+      pauseMusicVol.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
+      
+      pauseMusicVol.addEventListener('touchmove', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
+      
+      pauseMusicVol.addEventListener('touchend', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
     }
 
     if (pauseSfxVol && !pauseSfxVol.hasAttribute('data-audio-listener')) {
       pauseSfxVol.setAttribute('data-audio-listener', 'true');
+      
+      // Добавляем touch поддержку
+      pauseSfxVol.style.touchAction = 'manipulation';
+      pauseSfxVol.style.webkitTapHighlightColor = 'transparent';
+      
       pauseSfxVol.addEventListener('input', () => {
         gameState.audio.sfxVolume = parseFloat(pauseSfxVol.value);
         const pauseSfxVolText = document.getElementById('pauseSfxVolText');
@@ -145,12 +253,27 @@ export class SettingsManager {
         this.saveSettings();
       });
       
-      // Поддержка клавиатуры для слайдера теперь управляется через MenuNavigationManager
+      // Добавляем touch события для лучшей поддержки мобильных
+      pauseSfxVol.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
+      
+      pauseSfxVol.addEventListener('touchmove', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
+      
+      pauseSfxVol.addEventListener('touchend', (e) => {
+        e.stopPropagation();
+        // НЕ блокируем touch события для ползунка
+      });
     }
 
     if (pauseMuteToggle && !pauseMuteToggle.hasAttribute('data-audio-listener')) {
       pauseMuteToggle.setAttribute('data-audio-listener', 'true');
-      pauseMuteToggle.addEventListener('click', () => {
+      
+      const handlePauseMuteToggle = () => {
         gameState.audio.enabled = !gameState.audio.enabled;
         pauseMuteToggle.textContent = gameState.audio.enabled ? '🔇 Выключить звук' : '🔊 Включить звук';
         
@@ -165,8 +288,379 @@ export class SettingsManager {
         }
         
         this.saveSettings();
-      });
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      pauseMuteToggle.addEventListener('click', handlePauseMuteToggle);
+      pauseMuteToggle.addEventListener('touchend', handlePauseMuteToggle);
+      pauseMuteToggle.addEventListener('touchstart', (e) => e.preventDefault());
     }
+  }
+
+  static setupGameButtonEventListeners() {
+    console.log('🔧 Setting up game button event listeners...');
+    
+    // Кнопка паузы на игровом экране
+    const pauseBtn = document.getElementById('pauseBtn');
+    console.log('🔴 Pause button found:', !!pauseBtn);
+    if (pauseBtn) {
+      // Удаляем старые обработчики
+      const newPauseBtn = pauseBtn.cloneNode(true);
+      pauseBtn.parentNode.replaceChild(newPauseBtn, pauseBtn);
+      
+      // Функция обработчика паузы
+      const handlePauseClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🔴 PAUSE BUTTON CLICKED! Event type:', e.type);
+        console.log('🔴 Current gameState.screen:', gameState.screen);
+        console.log('🔴 Current gameState.isPaused:', gameState.isPaused);
+        
+        const { ScreenManager } = await import('../ui/ScreenManager.js');
+        await ScreenManager.togglePause();
+        
+        // Инициализируем значения в паузе
+        this.initializePauseAudioSettings();
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      newPauseBtn.addEventListener('click', handlePauseClick);
+      newPauseBtn.addEventListener('touchend', handlePauseClick);
+      
+      // Предотвращаем двойное срабатывание на мобильных
+      newPauseBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+      });
+      
+      console.log('🔴 Pause button event listeners set up successfully');
+    } else {
+      console.error('❌ Pause button not found!');
+    }
+    
+    // Кнопка открытия инвентаря на экране (только в игре)
+    const inventoryToggleBtn = document.getElementById('inventoryToggle');
+
+    if (inventoryToggleBtn) {
+      // Удаляем старые обработчики
+      const newInventoryBtn = inventoryToggleBtn.cloneNode(true);
+      inventoryToggleBtn.parentNode.replaceChild(newInventoryBtn, inventoryToggleBtn);
+      
+      // Функция обработчика инвентаря
+      const handleInventoryClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('🎒 INVENTORY BUTTON CLICKED! Event type:', e.type);
+        console.log('🎒 Current gameState.screen:', gameState.screen);
+        console.log('🎒 Current gameState.isPaused:', gameState.isPaused);
+        
+        // Проверяем, что мы в игре и не в паузе
+        if (gameState.screen !== 'game') {
+          console.log('🎒 Inventory button clicked outside game - ignoring');
+          return;
+        }
+        
+        if (gameState.isPaused) {
+          console.log('🎒 Inventory button clicked during pause - ignoring');
+          return;
+        }
+        
+        console.log('🎒 Opening inventory...');
+        const { InventoryManager } = await import('../ui/InventoryManager.js');
+        InventoryManager.toggleInventory();
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      newInventoryBtn.addEventListener('click', handleInventoryClick);
+      newInventoryBtn.addEventListener('touchend', handleInventoryClick);
+      
+      // Предотвращаем двойное срабатывание на мобильных
+      newInventoryBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+      });
+      
+      console.log('🎒 Inventory button event listeners set up successfully');
+    } else {
+      console.error('❌ Inventory button not found!');
+    }
+    
+    // Кнопка закрытия паузы (крестик)
+    const closePauseBtn = document.getElementById('closePause');
+    console.log('❌ Close pause button found:', !!closePauseBtn);
+    if (closePauseBtn) {
+      // Удаляем старые обработчики
+      const newClosePauseBtn = closePauseBtn.cloneNode(true);
+      closePauseBtn.parentNode.replaceChild(newClosePauseBtn, closePauseBtn);
+      
+      // Функция обработчика закрытия паузы
+      const handleClosePauseClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('❌ CLOSE PAUSE BUTTON CLICKED! Event type:', e.type);
+        
+        const { ScreenManager } = await import('../ui/ScreenManager.js');
+        await ScreenManager.togglePause();
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      newClosePauseBtn.addEventListener('click', handleClosePauseClick);
+      newClosePauseBtn.addEventListener('touchend', handleClosePauseClick);
+      
+      // Предотвращаем двойное срабатывание на мобильных
+      newClosePauseBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+      });
+      
+      console.log('❌ Close pause button event listeners set up successfully');
+    }
+    
+    // Мобильная кнопка инвентаря (в нижней части экрана)
+    const mobileInventoryBtn = document.getElementById('mobileInventoryBtn');
+    console.log('📱 Mobile inventory button found:', !!mobileInventoryBtn);
+    if (mobileInventoryBtn) {
+      // Удаляем старые обработчики
+      const newMobileInventoryBtn = mobileInventoryBtn.cloneNode(true);
+      mobileInventoryBtn.parentNode.replaceChild(newMobileInventoryBtn, mobileInventoryBtn);
+      
+      // Функция обработчика мобильного инвентаря
+      const handleMobileInventoryClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('📱 MOBILE INVENTORY BUTTON CLICKED! Event type:', e.type);
+        console.log('📱 Current gameState.screen:', gameState.screen);
+        console.log('📱 Current gameState.isPaused:', gameState.isPaused);
+        
+        // Проверяем, что мы в игре и не в паузе
+        if (gameState.screen !== 'game') {
+          console.log('📱 Mobile inventory button clicked outside game - ignoring');
+          return;
+        }
+        
+        if (gameState.isPaused) {
+          console.log('📱 Mobile inventory button clicked during pause - ignoring');
+          return;
+        }
+        
+        console.log('📱 Opening inventory from mobile button...');
+        const { InventoryManager } = await import('../ui/InventoryManager.js');
+        InventoryManager.toggleInventory();
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      newMobileInventoryBtn.addEventListener('click', handleMobileInventoryClick);
+      newMobileInventoryBtn.addEventListener('touchend', handleMobileInventoryClick);
+      
+      // Предотвращаем двойное срабатывание на мобильных
+      newMobileInventoryBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+      });
+      
+      console.log('📱 Mobile inventory button event listeners set up successfully');
+    }
+  }
+
+  static setupPauseEventListeners() {
+    console.log('⏸️ Setting up pause screen event listeners...');
+    
+    // Убираем фокус со всех ползунков при открытии паузы
+    setTimeout(() => {
+      const sliders = document.querySelectorAll('.pause-panel input[type="range"]');
+      sliders.forEach(slider => {
+        slider.blur();
+      });
+    }, 50);
+    
+    // Кнопка закрытия паузы (крестик)
+    const closePauseBtn = document.getElementById('closePause');
+    console.log('❌ Close pause button found:', !!closePauseBtn);
+    if (closePauseBtn) {
+      // Удаляем старые обработчики
+      const newClosePauseBtn = closePauseBtn.cloneNode(true);
+      closePauseBtn.parentNode.replaceChild(newClosePauseBtn, closePauseBtn);
+      
+      const handleClosePauseClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('❌ CLOSE PAUSE BUTTON CLICKED! Event type:', e.type);
+        
+        const { ScreenManager } = await import('../ui/ScreenManager.js');
+        await ScreenManager.togglePause();
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      newClosePauseBtn.addEventListener('click', handleClosePauseClick);
+      newClosePauseBtn.addEventListener('touchend', handleClosePauseClick);
+      newClosePauseBtn.addEventListener('touchstart', (e) => e.preventDefault());
+      
+      console.log('❌ Close pause button event listeners set up successfully');
+    }
+    
+    // Кнопка "В главное меню" в паузе
+    const quitBtn = document.getElementById('quitBtn');
+    console.log('🏠 Quit button found:', !!quitBtn);
+    if (quitBtn) {
+      // Удаляем старые обработчики
+      const newQuitBtn = quitBtn.cloneNode(true);
+      quitBtn.parentNode.replaceChild(newQuitBtn, quitBtn);
+      
+      const handleQuitClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🏠 QUIT BUTTON CLICKED! Event type:', e.type);
+        
+        const { ScreenManager } = await import('../ui/ScreenManager.js');
+        const { GameEngine } = await import('../game/GameEngine.js');
+        
+        // Остановить игру
+        GameEngine.stopGame();
+        
+        // Сбросить состояние паузы
+        gameState.isPaused = false;
+        const pauseOverlay = document.getElementById('pauseOverlay');
+        if (pauseOverlay) pauseOverlay.classList.add('hidden');
+        
+        // Переключиться в главное меню
+        ScreenManager.switchScreen('menu');
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      newQuitBtn.addEventListener('click', handleQuitClick);
+      newQuitBtn.addEventListener('touchend', handleQuitClick);
+      newQuitBtn.addEventListener('touchstart', (e) => e.preventDefault());
+      
+      console.log('🏠 Quit button event listeners set up successfully');
+    }
+  }
+
+  static setupRecordsEventListeners() {
+    console.log('📊 Setting up records screen event listeners...');
+    
+    // Кнопка очистки рекордов
+    const clearRecords = document.getElementById('clearRecords');
+    console.log('🗑️ Clear records button found:', !!clearRecords);
+    if (clearRecords) {
+      // Удаляем старые обработчики
+      const newClearRecords = clearRecords.cloneNode(true);
+      clearRecords.parentNode.replaceChild(newClearRecords, clearRecords);
+      
+      const handleClearRecords = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🗑️ Clear records button clicked! Event type:', e.type);
+        const { RecordsManager } = await import('../ui/RecordsManager.js');
+        RecordsManager.clearRecords();
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      newClearRecords.addEventListener('click', handleClearRecords);
+      newClearRecords.addEventListener('touchend', handleClearRecords);
+      newClearRecords.addEventListener('touchstart', (e) => e.preventDefault());
+      
+      console.log('🗑️ Clear records button event listeners set up successfully');
+    }
+    
+    // Кнопка "Назад" из рекордов
+    const backToMenuFromRecords = document.getElementById('backToMenuFromRecords');
+    console.log('⬅️ Back from records button found:', !!backToMenuFromRecords);
+    if (backToMenuFromRecords) {
+      // Удаляем старые обработчики
+      const newBackButton = backToMenuFromRecords.cloneNode(true);
+      backToMenuFromRecords.parentNode.replaceChild(newBackButton, backToMenuFromRecords);
+      
+      const handleBackToMenu = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('⬅️ Back from records button clicked! Event type:', e.type);
+        const { ScreenManager } = await import('../ui/ScreenManager.js');
+        ScreenManager.switchScreen('menu');
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      newBackButton.addEventListener('click', handleBackToMenu);
+      newBackButton.addEventListener('touchend', handleBackToMenu);
+      newBackButton.addEventListener('touchstart', (e) => e.preventDefault());
+      
+      console.log('⬅️ Back from records button event listeners set up successfully');
+    }
+  }
+
+  static setupSettingsEventListeners() {
+    console.log('⚙️ Setting up settings screen event listeners...');
+    
+    // Убираем фокус со всех ползунков при открытии настроек
+    setTimeout(() => {
+      const sliders = document.querySelectorAll('.settings-panel input[type="range"]');
+      sliders.forEach(slider => {
+        slider.blur();
+      });
+    }, 50);
+    
+    // Кнопка "Назад" из настроек
+    const backToMenuFromSettings = document.getElementById('backToMenuFromSettings');
+    console.log('⬅️ Back from settings button found:', !!backToMenuFromSettings);
+    if (backToMenuFromSettings) {
+      // Удаляем старые обработчики
+      const newBackButton = backToMenuFromSettings.cloneNode(true);
+      backToMenuFromSettings.parentNode.replaceChild(newBackButton, backToMenuFromSettings);
+      
+      const handleBackToMenu = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('⬅️ Back from settings button clicked! Event type:', e.type);
+        const { ScreenManager } = await import('../ui/ScreenManager.js');
+        ScreenManager.switchScreen('menu');
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      newBackButton.addEventListener('click', handleBackToMenu);
+      newBackButton.addEventListener('touchend', handleBackToMenu);
+      newBackButton.addEventListener('touchstart', (e) => e.preventDefault());
+      
+      console.log('⬅️ Back from settings button event listeners set up successfully');
+    }
+    
+    // Кнопка "Выключить звук"
+    const muteToggle = document.getElementById('muteToggle');
+    console.log('🔇 Mute toggle button found:', !!muteToggle);
+    if (muteToggle) {
+      // Удаляем старые обработчики
+      const newMuteToggle = muteToggle.cloneNode(true);
+      muteToggle.parentNode.replaceChild(newMuteToggle, muteToggle);
+      
+      const handleMuteToggle = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🔇 Mute toggle button clicked! Event type:', e.type);
+        gameState.audio.enabled = !gameState.audio.enabled;
+        
+        // Обновляем текст кнопки
+        newMuteToggle.textContent = gameState.audio.enabled ? '🔇 Выключить звук' : '🔊 Включить звук';
+        
+        // Управляем музыкой
+        if (gameState.audio.enabled) {
+          if (gameState.screen === 'menu' || gameState.screen === 'select') {
+            audioManager.playMusic('main');
+          } else if (gameState.screen === 'game') {
+            audioManager.playMusic('stage1');
+          }
+        } else {
+          audioManager.stopMusic();
+        }
+        
+        this.saveSettings();
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      newMuteToggle.addEventListener('click', handleMuteToggle);
+      newMuteToggle.addEventListener('touchend', handleMuteToggle);
+      newMuteToggle.addEventListener('touchstart', (e) => e.preventDefault());
+      
+      console.log('🔇 Mute toggle button event listeners set up successfully');
+    }
+    
+    // Настраиваем ползунки с поддержкой touch
+    this.setupAudioEventListeners();
   }
 
   static setupEventListeners() {
@@ -186,16 +680,24 @@ export class SettingsManager {
     });
     
     if (startBtn) {
-      startBtn.addEventListener('click', async () => {
+      const handleStartClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         console.log('Start button clicked');
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         ScreenManager.switchScreen('select');
         ScreenManager.buildCharacterSelect();
-      });
+      };
+      
+      startBtn.addEventListener('click', handleStartClick);
+      startBtn.addEventListener('touchend', handleStartClick);
+      startBtn.addEventListener('touchstart', (e) => e.preventDefault());
     }
     
     if (recordsBtn) {
-      recordsBtn.addEventListener('click', async () => {
+      const handleRecordsClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         console.log('Records button clicked');
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         const { RecordsManager } = await import('../ui/RecordsManager.js');
@@ -204,36 +706,34 @@ export class SettingsManager {
         RecordsManager.updateTopRecordsScreen();
         
         ScreenManager.switchScreen('records');
-      });
+      };
+      
+      recordsBtn.addEventListener('click', handleRecordsClick);
+      recordsBtn.addEventListener('touchend', handleRecordsClick);
+      recordsBtn.addEventListener('touchstart', (e) => e.preventDefault());
     }
     
     if (settingsBtn) {
-      settingsBtn.addEventListener('click', async () => {
+      const handleSettingsClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         console.log('Settings button clicked');
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         ScreenManager.switchScreen('settings');
         
         // Инициализируем настройки звука в главном меню
         this.initializeMainMenuAudioSettings();
-      });
+      };
+      
+      settingsBtn.addEventListener('click', handleSettingsClick);
+      settingsBtn.addEventListener('touchend', handleSettingsClick);
+      settingsBtn.addEventListener('touchstart', (e) => e.preventDefault());
     }
     
     // Кнопки меню паузы
-    const resumeBtn = document.getElementById('resumeBtn');
     const quitBtn = document.getElementById('quitBtn');
     
-    console.log('Resume button found:', resumeBtn);
     console.log('Quit button found:', quitBtn);
-    
-    if (resumeBtn) {
-      resumeBtn.addEventListener('click', async () => {
-        console.log('Resume button clicked');
-        const { ScreenManager } = await import('../ui/ScreenManager.js');
-        await ScreenManager.togglePause(); // Закрыть паузу
-      });
-    } else {
-      console.error('❌ Resume button not found!');
-    }
     
     if (quitBtn) {
       quitBtn.addEventListener('click', async () => {
@@ -256,19 +756,50 @@ export class SettingsManager {
       console.error('❌ Quit button not found!');
     }
     
+    // Кнопка закрытия паузы (крестик) - также настраиваем в основной функции
+    const closePauseBtn = document.getElementById('closePause');
+    if (closePauseBtn) {
+      const handleClosePauseClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('❌ Close pause button clicked');
+        const { ScreenManager } = await import('../ui/ScreenManager.js');
+        await ScreenManager.togglePause();
+      };
+      
+      closePauseBtn.addEventListener('click', handleClosePauseClick);
+      closePauseBtn.addEventListener('touchend', handleClosePauseClick);
+      closePauseBtn.addEventListener('touchstart', (e) => e.preventDefault());
+    }
+    
     // Обработчик ESC теперь управляется через MenuNavigationManager
     
     // Кнопка паузы на игровом экране
     const pauseBtn = document.getElementById('pauseBtn');
     console.log('Pause button found:', pauseBtn);
     if (pauseBtn) {
-      pauseBtn.addEventListener('click', async () => {
-        console.log('Pause button clicked');
+      // Функция обработчика паузы
+      const handlePauseClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🔴 PAUSE BUTTON CLICKED! Event type:', e.type);
+        console.log('🔴 Current gameState.screen:', gameState.screen);
+        console.log('🔴 Current gameState.isPaused:', gameState.isPaused);
+        
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         await ScreenManager.togglePause();
         
         // Инициализируем значения в паузе
         this.initializePauseAudioSettings();
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      pauseBtn.addEventListener('click', handlePauseClick);
+      pauseBtn.addEventListener('touchend', handlePauseClick);
+      
+      // Предотвращаем двойное срабатывание на мобильных
+      pauseBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
       });
     } else {
       console.error('❌ Pause button not found!');
@@ -386,21 +917,38 @@ export class SettingsManager {
     // Кнопка открытия инвентаря на экране (только в игре)
     const inventoryToggleBtn = document.getElementById('inventoryToggle');
     if (inventoryToggleBtn) {
-      inventoryToggleBtn.addEventListener('click', async () => {
+      // Функция обработчика инвентаря
+      const handleInventoryClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('🎒 INVENTORY BUTTON CLICKED! Event type:', e.type);
+        console.log('🎒 Current gameState.screen:', gameState.screen);
+        console.log('🎒 Current gameState.isPaused:', gameState.isPaused);
+        
         // Проверяем, что мы в игре и не в паузе
         if (gameState.screen !== 'game') {
-          console.log('Inventory button clicked outside game - ignoring');
+          console.log('🎒 Inventory button clicked outside game - ignoring');
           return;
         }
         
         if (gameState.isPaused) {
-          console.log('Inventory button clicked during pause - ignoring');
+          console.log('🎒 Inventory button clicked during pause - ignoring');
           return;
         }
         
-        console.log('Inventory toggle button clicked');
+        console.log('🎒 Opening inventory...');
         const { InventoryManager } = await import('../ui/InventoryManager.js');
         InventoryManager.toggleInventory();
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      inventoryToggleBtn.addEventListener('click', handleInventoryClick);
+      inventoryToggleBtn.addEventListener('touchend', handleInventoryClick);
+      
+      // Предотвращаем двойное срабатывание на мобильных
+      inventoryToggleBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
       });
     }
     
@@ -473,30 +1021,31 @@ export class SettingsManager {
       console.error('❌ Кнопка следующего уровня не найдена!');
     }
     
-    // Возвраты в меню
+    // Возвраты в меню с поддержкой touch событий
     const backToMenuFromSelect = document.getElementById('backToMenuFromSelect');
     const backToMenuFromRecords = document.getElementById('backToMenuFromRecords');
     const backToMenuFromSettings = document.getElementById('backToMenuFromSettings');
     
-    if (backToMenuFromSelect) {
-      backToMenuFromSelect.addEventListener('click', async () => {
-        const { ScreenManager } = await import('../ui/ScreenManager.js');
-        ScreenManager.switchScreen('menu');
-      });
-    }
+    // Функция-обработчик возврата в меню
+    const handleBackToMenu = async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const { ScreenManager } = await import('../ui/ScreenManager.js');
+      ScreenManager.switchScreen('menu');
+    };
+    
+    // Обработчик для backToMenuFromSelect теперь в setupSelectEventListeners
     
     if (backToMenuFromRecords) {
-      backToMenuFromRecords.addEventListener('click', async () => {
-        const { ScreenManager } = await import('../ui/ScreenManager.js');
-        ScreenManager.switchScreen('menu');
-      });
+      backToMenuFromRecords.addEventListener('click', handleBackToMenu);
+      backToMenuFromRecords.addEventListener('touchend', handleBackToMenu);
+      backToMenuFromRecords.addEventListener('touchstart', (e) => e.preventDefault());
     }
     
     if (backToMenuFromSettings) {
-      backToMenuFromSettings.addEventListener('click', async () => {
-        const { ScreenManager } = await import('../ui/ScreenManager.js');
-        ScreenManager.switchScreen('menu');
-      });
+      backToMenuFromSettings.addEventListener('click', handleBackToMenu);
+      backToMenuFromSettings.addEventListener('touchend', handleBackToMenu);
+      backToMenuFromSettings.addEventListener('touchstart', (e) => e.preventDefault());
     }
     
     // Настройки аудио будут инициализированы при загрузке экранов
@@ -504,11 +1053,17 @@ export class SettingsManager {
     // Кнопка очистки рекордов
     const clearRecords = document.getElementById('clearRecords');
     if (clearRecords) {
-      clearRecords.addEventListener('click', async () => {
+      const handleClearRecords = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         console.log('Clear records button clicked');
         const { RecordsManager } = await import('../ui/RecordsManager.js');
         RecordsManager.clearRecords();
-      });
+      };
+      
+      clearRecords.addEventListener('click', handleClearRecords);
+      clearRecords.addEventListener('touchend', handleClearRecords);
+      clearRecords.addEventListener('touchstart', (e) => e.preventDefault());
     }
     
     // Кнопки экрана окончания игры
@@ -628,5 +1183,64 @@ export class SettingsManager {
 
     // Настраиваем обработчики событий
     this.setupAudioEventListeners();
+  }
+
+  static setupSelectEventListeners() {
+    console.log('👤 Setting up character select screen event listeners...');
+    
+    // Кнопка "Назад" из экрана выбора персонажей
+    const backToMenuFromSelect = document.getElementById('backToMenuFromSelect');
+    console.log('⬅️ Back from select button found:', !!backToMenuFromSelect);
+    if (backToMenuFromSelect) {
+      // Удаляем старые обработчики
+      const newBackButton = backToMenuFromSelect.cloneNode(true);
+      backToMenuFromSelect.parentNode.replaceChild(newBackButton, backToMenuFromSelect);
+      
+      const handleBackToMenu = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('⬅️ Back from select button clicked! Event type:', e.type);
+        const { ScreenManager } = await import('../ui/ScreenManager.js');
+        ScreenManager.switchScreen('menu');
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      newBackButton.addEventListener('click', handleBackToMenu);
+      newBackButton.addEventListener('touchend', handleBackToMenu);
+      newBackButton.addEventListener('touchstart', (e) => e.preventDefault());
+      
+      console.log('⬅️ Back from select button event listeners set up successfully');
+    }
+    
+    // Кнопка "Старт" игры
+    const startGameBtn = document.getElementById('startGameBtn');
+    console.log('🎮 Start game button found:', !!startGameBtn);
+    if (startGameBtn) {
+      // Удаляем старые обработчики
+      const newStartButton = startGameBtn.cloneNode(true);
+      startGameBtn.parentNode.replaceChild(newStartButton, startGameBtn);
+      
+      const handleStartGame = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🎮 Start game button clicked! Event type:', e.type);
+        
+        // Проверяем, что персонаж выбран
+        if (!gameState.selectedCharacter) {
+          console.log('❌ No character selected!');
+          return;
+        }
+        
+        const { GameEngine } = await import('../game/GameEngine.js');
+        GameEngine.startGame();
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      newStartButton.addEventListener('click', handleStartGame);
+      newStartButton.addEventListener('touchend', handleStartGame);
+      newStartButton.addEventListener('touchstart', (e) => e.preventDefault());
+      
+      console.log('🎮 Start game button event listeners set up successfully');
+    }
   }
 } 

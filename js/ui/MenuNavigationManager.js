@@ -6,6 +6,10 @@ export class MenuNavigationManager {
   static currentFocusIndex = 0;
   static focusableElements = [];
   
+  static isMobile() {
+    return window.innerWidth <= 768;
+  }
+  
   static init() {
     console.log('🎯 Initializing menu navigation...');
     
@@ -71,8 +75,8 @@ export class MenuNavigationManager {
       }
     });
     
-    // Устанавливаем фокус на первый элемент
-    if (this.focusableElements.length > 0) {
+    // Не устанавливаем автоматический фокус на экране выбора персонажей
+    if (this.focusableElements.length > 0 && gameState.screen !== 'select') {
       this.setFocus(0);
     }
   }
@@ -240,6 +244,15 @@ export class MenuNavigationManager {
     // Обновляем навигацию при изменении экрана
     setTimeout(() => {
       this.updateFocusableElements();
+      
+      // Убираем фокус с персонажей на экране выбора персонажей
+      if (gameState.screen === 'select') {
+        const characterCards = document.querySelectorAll('.character-card');
+        characterCards.forEach(card => {
+          card.classList.remove('keyboard-focus');
+          card.blur();
+        });
+      }
     }, 100);
   }
   

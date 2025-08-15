@@ -51,12 +51,46 @@ export class ScreenManager {
         })();
       }
       
+      // Настраиваем обработчики событий при переключении на экран рекордов
+      if (screenName === 'records') {
+        setTimeout(() => {
+          (async () => {
+            const { SettingsManager } = await import('./SettingsManager.js');
+            SettingsManager.setupRecordsEventListeners();
+          })();
+        }, 100);
+      }
+      
+      // Настраиваем обработчики событий при переключении на экран настроек
+      if (screenName === 'settings') {
+        setTimeout(() => {
+          (async () => {
+            const { SettingsManager } = await import('./SettingsManager.js');
+            SettingsManager.setupSettingsEventListeners();
+          })();
+        }, 100);
+      }
+      
+      // Настраиваем обработчики событий при переключении на экран выбора персонажей
+      if (screenName === 'select') {
+        setTimeout(() => {
+          (async () => {
+            const { SettingsManager } = await import('./SettingsManager.js');
+            SettingsManager.setupSelectEventListeners();
+          })();
+        }, 100);
+      }
+      
       // Обновляем быстрые слоты при переключении на игровой экран
       if (screenName === 'game') {
         setTimeout(() => {
           (async () => {
             const { GameEngine } = await import('../game/GameEngine.js');
             GameEngine.updateQuickPotions();
+            
+            // Переинициализируем обработчики событий для игровых кнопок
+            const { SettingsManager } = await import('./SettingsManager.js');
+            SettingsManager.setupGameButtonEventListeners();
           })();
         }, 100);
       }
@@ -75,6 +109,21 @@ export class ScreenManager {
     if (!charList) return;
     
     charList.innerHTML = '';
+    
+    // Скрываем кнопку "Старт" при загрузке экрана
+    const startGameBtn = document.getElementById('startGameBtn');
+    if (startGameBtn) {
+      startGameBtn.style.display = 'none';
+    }
+    
+    // Убираем автоматический фокус на всех устройствах
+    setTimeout(() => {
+      const characterCards = document.querySelectorAll('.character-card');
+      characterCards.forEach(card => {
+        card.classList.remove('keyboard-focus');
+        card.blur();
+      });
+    }, 50);
     
     // Принудительное обновление кеша
     CHARACTERS.forEach(char => {
@@ -135,16 +184,16 @@ export class ScreenManager {
         </div>
       `;
       
-      card.addEventListener('click', async () => {
+      card.addEventListener('click', () => {
         document.querySelectorAll('.character-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         gameState.selectedCharacter = char;
         
-        // Небольшая задержка для анимации выбора
-        setTimeout(async () => {
-          const { GameEngine } = await import('../game/GameEngine.js');
-          GameEngine.startGame();
-        }, 300);
+        // Показываем кнопку "Старт" после выбора персонажа
+        const startGameBtn = document.getElementById('startGameBtn');
+        if (startGameBtn) {
+          startGameBtn.style.display = 'block';
+        }
       });
       
       charList.appendChild(card);
@@ -193,9 +242,10 @@ export class ScreenManager {
   }
   
   static async togglePause() {
-    console.log('togglePause called, screen:', gameState.screen, 'isPaused:', gameState.isPaused);
+    console.log('🔴 ScreenManager.togglePause() called!');
+    console.log('🔴 Current screen:', gameState.screen, 'isPaused:', gameState.isPaused);
     if (gameState.screen !== 'game') {
-      console.log('Not in game screen, ignoring pause toggle');
+      console.log('🔴 Not in game screen, ignoring pause toggle');
       return;
     }
     
@@ -224,11 +274,13 @@ export class ScreenManager {
       
       // Скрываем игровые кнопки во время паузы
       const inventoryToggleBtn = document.getElementById('inventoryToggle');
+      const mobileInventoryBtn = document.getElementById('mobileInventoryBtn');
       const pauseBtn = document.getElementById('pauseBtn');
       const desktopAbilityBtn = document.getElementById('desktopAbilityBtn');
       const quickPotionsContainer = document.querySelector('.quick-potions-container');
       
       if (inventoryToggleBtn) inventoryToggleBtn.style.display = 'none';
+      if (mobileInventoryBtn) mobileInventoryBtn.style.display = 'none';
       if (pauseBtn) pauseBtn.style.display = 'none';
       if (desktopAbilityBtn) desktopAbilityBtn.style.display = 'none';
       if (quickPotionsContainer) quickPotionsContainer.style.display = 'none';
@@ -237,6 +289,11 @@ export class ScreenManager {
       (async () => {
         const { SettingsManager } = await import('./SettingsManager.js');
         SettingsManager.setupAudioEventListeners();
+        
+        // Также инициализируем обработчики для кнопок паузы
+        setTimeout(() => {
+          SettingsManager.setupPauseEventListeners();
+        }, 100);
       })();
       
       // Обновляем навигацию по меню при открытии паузы
@@ -252,11 +309,13 @@ export class ScreenManager {
       
       // Показываем игровые кнопки при возобновлении
       const inventoryToggleBtn = document.getElementById('inventoryToggle');
+      const mobileInventoryBtn = document.getElementById('mobileInventoryBtn');
       const pauseBtn = document.getElementById('pauseBtn');
       const desktopAbilityBtn = document.getElementById('desktopAbilityBtn');
       const quickPotionsContainer = document.querySelector('.quick-potions-container');
       
       if (inventoryToggleBtn) inventoryToggleBtn.style.display = '';
+      if (mobileInventoryBtn) mobileInventoryBtn.style.display = '';
       if (pauseBtn) pauseBtn.style.display = '';
       if (desktopAbilityBtn) desktopAbilityBtn.style.display = '';
       if (quickPotionsContainer) quickPotionsContainer.style.display = '';
