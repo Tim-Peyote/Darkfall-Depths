@@ -31,26 +31,30 @@ export class Projectile extends Entity {
       return;
     }
     
-    // Проверка попадания во врагов
-    const enemies = gameState.entities.filter(e => e.constructor.name === 'Enemy' && !e.isDead);
-    for (const enemy of enemies) {
-      if (Utils.distance(this, enemy) < this.radius + enemy.radius) {
-        enemy.takeDamage(this.damage);
-        this.isDead = true;
-        
-        // Частицы взрыва
-        for (let i = 0; i < 8; i++) {
-          createParticle(
-            this.x + Utils.random(-8, 8),
-            this.y + Utils.random(-8, 8),
-            Utils.randomFloat(-80, 80),
-            Utils.randomFloat(-80, 80),
-            '#3498db',
-            0.5,
-            3
-          );
+    // Оптимизированная проверка попадания во врагов - без filter
+    for (let i = 0; i < gameState.entities.length; i++) {
+      const entity = gameState.entities[i];
+      if (entity.constructor.name === 'Enemy' && !entity.isDead) {
+        if (Utils.distance(this, entity) < this.radius + entity.radius) {
+          entity.takeDamage(this.damage);
+          this.isDead = true;
+          
+          // Частицы взрыва
+          for (let j = 0; j < 8; j++) {
+            createParticle(
+              this.x + Utils.random(-8, 8),
+              this.y + Utils.random(-8, 8),
+              Utils.randomFloat(-80, 80),
+              Utils.randomFloat(-80, 80),
+              '#3498db',
+              0.5,
+              3
+            );
+          }
+          
+          // Выходим из цикла, так как снаряд попал
+          break;
         }
-        break;
       }
     }
   }

@@ -8,8 +8,29 @@ import { BASE_ITEMS } from '../config/constants.js';
 let tooltipElement = null;
 let draggedItem = null;
 let draggedSlot = null;
+let dropSuccessful = false; // Флаг успешного размещения предмета
 
 export class InventoryManager {
+  static init() {
+    // Настраиваем обработчик кнопки закрытия инвентаря
+    this.setupCloseButton();
+  }
+  
+  static setupCloseButton() {
+    const closeBtn = document.getElementById('closeInventory');
+    if (closeBtn) {
+      // Удаляем старые обработчики
+      closeBtn.replaceWith(closeBtn.cloneNode(true));
+      const newCloseBtn = document.getElementById('closeInventory');
+      
+      newCloseBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.toggleInventory();
+      });
+    }
+  }
+  
   static toggleInventory() {
     const overlay = document.getElementById('inventoryOverlay');
     if (!overlay) return;
@@ -23,6 +44,9 @@ export class InventoryManager {
       
       this.renderInventory();
       overlay.classList.remove('hidden');
+      
+      // Убеждаемся, что кнопка закрытия работает
+      this.setupCloseButton();
       
       // Воспроизводим звук открытия инвентаря (асинхронно)
       (async () => {
@@ -741,6 +765,7 @@ export class InventoryManager {
       
       draggedItem = item;
       draggedSlot = { type, index };
+      dropSuccessful = false; // Сбрасываем флаг при начале перетаскивания
       e.dataTransfer.effectAllowed = 'move';
       slot.classList.add('dragging');
       
@@ -754,8 +779,10 @@ export class InventoryManager {
       // Проверяем, был ли предмет выброшен за пределы инвентаря
       this.handleDragEnd(e);
       
+      // Сбрасываем все переменные состояния
       draggedItem = null;
       draggedSlot = null;
+      dropSuccessful = false;
     });
     
     slot.addEventListener('dragover', (e) => {
@@ -773,14 +800,17 @@ export class InventoryManager {
       slot.classList.remove('drag-over');
       
       if (draggedItem && draggedSlot) {
-        this.handleDrop(draggedSlot, { type, index });
+        const success = this.handleDrop(draggedSlot, { type, index });
+        if (success) {
+          dropSuccessful = true; // Отмечаем успешное размещение
+        }
       }
     });
   }
 
   static handleDrop(from, to) {
     if (from.type === to.type && from.index === to.index) {
-      return;
+      return false; // Неуспешное перемещение (тот же слот)
     }
     
 
@@ -806,7 +836,7 @@ export class InventoryManager {
     
     // Проверяем, можно ли поместить банку в быстрый слот
     if (to.type === 'quickslot' && fromItem && fromItem.type !== 'consumable') {
-      return;
+      return false; // Неуспешное перемещение (неподходящий тип предмета)
     }
     
     // Если перетаскиваем из быстрого слота в рюкзак или экипировку, очищаем быстрый слот
@@ -820,7 +850,7 @@ export class InventoryManager {
         GameEngine.updateQuickPotions();
       })();
       
-      return;
+      return true; // Успешное перемещение
     }
     
     if (to.type === 'quickslot' && fromItem && fromItem.type === 'consumable') {
@@ -835,7 +865,7 @@ export class InventoryManager {
         GameEngine.updateQuickPotions();
       })();
       
-      return; // Не обмениваем предметы, только назначаем тип
+      return true; // Успешное назначение зелья на быстрый слот
     }
     
     // Обмен предметами (но не для быстрых слотов)
@@ -866,6 +896,8 @@ export class InventoryManager {
       const { GameEngine } = await import('../game/GameEngine.js');
       GameEngine.updateQuickPotions();
     })();
+    
+    return true; // Успешный обмен предметами
   }
 
 
@@ -961,6 +993,17 @@ export class InventoryManager {
   static handleDragEnd(e) {
     if (!draggedItem || !draggedSlot) return;
     
+    // Если предмет был успешно размещен в слоте, не показываем модалку удаления
+    if (dropSuccessful) {
+      dropSuccessful = false; // Сбрасываем флаг
+      this.hideDeleteZone();
+      if (this.dragOutsideHandler) {
+        document.removeEventListener('dragover', this.dragOutsideHandler);
+        this.dragOutsideHandler = null;
+      }
+      return;
+    }
+    
     const inventoryOverlay = document.getElementById('inventoryOverlay');
     if (!inventoryOverlay) return;
     
@@ -974,8 +1017,9 @@ export class InventoryManager {
                      mouseY < overlayRect.top || 
                      mouseY > overlayRect.bottom;
     
+    // Показываем подтверждение удаления ТОЛЬКО если предмет действительно вынесен за пределы
+    // и НЕ был успешно размещен в другом слоте
     if (isOutside) {
-      // Показываем подтверждение удаления
       this.showDeleteConfirmation(draggedItem, draggedSlot);
     }
     

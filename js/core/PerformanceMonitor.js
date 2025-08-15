@@ -8,6 +8,7 @@ export class PerformanceMonitor {
   static lastTime = 0;
   static frameTimes = [];
   static maxFrameTimes = 60; // Храним последние 60 кадров
+  static lastFrameTime = 0; // Для точного расчета времени кадра
   
   // Настройки производительности
   static lowPerformanceMode = false;
@@ -19,6 +20,16 @@ export class PerformanceMonitor {
   }
   
   static update(currentTime) {
+    // Рассчитываем реальное время кадра
+    if (this.lastFrameTime > 0) {
+      const realFrameTime = currentTime - this.lastFrameTime;
+      this.frameTimes.push(realFrameTime);
+      if (this.frameTimes.length > this.maxFrameTimes) {
+        this.frameTimes.shift();
+      }
+    }
+    this.lastFrameTime = currentTime;
+    
     this.frameCount++;
     
     // Вычисляем FPS каждую секунду
@@ -26,13 +37,6 @@ export class PerformanceMonitor {
       this.fps = Math.round((this.frameCount * 1000) / (currentTime - this.lastTime));
       this.frameCount = 0;
       this.lastTime = currentTime;
-      
-      // Сохраняем время кадра для анализа
-      const frameTime = 1000 / this.fps;
-      this.frameTimes.push(frameTime);
-      if (this.frameTimes.length > this.maxFrameTimes) {
-        this.frameTimes.shift();
-      }
       
       // Анализируем производительность
       this.analyzePerformance();
@@ -42,16 +46,16 @@ export class PerformanceMonitor {
   static analyzePerformance() {
     const avgFrameTime = this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
     
-    // Включаем режим низкой производительности при FPS < 30
+    // Включаем режим низкой производительности при FPS < 30 (вернули нормальный порог)
     if (this.fps < 30 && !this.lowPerformanceMode) {
       this.enableLowPerformanceMode();
-      Logger.warn(`Low FPS detected (${this.fps}), enabling performance mode`);
+      Logger.warn(`⚠️ Низкий FPS обнаружен (${this.fps}), включаем режим оптимизации`);
     }
     
-    // Отключаем режим низкой производительности при FPS > 50
+    // Отключаем режим низкой производительности при FPS > 50 (вернули нормальный порог)
     if (this.fps > 50 && this.lowPerformanceMode) {
       this.disableLowPerformanceMode();
-      Logger.info(`Good FPS detected (${this.fps}), disabling performance mode`);
+      Logger.info(`✅ Хороший FPS обнаружен (${this.fps}), отключаем режим оптимизации`);
     }
     
     // Логируем критически низкий FPS
@@ -62,16 +66,16 @@ export class PerformanceMonitor {
   
   static enableLowPerformanceMode() {
     this.lowPerformanceMode = true;
-    this.particleLimit = 30;
+    this.particleLimit = 15; // Еще больше ограничиваем частицы (было 30)
     this.effectQuality = 'low';
-    Logger.info('Low performance mode enabled');
+    Logger.info('⚠️ Режим низкой производительности включен - частицы ограничены до', this.particleLimit);
   }
   
   static disableLowPerformanceMode() {
     this.lowPerformanceMode = false;
-    this.particleLimit = 100;
+    this.particleLimit = 60; // Уменьшили с 100 до 60 для стабильности
     this.effectQuality = 'high';
-    Logger.info('Low performance mode disabled');
+    Logger.info('✅ Режим низкой производительности отключен - частицы до', this.particleLimit);
   }
   
   static shouldCreateParticle() {

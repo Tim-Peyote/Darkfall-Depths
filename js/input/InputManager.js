@@ -4,6 +4,8 @@ import { gameState } from '../core/GameState.js';
 import { IS_MOBILE } from '../config/constants.js';
 
 export class InputManager {
+  static qPressed = false; // Флаг для предотвращения повторных нажатий Q
+  
   static init() {
     // Принудительно блокируем скролл при загрузке
     document.body.style.overflow = 'hidden';
@@ -76,8 +78,10 @@ export class InputManager {
         })();
       }
       
-      if (e.code === 'KeyQ') {
+      if (e.code === 'KeyQ' && !this.qPressed) {
         e.preventDefault();
+        this.qPressed = true; // Устанавливаем флаг
+        
         if (gameState.screen === 'game' && gameState.player && !gameState.isPaused) {
           // Активируем уникальную способность персонажа
           if (gameState.player.hasDash) {
@@ -95,6 +99,11 @@ export class InputManager {
       // Обрабатываем только в игре
       if (gameState.screen !== 'game') return;
       gameState.input.keys[e.code] = false;
+      
+      // Сбрасываем флаг Q при отпускании клавиши
+      if (e.code === 'KeyQ') {
+        this.qPressed = false;
+      }
     });
     
     // Мобильное управление

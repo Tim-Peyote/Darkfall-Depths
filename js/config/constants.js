@@ -7,7 +7,7 @@ export const ROOM_MIN_SIZE = 8; // было 6
 export const ROOM_MAX_SIZE = 16; // было 12
 export const MIN_ROOMS = 10; // было 8
 export const MAX_ROOMS = 15; // было 12
-export const FPS_TARGET = 60;
+export const FPS_TARGET = 120; // Увеличили с 60 до 120 FPS для лучшей производительности
 export const FRAME_TIME = 1000 / FPS_TARGET;
 
 // Проверка на тач устройство

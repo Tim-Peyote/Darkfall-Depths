@@ -7,6 +7,28 @@ import { gameState } from '../core/GameState.js';
 import { LightSourceFactory } from '../entities/LightSource.js';
 
 export class MapGenerator {
+  // Утилита для проверки границ карты
+  static isWithinMapBounds(x, y, mapSize) {
+    return x >= 0 && x < mapSize && y >= 0 && y < mapSize;
+  }
+  
+  // Утилита для проверки валидной позиции для факела
+  static isValidTorchPosition(x, y, mapSize, map) {
+    // Проверяем границы с безопасным отступом
+    if (x <= 1 || x >= mapSize - 2 || y <= 1 || y >= mapSize - 2) {
+      return false;
+    }
+    
+    // Проверяем, что позиция находится рядом со стеной
+    const hasAdjacentWall = (
+      map[y-1][x] === 1 || map[y+1][x] === 1 ||
+      map[y][x-1] === 1 || map[y][x+1] === 1
+    );
+    
+    // Позиция должна быть на полу и рядом со стеной
+    return map[y][x] === 0 && hasAdjacentWall;
+  }
+
   static generateDungeon() {
     // Прогрессия сложности на основе уровня
     const level = gameState.level || 1;
@@ -197,8 +219,16 @@ export class MapGenerator {
         }
         
         if (lightSource) {
-          lightSources.push(lightSource);
-          Logger.map(`Added ${lightSource.lightType} at (${Math.floor(lightSource.x / TILE_SIZE)}, ${Math.floor(lightSource.y / TILE_SIZE)})`);
+          // Валидация позиции источника света
+          const tileX = Math.floor(lightSource.x / TILE_SIZE);
+          const tileY = Math.floor(lightSource.y / TILE_SIZE);
+          
+          if (this.isWithinMapBounds(tileX, tileY, mapSize)) {
+            lightSources.push(lightSource);
+            Logger.map(`Added ${lightSource.lightType} at (${tileX}, ${tileY})`);
+          } else {
+            Logger.warn(`Light source out of bounds at (${tileX}, ${tileY}), map size: ${mapSize}`);
+          }
         }
       }
       
@@ -206,8 +236,16 @@ export class MapGenerator {
       if (room.width >= 15 && room.height >= 15 && Utils.random(0, 1) < 0.05) {
         const decorativeLight = this.placeDecorativeLight(map, room, mapSize, level);
         if (decorativeLight) {
-          lightSources.push(decorativeLight);
-          Logger.map(`Added decorative ${decorativeLight.lightType} at (${Math.floor(decorativeLight.x / TILE_SIZE)}, ${Math.floor(decorativeLight.y / TILE_SIZE)})`);
+          // Валидация позиции декоративного источника света
+          const tileX = Math.floor(decorativeLight.x / TILE_SIZE);
+          const tileY = Math.floor(decorativeLight.y / TILE_SIZE);
+          
+          if (this.isWithinMapBounds(tileX, tileY, mapSize)) {
+            lightSources.push(decorativeLight);
+            Logger.map(`Added decorative ${decorativeLight.lightType} at (${tileX}, ${tileY})`);
+          } else {
+            Logger.warn(`Decorative light source out of bounds at (${tileX}, ${tileY}), map size: ${mapSize}`);
+          }
         }
       }
     });
@@ -227,8 +265,8 @@ export class MapGenerator {
     const roomWidth = room.width;
     const roomHeight = room.height;
     
-    // Верхняя стена - только углы и середина
-    if (room.y - 1 >= 0 && room.y - 1 < mapSize) {
+    // Верхняя стена - только углы и середина (с проверкой границ)
+    if (this.isWithinMapBounds(room.x, room.y - 1, mapSize)) {
       // Левый угол
       if (room.x >= 0 && room.x < mapSize && map[room.y - 1][room.x] === 1) {
         wallPositions.push({ x: room.x, y: room.y - 1, side: 'top' });
@@ -436,7 +474,7 @@ export class MapGenerator {
           if (tooClose) continue;
           
           // Проверяем, что позиция подходит для размещения факела
-          if (this.isValidTorchPosition(map, position.x, position.y, mapSize)) {
+          if (this.isValidTorchPosition(position.x, position.y, mapSize, map)) {
             const lightSource = LightSourceFactory.createTorch(
               position.x * TILE_SIZE + TILE_SIZE / 2,
               position.y * TILE_SIZE + TILE_SIZE / 2,
@@ -444,8 +482,17 @@ export class MapGenerator {
             );
             lightSource.isCorridorTorch = true;
             lightSource.corridorPosition = i; // Позиция в коридоре
-            lightSources.push(lightSource);
-            Logger.map(`Added corridor torch at (${position.x}, ${position.y}) - position ${i}/${torchCount}`);
+            
+            // Валидация позиции коридорного факела
+            const tileX = Math.floor(lightSource.x / TILE_SIZE);
+            const tileY = Math.floor(lightSource.y / TILE_SIZE);
+            
+            if (this.isWithinMapBounds(tileX, tileY, mapSize)) {
+              lightSources.push(lightSource);
+              Logger.map(`Added corridor torch at (${position.x}, ${position.y}) - position ${i}/${torchCount}`);
+            } else {
+              Logger.warn(`Corridor torch out of bounds at (${position.x}, ${position.y}), map size: ${mapSize}`);
+            }
           }
         }
       }
@@ -519,22 +566,4 @@ export class MapGenerator {
     return corridor;
   }
   
-  // Проверка, подходит ли позиция для размещения факела
-  static isValidTorchPosition(map, x, y, mapSize) {
-    // Проверяем границы
-    if (x <= 0 || x >= mapSize - 1 || y <= 0 || y >= mapSize - 1) {
-      return false;
-    }
-    
-    // Проверяем, что позиция находится рядом со стеной
-    const hasAdjacentWall = (
-      map[y-1][x] === 1 || map[y+1][x] === 1 ||
-      map[y][x-1] === 1 || map[y][x+1] === 1
-    );
-    
-    // Проверяем, что позиция свободна
-    const isFree = map[y][x] === 0;
-    
-    return hasAdjacentWall && isFree;
-  }
 } 

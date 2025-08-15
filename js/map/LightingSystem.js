@@ -11,10 +11,15 @@ export class LightingSystem {
     this.maxLightIntensity = 1.0;
     this.gameMap = null; // Карта для проверки препятствий
     
-    // Настройки производительности
-    this.updateInterval = 100; // Обновление каждые 100мс
+    // Настройки производительности (ультра оптимизация)
+    this.updateInterval = 150; // Увеличили с 100 до 150мс для экономии ресурсов
     this.lastUpdateTime = 0;
     this.lightMapSize = MAP_SIZE;
+    
+    // Кеширование для оптимизации
+    this.lightCache = new Map(); // Кеш просчитанного освещения
+    this.cameraViewport = { x: 0, y: 0, width: 0, height: 0 }; // Область видимости камеры
+    this.visibleLights = new Set(); // Только видимые источники света
     
     // Инициализация карты освещения
     this.initializeLightMap();
@@ -199,22 +204,75 @@ export class LightingSystem {
     }
   }
   
-  // Обновление карты освещения
+  // Обновление карты освещения (ультра оптимизированное)
   updateLightMap() {
-    // Очищаем карту освещения
-    this.lightMap.fill(0);
+    // Обновляем список видимых источников света
+    this.updateVisibleLights();
     
-    // Применяем фоновое освещение
-    for (let i = 0; i < this.lightMap.length; i += 4) {
-      this.lightMap[i] = this.ambientLight;     // R
-      this.lightMap[i + 1] = this.ambientLight; // G
-      this.lightMap[i + 2] = this.ambientLight; // B
-      this.lightMap[i + 3] = this.ambientLight; // Intensity
+    // Очищаем только видимую область карты освещения
+    this.clearVisibleLightMap();
+    
+    // Применяем фоновое освещение только в видимой области
+    this.applyAmbientLightToViewport();
+    
+    // Применяем только видимые источники света
+    for (const lightId of this.visibleLights) {
+      const light = this.lightSources.get(lightId);
+      if (light) {
+        this.applyLightSource(light);
+      }
     }
+  }
+  
+  // Обновляем список источников света в области видимости
+  updateVisibleLights() {
+    this.visibleLights.clear();
     
-    // Применяем каждый источник света
     for (const [id, light] of this.lightSources) {
-      this.applyLightSource(light);
+      // Проверяем, находится ли источник света в области видимости + буфер
+      const buffer = light.radius + 100; // Буфер для плавности
+      if (light.x >= this.cameraViewport.x - buffer &&
+          light.x <= this.cameraViewport.x + this.cameraViewport.width + buffer &&
+          light.y >= this.cameraViewport.y - buffer &&
+          light.y <= this.cameraViewport.y + this.cameraViewport.height + buffer) {
+        this.visibleLights.add(id);
+      }
+    }
+  }
+  
+  // Очищаем только видимую область карты освещения
+  clearVisibleLightMap() {
+    const startX = Math.max(0, Math.floor(this.cameraViewport.x / TILE_SIZE));
+    const endX = Math.min(this.lightMapSize, Math.ceil((this.cameraViewport.x + this.cameraViewport.width) / TILE_SIZE));
+    const startY = Math.max(0, Math.floor(this.cameraViewport.y / TILE_SIZE));
+    const endY = Math.min(this.lightMapSize, Math.ceil((this.cameraViewport.y + this.cameraViewport.height) / TILE_SIZE));
+    
+    for (let y = startY; y < endY; y++) {
+      for (let x = startX; x < endX; x++) {
+        const index = (y * this.lightMapSize + x) * 4;
+        this.lightMap[index] = 0;     // R
+        this.lightMap[index + 1] = 0; // G
+        this.lightMap[index + 2] = 0; // B
+        this.lightMap[index + 3] = 0; // Intensity
+      }
+    }
+  }
+  
+  // Применяем фоновое освещение только в видимой области
+  applyAmbientLightToViewport() {
+    const startX = Math.max(0, Math.floor(this.cameraViewport.x / TILE_SIZE));
+    const endX = Math.min(this.lightMapSize, Math.ceil((this.cameraViewport.x + this.cameraViewport.width) / TILE_SIZE));
+    const startY = Math.max(0, Math.floor(this.cameraViewport.y / TILE_SIZE));
+    const endY = Math.min(this.lightMapSize, Math.ceil((this.cameraViewport.y + this.cameraViewport.height) / TILE_SIZE));
+    
+    for (let y = startY; y < endY; y++) {
+      for (let x = startX; x < endX; x++) {
+        const index = (y * this.lightMapSize + x) * 4;
+        this.lightMap[index] = this.ambientLight;     // R
+        this.lightMap[index + 1] = this.ambientLight; // G
+        this.lightMap[index + 2] = this.ambientLight; // B
+        this.lightMap[index + 3] = this.ambientLight; // Intensity
+      }
     }
   }
   
@@ -504,6 +562,14 @@ export class LightingSystem {
   clear() {
     this.lightSources.clear();
     this.initializeLightMap();
+  }
+  
+  // Обновляем область видимости камеры для оптимизации освещения
+  updateCameraViewport(cameraX, cameraY, viewportWidth, viewportHeight) {
+    this.cameraViewport.x = cameraX;
+    this.cameraViewport.y = cameraY;
+    this.cameraViewport.width = viewportWidth;
+    this.cameraViewport.height = viewportHeight;
   }
 }
 

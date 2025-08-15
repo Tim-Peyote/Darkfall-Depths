@@ -111,21 +111,21 @@ export class Player extends Entity {
   }
   
   updateAttack(dt) {
-    // Проверяем, есть ли враги в радиусе атаки
-    const enemies = gameState.entities.filter(e => e.constructor.name === 'Enemy' && !e.isDead);
-    if (enemies.length === 0) return;
-    
-    // Находим ближайшего врага
+    // Оптимизированный поиск врагов - избегаем filter, проходим напрямую
     let closestEnemy = null;
     let closestDistance = Infinity;
     
-    for (const enemy of enemies) {
-      const distance = Utils.distance(this, enemy);
-      if (distance <= this.attackRadius && distance < closestDistance) {
-        // Проверяем линию видимости
-        if (this.hasLineOfSight(enemy.x, enemy.y)) {
-          closestEnemy = enemy;
-          closestDistance = distance;
+    // Проходим по всем сущностям напрямую без создания промежуточного массива
+    for (let i = 0; i < gameState.entities.length; i++) {
+      const entity = gameState.entities[i];
+      if (entity.constructor.name === 'Enemy' && !entity.isDead) {
+        const distance = Utils.distance(this, entity);
+        if (distance <= this.attackRadius && distance < closestDistance) {
+          // Проверяем линию видимости
+          if (this.hasLineOfSight(entity.x, entity.y)) {
+            closestEnemy = entity;
+            closestDistance = distance;
+          }
         }
       }
     }
@@ -149,20 +149,21 @@ export class Player extends Entity {
   }
   
   performMeleeAttack() {
-    // Находим ближайшего врага в радиусе атаки
-    const enemies = gameState.entities.filter(e => e.constructor.name === 'Enemy' && !e.isDead);
-    if (enemies.length === 0) return false;
-    
+    // Оптимизированный поиск ближайшего врага - без filter
     let closestEnemy = null;
     let closestDistance = Infinity;
     
-    for (const enemy of enemies) {
-      const distance = Utils.distance(this, enemy);
-      if (distance <= this.attackRadius && distance < closestDistance) {
-        // Проверяем линию видимости - нельзя атаковать через стены
-        if (this.hasLineOfSight(enemy.x, enemy.y)) {
-          closestEnemy = enemy;
-          closestDistance = distance;
+    // Проходим по всем сущностям напрямую без создания промежуточного массива
+    for (let i = 0; i < gameState.entities.length; i++) {
+      const entity = gameState.entities[i];
+      if (entity.constructor.name === 'Enemy' && !entity.isDead) {
+        const distance = Utils.distance(this, entity);
+        if (distance <= this.attackRadius && distance < closestDistance) {
+          // Проверяем линию видимости - нельзя атаковать через стены
+          if (this.hasLineOfSight(entity.x, entity.y)) {
+            closestEnemy = entity;
+            closestDistance = distance;
+          }
         }
       }
     }

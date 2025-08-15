@@ -8,6 +8,84 @@ import { Enemy } from '../entities/Enemy.js';
 import { TILE_SIZE, ENEMY_TYPES, generateRandomItem } from '../config/constants.js';
 
 export class LevelManager {
+  // Утилита для проверки границ карты
+  static isWithinMapBounds(x, y, map) {
+    if (!map || !map.length || !map[0]) return false;
+    const mapWidth = map[0].length;
+    const mapHeight = map.length;
+    return x >= 0 && x < mapWidth && y >= 0 && y < mapHeight;
+  }
+  
+  // Утилита для проверки валидной позиции спавна (на полу)
+  static isValidSpawnPosition(x, y, map) {
+    if (!this.isWithinMapBounds(x, y, map)) return false;
+    return map[y][x] === 0; // 0 = пол, 1 = стена
+  }
+  
+  // Утилита для поиска безопасной позиции в комнате
+  static findSafePositionInRoom(room, map, maxAttempts = 15) {
+    // Проверяем, что комната сама находится в пределах карты
+    if (!this.isWithinMapBounds(room.centerX, room.centerY, map)) {
+      console.warn('Комната находится за пределами карты:', room);
+      return null;
+    }
+    
+    for (let attempts = 0; attempts < maxAttempts; attempts++) {
+      // Увеличиваем разброс позиций в больших комнатах, но ограничиваем границами комнаты
+      const maxOffset = Math.min(3, Math.floor(Math.min(room.width, room.height) / 3));
+      const offsetX = Utils.random(-maxOffset, maxOffset);
+      const offsetY = Utils.random(-maxOffset, maxOffset);
+      
+      // Убеждаемся, что позиция остается в пределах комнаты
+      const targetX = Math.max(room.x + 1, Math.min(room.x + room.width - 2, room.centerX + offsetX));
+      const targetY = Math.max(room.y + 1, Math.min(room.y + room.height - 2, room.centerY + offsetY));
+      
+      const worldX = (targetX + 0.5) * TILE_SIZE;
+      const worldY = (targetY + 0.5) * TILE_SIZE;
+      
+      const tileX = Math.floor(worldX / TILE_SIZE);
+      const tileY = Math.floor(worldY / TILE_SIZE);
+      
+      if (this.isValidSpawnPosition(tileX, tileY, map)) {
+        return { worldX, worldY, tileX, tileY };
+      }
+    }
+    
+    // Fallback: используем центр комнаты
+    const worldX = (room.centerX + 0.5) * TILE_SIZE;
+    const worldY = (room.centerY + 0.5) * TILE_SIZE;
+    const tileX = Math.floor(worldX / TILE_SIZE);
+    const tileY = Math.floor(worldY / TILE_SIZE);
+    
+    // Проверяем, что даже центр комнаты валиден
+    if (this.isValidSpawnPosition(tileX, tileY, map)) {
+      return { worldX, worldY, tileX, tileY };
+    }
+    
+    console.warn('Не удалось найти безопасную позицию в комнате:', room, 'Границы карты:', map.length, 'x', map[0]?.length);
+    return null;
+  }
+  
+  // Дополнительная валидация для всех спавнящихся объектов
+  static validateSpawnBounds(entity, entityType = 'object') {
+    if (!entity || !gameState.map) return false;
+    
+    const tileX = Math.floor(entity.x / TILE_SIZE);
+    const tileY = Math.floor(entity.y / TILE_SIZE);
+    
+    const isValid = this.isValidSpawnPosition(tileX, tileY, gameState.map);
+    
+    if (!isValid) {
+      console.warn(`🚫 ${entityType} спавн за пределами карты:`, {
+        entity: { x: entity.x, y: entity.y },
+        tile: { x: tileX, y: tileY },
+        mapSize: { width: gameState.map[0]?.length, height: gameState.map.length }
+      });
+    }
+    
+    return isValid;
+  }
+
   static async generateLevel() {
     console.log('🗺️ generateLevel called - starting level generation...');
     
@@ -234,34 +312,23 @@ export class LevelManager {
         }
         
         // Ищем безопасную позицию для врага (на полу, не на стене)
-        let enemyX, enemyY;
-        let tileX, tileY;
-        let attempts = 0;
-        const maxAttempts = 10;
+        const safePosition = this.findSafePositionInRoom(room, gameState.map, 15);
         
-        do {
-          enemyX = (room.centerX + Utils.random(-1, 1) + 0.5) * TILE_SIZE;
-          enemyY = (room.centerY + Utils.random(-1, 1) + 0.5) * TILE_SIZE;
-          
-          // Проверяем, что позиция находится на полу (тайл 0)
-          tileX = Math.floor(enemyX / TILE_SIZE);
-          tileY = Math.floor(enemyY / TILE_SIZE);
-          
-          attempts++;
-        } while (
-          attempts < maxAttempts && 
-          (tileX < 0 || tileX >= gameState.map[0].length || 
-           tileY < 0 || tileY >= gameState.map.length || 
-           gameState.map[tileY][tileX] !== 0) // 0 = пол, 1 = стена
-        );
-        
-        // Если не нашли безопасную позицию, используем центр комнаты
-        if (attempts >= maxAttempts) {
-          enemyX = (room.centerX + 0.5) * TILE_SIZE;
-          enemyY = (room.centerY + 0.5) * TILE_SIZE;
+        if (!safePosition) {
+          console.warn(`Не удалось найти безопасную позицию для врага в комнате ${i}, пропускаем`);
+          continue;
         }
         
+        const enemyX = safePosition.worldX;
+        const enemyY = safePosition.worldY;
+        
         const enemy = new Enemy(enemyX, enemyY, enemyType);
+        
+        // Валидация спавна врага
+        if (!this.validateSpawnBounds(enemy, 'Enemy')) {
+          console.warn(`Пропускаем спавн врага за пределами карты в комнате ${i}`);
+          continue;
+        }
         
         // Усиление врагов с уровнем (более сбалансированная прогрессия)
         if (gameState.level > 1) {
@@ -317,21 +384,21 @@ export class LevelManager {
         try {
           const { Portal } = await import('../entities/Portal.js');
           
-          // Проверяем, что позиция портала находится в пределах карты
-          const portalX = (portalRoom.centerX + 0.5) * TILE_SIZE;
-          const portalY = (portalRoom.centerY + 0.5) * TILE_SIZE;
-          const tileX = Math.floor(portalX / TILE_SIZE);
-          const tileY = Math.floor(portalY / TILE_SIZE);
+          // Ищем безопасную позицию для портала
+          const safePosition = this.findSafePositionInRoom(portalRoom, gameState.map, 20);
           
-          if (tileX >= 0 && tileX < gameState.map[0].length && 
-              tileY >= 0 && tileY < gameState.map.length && 
-              gameState.map[tileY][tileX] === 0) {
+          if (safePosition) {
+            const portal = new Portal(safePosition.worldX, safePosition.worldY);
             
-            const portal = new Portal(portalX, portalY);
-            gameState.entities.push(portal);
-            console.log('Портал успешно создан в комнате:', portalRoom);
+            // Валидация спавна портала
+            if (this.validateSpawnBounds(portal, 'Portal')) {
+              gameState.entities.push(portal);
+              console.log('Портал успешно создан в комнате:', portalRoom, 'на позиции:', safePosition);
+            } else {
+              console.warn('Портал не может быть создан - валидация границ не пройдена');
+            }
           } else {
-            console.warn('Портал не может быть создан - позиция вне карты или на стене');
+            console.warn('Портал не может быть создан - не найдена безопасная позиция в комнате:', portalRoom);
           }
         } catch (e) {
           console.error('Ошибка при создании портала:', e);
@@ -360,34 +427,24 @@ export class LevelManager {
         const { DroppedItem } = await import('../entities/DroppedItem.js');
         
         // Ищем безопасную позицию для предмета (на полу, не на стене)
-        let itemX, itemY;
-        let tileX, tileY;
-        let attempts = 0;
-        const maxAttempts = 10;
+        const safePosition = this.findSafePositionInRoom(room, gameState.map, 15);
         
-        do {
-          itemX = (room.centerX + Utils.random(-1, 1) + 0.5) * TILE_SIZE;
-          itemY = (room.centerY + Utils.random(-1, 1) + 0.5) * TILE_SIZE;
-          
-          // Проверяем, что позиция находится на полу (тайл 0)
-          tileX = Math.floor(itemX / TILE_SIZE);
-          tileY = Math.floor(itemY / TILE_SIZE);
-          
-          attempts++;
-        } while (
-          attempts < maxAttempts && 
-          (tileX < 0 || tileX >= gameState.map[0].length || 
-           tileY < 0 || tileY >= gameState.map.length || 
-           gameState.map[tileY][tileX] !== 0) // 0 = пол, 1 = стена
-        );
-        
-        // Если не нашли безопасную позицию, используем центр комнаты
-        if (attempts >= maxAttempts) {
-          itemX = (room.centerX + 0.5) * TILE_SIZE;
-          itemY = (room.centerY + 0.5) * TILE_SIZE;
+        if (!safePosition) {
+          console.warn(`Не удалось найти безопасную позицию для предмета в комнате ${i}, пропускаем`);
+          continue;
         }
         
+        const itemX = safePosition.worldX;
+        const itemY = safePosition.worldY;
+        
         const droppedItem = new DroppedItem(itemX, itemY, item);
+        
+        // Валидация спавна предмета
+        if (!this.validateSpawnBounds(droppedItem, 'Item')) {
+          console.warn(`Пропускаем спавн предмета за пределами карты в комнате ${i}`);
+          continue;
+        }
+        
         gameState.entities.push(droppedItem);
       }
     }
