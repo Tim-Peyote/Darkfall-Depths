@@ -110,10 +110,30 @@ export class Player extends Entity {
   }
   
   updateAttack(dt) {
-    if (this.attackCooldown <= 0) {
+    // Проверяем, есть ли враги в радиусе атаки
+    const enemies = gameState.entities.filter(e => e.constructor.name === 'Enemy' && !e.isDead);
+    if (enemies.length === 0) return;
+    
+    // Находим ближайшего врага
+    let closestEnemy = null;
+    let closestDistance = Infinity;
+    
+    for (const enemy of enemies) {
+      const distance = Utils.distance(this, enemy);
+      if (distance <= this.attackRadius && distance < closestDistance) {
+        // Проверяем линию видимости
+        if (this.hasLineOfSight(enemy.x, enemy.y)) {
+          closestEnemy = enemy;
+          closestDistance = distance;
+        }
+      }
+    }
+    
+    // Если есть враг в радиусе атаки и кулдаун истек, атакуем
+    if (closestEnemy && this.attackCooldown <= 0) {
       const attackResult = this.performAttack();
       if (attackResult && this.id === 'dimon') {
-        console.log('🎯 Dimon автоатака выполнена');
+    
       }
     }
   }
@@ -131,18 +151,21 @@ export class Player extends Entity {
   }
   
   performMeleeAttack() {
+    // Находим ближайшего врага в радиусе атаки
     const enemies = gameState.entities.filter(e => e.constructor.name === 'Enemy' && !e.isDead);
     if (enemies.length === 0) return false;
     
-    // Находим ближайшего врага в радиусе атаки
     let closestEnemy = null;
     let closestDistance = Infinity;
     
     for (const enemy of enemies) {
       const distance = Utils.distance(this, enemy);
       if (distance <= this.attackRadius && distance < closestDistance) {
-        closestEnemy = enemy;
-        closestDistance = distance;
+        // Проверяем линию видимости - нельзя атаковать через стены
+        if (this.hasLineOfSight(enemy.x, enemy.y)) {
+          closestEnemy = enemy;
+          closestDistance = distance;
+        }
       }
     }
     
@@ -176,16 +199,17 @@ export class Player extends Entity {
   }
   
   performRangedAttack() {
+    // Находим ближайшего врага в радиусе атаки
     const enemies = gameState.entities.filter(e => e.constructor.name === 'Enemy' && !e.isDead);
     if (enemies.length === 0) return false;
     
-    // Находим ближайшего врага
     let closestEnemy = null;
     let closestDistance = Infinity;
     
     for (const enemy of enemies) {
       const distance = Utils.distance(this, enemy);
       if (distance <= this.attackRadius && distance < closestDistance) {
+        // Проверяем линию видимости - нельзя атаковать через стены
         if (this.hasLineOfSight(enemy.x, enemy.y)) {
           closestEnemy = enemy;
           closestDistance = distance;

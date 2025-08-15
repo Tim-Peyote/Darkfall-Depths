@@ -1,6 +1,7 @@
 /* Darkfall Depths - WebGL система тумана войны */
 
 import { MAP_SIZE, TILE_SIZE } from '../config/constants.js';
+import { gameState } from '../core/GameState.js';
 
 export class WebGLFogOfWar {
   constructor(webglRenderer) {
@@ -53,6 +54,25 @@ export class WebGLFogOfWar {
     
     // Используем направленный алгоритм луча для эффекта фонарика
     this.calculateDirectionalVisibility(centerTileX, centerTileY, radius);
+    
+    // Добавляем видимость от источников света
+    this.updateLightSourceVisibility();
+  }
+  
+  updateLightSourceVisibility() {
+    if (!gameState.lightSources) return;
+    
+    gameState.lightSources.forEach(lightSource => {
+      if (lightSource.active) {
+        const lightX = Math.floor(lightSource.x / TILE_SIZE);
+        const lightY = Math.floor(lightSource.y / TILE_SIZE);
+        const lightRadius = lightSource.radius;
+        
+        // Источники света НЕ раскрывают туман войны для миникарты
+        // Они только влияют на видимость в реальном времени
+        // Только игрок может исследовать карту
+      }
+    });
   }
   
   calculateDirectionalVisibility(centerX, centerY, radius) {

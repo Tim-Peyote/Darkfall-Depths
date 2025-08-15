@@ -292,7 +292,7 @@ export class InventoryManager {
     if (!item) return;
     
     if (item.type === 'consumable') {
-      console.log('Using consumable:', item);
+  
       this.applyItemBonuses(item);
       if (type === 'equipment') {
         gameState.inventory.equipment[index] = null;

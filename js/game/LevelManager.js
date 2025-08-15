@@ -9,14 +9,13 @@ import { TILE_SIZE, ENEMY_TYPES, generateRandomItem } from '../config/constants.
 
 export class LevelManager {
   static async generateLevel() {
-    console.log('🗺️ Generating level...');
     
     if (!gameState.selectedCharacter) {
       console.error('❌ No character selected!');
       return;
     }
     
-    const { map, rooms } = MapGenerator.generateDungeon();
+    const { map, rooms, lightSources } = MapGenerator.generateDungeon();
     
     if (!rooms || rooms.length === 0) {
       console.error('❌ No rooms generated!');
@@ -30,6 +29,7 @@ export class LevelManager {
     
     gameState.map = map;
     gameState.rooms = rooms;
+    gameState.lightSources = lightSources || [];
     
     // Используем WebGL туман войны
     const { GameEngine } = await import('./GameEngine.js');

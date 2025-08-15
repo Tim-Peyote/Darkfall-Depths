@@ -14,6 +14,8 @@ import { TILE_SIZE, MAP_SIZE, ENEMY_TYPES } from '../config/constants.js';
 import { PerformanceMonitor } from '../core/PerformanceMonitor.js';
 import { WebGLRenderer } from '../core/WebGLRenderer.js';
 import { WebGLFogOfWar } from '../map/WebGLFogOfWar.js';
+import { LightingSystem } from '../map/LightingSystem.js';
+import { PlayerLight } from '../entities/PlayerLight.js';
 
 let lastFrameTime = 0;
 let gameLoopId = null;
@@ -22,6 +24,8 @@ const FRAME_TIME = 1000 / TARGET_FPS;
 
 export class GameEngine {
   static webglRenderer = null;
+  static lightingSystem = null;
+  static playerLight = null;
   
   static async init() {
     if (!canvas || !ctx) {
@@ -35,6 +39,12 @@ export class GameEngine {
     if (this.webglRenderer.isSupported()) {
       this.webglRenderer.setProjection(canvas.width / DPR, canvas.height / DPR);
     }
+    
+    // Инициализация системы освещения
+    this.lightingSystem = new LightingSystem(this.webglRenderer);
+    
+    // Инициализация направленного света игрока
+    this.playerLight = new PlayerLight(0, 0);
     
     // Инициализация мониторинга производительности
     PerformanceMonitor.init();
@@ -88,9 +98,12 @@ export class GameEngine {
     gameState.gameRunning = true;
     gameState.isPaused = false;
     
-    console.log('🗺️ Generating level...');
     await LevelManager.generateLevel();
-    console.log('✅ Level generated');
+    
+    // Передаем карту в систему освещения после генерации уровня
+    if (gameState.map && this.lightingSystem) {
+      this.lightingSystem.setGameMap(gameState.map);
+    }
     
     // Принудительно центрируем камеру на игроке
     if (gameState.player) {
@@ -99,11 +112,10 @@ export class GameEngine {
       // Немедленно устанавливаем камеру без плавного перехода
       gameState.camera.x = gameState.player.x - canvasWidth / 2;
       gameState.camera.y = gameState.player.y - canvasHeight / 2;
-      console.log('🎯 Forced camera centering:', gameState.camera.x, gameState.camera.y);
+
 
     }
     
-    console.log('🖥️ Switching to game screen...');
     ScreenManager.switchScreen('game');
     
     // Теперь, когда игровой экран видим, настраиваем canvas
@@ -114,13 +126,11 @@ export class GameEngine {
     this.updateQuickPotions();
     
     // Запускаем игровой цикл
-    console.log('🔄 Starting game loop...');
     gameLoopId = requestAnimationFrame(this.gameLoop.bind(this));
   }
 
   static gameLoop(currentTime) {
     if (!gameState.gameRunning) {
-      console.log('❌ Game not running, stopping loop');
       return;
     }
     
@@ -151,6 +161,11 @@ export class GameEngine {
 
   static update(dt) {
     gameState.gameTime += dt;
+    
+    // Передаем карту в систему освещения если она еще не передана
+    if (gameState.map && this.lightingSystem && !this.lightingSystem.gameMap) {
+      this.lightingSystem.setGameMap(gameState.map);
+    }
     
     // Обновление игрока
     if (gameState.player) {
@@ -219,6 +234,16 @@ export class GameEngine {
       }
     }
     
+    // Обновление источников света
+    if (gameState.lightSources) {
+      for (let i = 0; i < gameState.lightSources.length; i++) {
+        const lightSource = gameState.lightSources[i];
+        if (lightSource.active) {
+          lightSource.update(dt);
+        }
+      }
+    }
+    
     // Обновляем UI только раз в 2 секунды для экономии ресурсов
     if (Math.floor(gameState.gameTime * 0.5) !== Math.floor((gameState.gameTime - dt) * 0.5)) {
       this.updateUI();
@@ -257,6 +282,16 @@ export class GameEngine {
     // Отрисовка карты через WebGL
     this.renderMap();
     
+    // Отрисовка источников света
+    if (gameState.lightSources) {
+      for (let i = 0; i < gameState.lightSources.length; i++) {
+        const lightSource = gameState.lightSources[i];
+        if (lightSource.active) {
+          lightSource.render(ctx, gameState.camera.x, gameState.camera.y);
+        }
+      }
+    }
+    
     // Отрисовка сущностей через Canvas 2D (пока что)
     for (let i = 0; i < gameState.entities.length; i++) {
       const entity = gameState.entities[i];
@@ -286,6 +321,9 @@ export class GameEngine {
       gameState.player.draw();
     }
     
+    // Отрисовка освещения
+    this.renderLighting();
+    
     // Отрисовка тумана войны
     this.renderFogOfWar();
     
@@ -308,6 +346,16 @@ export class GameEngine {
     
     // Отрисовка карты
     this.renderMap();
+    
+    // Отрисовка источников света
+    if (gameState.lightSources) {
+      for (let i = 0; i < gameState.lightSources.length; i++) {
+        const lightSource = gameState.lightSources[i];
+        if (lightSource.active) {
+          lightSource.render(ctx, gameState.camera.x, gameState.camera.y);
+        }
+      }
+    }
     
     // Отрисовка сущностей (максимально оптимизированная версия)
     for (let i = 0; i < gameState.entities.length; i++) {
@@ -340,6 +388,9 @@ export class GameEngine {
     if (gameState.player) {
       gameState.player.draw();
     }
+    
+    // Отрисовка освещения
+    this.renderLighting();
     
     // Отрисовка тумана войны
     this.renderFogOfWar();
@@ -388,14 +439,14 @@ export class GameEngine {
           
           // Временно отключаем проверку видимости для отладки
           if (gameState.map[y][x] === 1) {
-            // Стена
+            // Стена - очень темная
             this.webglRenderer.drawRect(screenX, screenY, TILE_SIZE, TILE_SIZE, {
-              r: 0.17, g: 0.24, b: 0.31, a: 1.0
+              r: 0.1, g: 0.1, b: 0.1, a: 1.0
             });
           } else {
-            // Пол
+            // Пол - темный для контраста со светом
             this.webglRenderer.drawRect(screenX, screenY, TILE_SIZE, TILE_SIZE, {
-              r: 0.33, g: 0.33, b: 0.33, a: 1.0
+              r: 0.16, g: 0.16, b: 0.16, a: 1.0
             });
           }
         }
@@ -409,9 +460,9 @@ export class GameEngine {
     const startY = Math.floor(gameState.camera.y / TILE_SIZE) - 1;
     const endY = Math.floor((gameState.camera.y + canvas.height / DPR) / TILE_SIZE) + 1;
     
-    // Кэшируем цвета для оптимизации
-    const wallColor = '#2c3e50';
-    const floorColor = '#555';
+    // Кэшируем цвета для оптимизации - темные для контраста со светом
+    const wallColor = '#1a1a1a'; // Очень темные стены
+    const floorColor = '#2a2a2a'; // Темный пол
     
     // Ограничиваем область рендеринга
     const clampedStartX = Math.max(0, startX);
@@ -470,6 +521,98 @@ export class GameEngine {
       );
     }
   }
+  
+  static renderLighting() {
+    if (!this.lightingSystem) return;
+    
+    // Передаем карту в систему освещения для проверки препятствий
+    if (gameState.map && !this.lightingSystem.gameMap) {
+      this.lightingSystem.setGameMap(gameState.map);
+    }
+    
+    // Обновляем источники света
+    this.lightingSystem.updateLightSources();
+    this.lightingSystem.updateLightMap();
+    
+    // Добавляем источники света из игрового состояния
+    if (gameState.lightSources) {
+      gameState.lightSources.forEach(lightSource => {
+        if (lightSource.active) {
+          const lightData = lightSource.getLightData();
+          if (lightData) {
+            this.lightingSystem.addLightSource(
+              lightData.id,
+              lightData.x,
+              lightData.y,
+              lightData.radius,
+              lightData.color,
+              lightData.intensity,
+              lightData.flicker,
+              lightData.pulse
+            );
+          }
+        }
+      });
+    }
+    
+    // Добавляем направленный свет игрока
+    if (gameState.player && this.playerLight) {
+      // Обновляем позицию и направление света игрока
+      this.playerLight.x = gameState.player.x;
+      this.playerLight.y = gameState.player.y;
+      
+      // Обновляем направление света на основе движения игрока
+      // Берем направление напрямую от игрока
+      const directionX = gameState.player.direction.x;
+      const directionY = gameState.player.direction.y;
+      
+      this.playerLight.updateDirection(directionX, directionY);
+      
+      // Добавляем свет игрока в систему освещения
+      const lightData = this.playerLight.getLightData();
+      if (lightData) {
+        this.lightingSystem.addLightSource(
+          'player_light',
+          lightData.x,
+          lightData.y,
+          lightData.radius,
+          lightData.color,
+          lightData.intensity,
+          lightData.flicker,
+          lightData.pulse,
+          lightData.direction,
+          lightData.coneAngle
+        );
+      }
+    }
+    
+    // Отрисовка освещения
+    const lightingCanvas = this.lightingSystem.render(
+      gameState.camera.x,
+      gameState.camera.y,
+      canvas.width / DPR,
+      canvas.height / DPR
+    );
+    
+    // Если вернулся canvas, отрисовываем его
+    if (lightingCanvas) {
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen'; // Режим наложения для света
+      ctx.drawImage(
+        lightingCanvas,
+        0,
+        0,
+        canvas.width / DPR,
+        canvas.height / DPR
+      );
+      ctx.restore();
+    }
+    
+    // Рендерим направленный свет игрока отдельно
+    if (gameState.player && this.playerLight) {
+      this.playerLight.render(ctx, gameState.camera.x, gameState.camera.y);
+    }
+  }
 
   static renderMinimap() {
     if (!minimapCtx || !gameState.map) return;
@@ -486,15 +629,16 @@ export class GameEngine {
     minimapCtx.fillRect(0, 0, minimapSize, minimapSize);
     
     // Отрисовка карты только в исследованных областях
+    // Источники света НЕ влияют на исследование карты - только игрок может раскрывать туман войны
     for (let y = 0; y < MAP_SIZE; y++) {
       for (let x = 0; x < MAP_SIZE; x++) {
-        // Показываем только исследованные области
+        // Показываем только исследованные области (раскрытые игроком)
         if (gameState.fogOfWar && gameState.fogOfWar.explored[y][x]) {
           if (gameState.map[y][x] === 1) {
-            minimapCtx.fillStyle = '#555'; // Стены
+            minimapCtx.fillStyle = '#1a1a1a'; // Темные стены
             minimapCtx.fillRect(x * scale, y * scale, scale, scale);
           } else {
-            minimapCtx.fillStyle = '#333'; // Пол
+            minimapCtx.fillStyle = '#2a2a2a'; // Темный пол
             minimapCtx.fillRect(x * scale, y * scale, scale, scale);
           }
         }
@@ -510,12 +654,13 @@ export class GameEngine {
     }
     
     // Отрисовка врагов только в исследованных областях
+    // Враги видны только там, где игрок уже побывал
     gameState.entities.forEach(entity => {
       if (entity.constructor.name === 'Enemy' && !entity.isDead) {
         const enemyX = Math.floor(entity.x / TILE_SIZE);
         const enemyY = Math.floor(entity.y / TILE_SIZE);
         
-        // Показываем врага только если область исследована
+        // Показываем врага только если область исследована игроком
         if (gameState.fogOfWar && gameState.fogOfWar.explored[enemyY] && gameState.fogOfWar.explored[enemyY][enemyX]) {
           minimapCtx.fillStyle = '#ff0000';
           minimapCtx.fillRect(enemyX * scale, enemyY * scale, scale, scale);
@@ -945,8 +1090,6 @@ export class GameEngine {
   }
   
   static stopGame() {
-    console.log('🛑 Stopping game...');
-    
     // Остановить игровой цикл
     if (gameLoopId) {
       cancelAnimationFrame(gameLoopId);
@@ -971,13 +1114,9 @@ export class GameEngine {
     if (minimapCtx) {
       minimapCtx.clearRect(0, 0, minimapCanvas.width, minimapCanvas.height);
     }
-    
-    console.log('✅ Game stopped');
   }
 
   static async continueGame() {
-    console.log(`🎮 Continuing game at level ${gameState.level}...`);
-    
     gameState.gameRunning = true;
     gameState.isPaused = false;
     
@@ -998,7 +1137,6 @@ export class GameEngine {
     this.updateUI();
     this.updateQuickPotions();
     
-    console.log('🔄 Starting game loop...');
     gameLoopId = requestAnimationFrame(this.gameLoop.bind(this));
   }
 } 
