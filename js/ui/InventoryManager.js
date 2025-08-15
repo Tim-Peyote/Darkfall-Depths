@@ -351,7 +351,7 @@ export class InventoryManager {
     }
     
     const oldItem = gameState.inventory.equipment[targetSlot];
-    console.log('Swapping:', {fromBackpack: item, toEquipment: oldItem, targetSlot});
+    // console.log('Swapping:', {fromBackpack: item, toEquipment: oldItem, targetSlot});
     
     gameState.inventory.equipment[targetSlot] = item;
     gameState.inventory.backpack[backpackIndex] = oldItem;
@@ -400,7 +400,7 @@ export class InventoryManager {
   }
 
   static applyItemBonuses(item) {
-    console.log('applyItemBonuses:', item);
+    // console.log('applyItemBonuses:', item);
     if (!gameState.player || !item.bonus) return;
     
     // Для экипировки применяем постоянные бонусы
@@ -442,20 +442,20 @@ export class InventoryManager {
       })();
     }
     
-    console.log('Player after applyItemBonuses:', {
-      hp: gameState.player.hp,
-      maxHp: gameState.player.maxHp,
-      damage: gameState.player.damage,
-      moveSpeed: gameState.player.moveSpeed,
-      crit: gameState.player.crit,
-      defense: gameState.player.defense,
-      attackSpeed: gameState.player.attackSpeed,
-      attackRadius: gameState.player.attackRadius
-    });
+    // console.log('Player after applyItemBonuses:', {
+    //   hp: gameState.player.hp,
+    //   maxHp: gameState.player.maxHp,
+    //   damage: gameState.player.damage,
+    //   moveSpeed: gameState.player.moveSpeed,
+    //   crit: gameState.player.crit,
+    //   defense: gameState.player.defense,
+    //   attackSpeed: gameState.player.attackSpeed,
+    //   attackRadius: gameState.player.attackRadius
+    // });
     
     // Логируем изменение maxHp отдельно
     if (item.bonus.maxHp) {
-      console.log(`💚 Max HP increased by ${item.bonus.maxHp} (current HP: ${gameState.player.hp}/${gameState.player.maxHp})`);
+      // console.log(`💚 Max HP increased by ${item.bonus.maxHp} (current HP: ${gameState.player.hp}/${gameState.player.maxHp})`);
     }
     
     // Обновляем быстрые слоты в UI
@@ -468,12 +468,12 @@ export class InventoryManager {
   }
 
   static removeItemBonuses(item) {
-    console.log('removeItemBonuses:', item);
+    // console.log('removeItemBonuses:', item);
     if (!gameState.player || !item.bonus) return;
     
     // Удаляем бонусы только для экипировки, не для банок
     if (item.type === 'consumable') {
-      console.log('Skipping removeItemBonuses for consumable item');
+      // console.log('Skipping removeItemBonuses for consumable item');
       return;
     }
     
@@ -485,7 +485,7 @@ export class InventoryManager {
         case 'maxHp':
           gameState.player.maxHp -= value;
           gameState.player.hp = Math.min(gameState.player.hp, gameState.player.maxHp);
-          console.log(`💚 Max HP decreased by ${value} (current HP: ${gameState.player.hp}/${gameState.player.maxHp})`);
+          // console.log(`💚 Max HP decreased by ${value} (current HP: ${gameState.player.hp}/${gameState.player.maxHp})`);
           break;
         case 'moveSpeed':
           gameState.player.moveSpeed -= value;

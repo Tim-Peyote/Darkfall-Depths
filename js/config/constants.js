@@ -329,22 +329,8 @@ export function generateRandomItem(level, playerClass) {
     }).join(', ');
   }
   
-  // Гарантия: consumable всегда 🧪, weapon — только оружейные иконки
+  // Используем иконку из базы предмета (стилизованные спрайты будут отрисовываться в DroppedItem)
   let icon = base.icon;
-  if (base.type === 'consumable') icon = '🧪';
-  if (base.type === 'weapon') {
-    // Только оружейные иконки
-    const weaponIcons = ['⚔️','🪓','🪄','✨','🗡️','🏹'];
-    if (!weaponIcons.includes(base.icon)) icon = '⚔️';
-  }
-  if (base.type === 'armor') {
-    const armorIcons = ['🛡️','🥋','🧥','⛑️'];
-    if (!armorIcons.includes(base.icon)) icon = '🛡️';
-  }
-  if (base.type === 'accessory') {
-    const accIcons = ['💍','📿','💨'];
-    if (!accIcons.includes(base.icon)) icon = '💍';
-  }
   
   return {
     name,

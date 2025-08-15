@@ -112,14 +112,8 @@ export class LightSource extends Entity {
       this.renderTorchMount(ctx, screenX, screenY);
     }
     
-    // Рисуем основную спрайт
-    ctx.save();
-    ctx.globalAlpha = 0.8 + this.pulsePhase * 0.2;
-    ctx.font = `${TILE_SIZE * 0.8}px Arial`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(this.getDisplaySprite(), screenX, screenY);
-    ctx.restore();
+    // Рисуем стилизованный спрайт
+    this.renderCustomSprite(ctx, screenX, screenY);
     
     // Рисуем эффект свечения
     this.renderGlow(ctx, screenX, screenY);
@@ -170,6 +164,169 @@ export class LightSource extends Entity {
     ctx.strokeRect(x - TILE_SIZE * 0.05, y - TILE_SIZE * 0.1, TILE_SIZE * 0.1, TILE_SIZE * 0.2);
     
     ctx.restore();
+  }
+  
+  renderCustomSprite(ctx, x, y) {
+    ctx.save();
+    ctx.globalAlpha = 0.8 + this.pulsePhase * 0.2;
+    
+    switch (this.lightType) {
+      case 'TORCH':
+        this.renderTorch(ctx, x, y);
+        break;
+      case 'MAGIC_ORB':
+        this.renderMagicOrb(ctx, x, y);
+        break;
+      case 'CRYSTAL':
+        this.renderCrystal(ctx, x, y);
+        break;
+      case 'FIRE':
+        this.renderFire(ctx, x, y);
+        break;
+      default:
+        // Fallback на эмодзи для неизвестных типов
+        ctx.font = `${TILE_SIZE * 0.8}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(this.getDisplaySprite(), x, y);
+    }
+    
+    ctx.restore();
+  }
+  
+  renderTorch(ctx, x, y) {
+    const size = TILE_SIZE * 0.6;
+    
+    // Деревянная рукоять факела
+    ctx.fillStyle = '#8B4513'; // Коричневый
+    ctx.fillRect(x - size * 0.1, y - size * 0.3, size * 0.2, size * 0.6);
+    
+    // Металлическое крепление
+    ctx.fillStyle = '#696969'; // Темно-серый
+    ctx.fillRect(x - size * 0.15, y - size * 0.35, size * 0.3, size * 0.1);
+    
+    // Огонь факела
+    const flameSize = size * 0.4;
+    const flameGradient = ctx.createRadialGradient(x, y - size * 0.2, 0, x, y - size * 0.2, flameSize);
+    flameGradient.addColorStop(0, '#FFFF00'); // Желтый центр
+    flameGradient.addColorStop(0.5, '#FF8C00'); // Оранжевый
+    flameGradient.addColorStop(1, '#FF4500'); // Красный край
+    
+    ctx.fillStyle = flameGradient;
+    ctx.beginPath();
+    ctx.arc(x, y - size * 0.2, flameSize, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Искры с анимацией
+    ctx.fillStyle = '#FFFF00';
+    for (let i = 0; i < 3; i++) {
+      const sparkAngle = (i / 3) * Math.PI * 2 + this.animationTime * 3;
+      const sparkRadius = size * 0.3 + Math.sin(this.animationTime * 5 + i) * size * 0.1;
+      const sparkX = x + Math.cos(sparkAngle) * sparkRadius;
+      const sparkY = y - size * 0.3 + Math.sin(sparkAngle) * sparkRadius;
+      ctx.fillRect(sparkX, sparkY, 1, 1);
+    }
+  }
+  
+  renderMagicOrb(ctx, x, y) {
+    const size = TILE_SIZE * 0.5;
+    
+    // Внешний круг магической сферы
+    const outerGradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+    outerGradient.addColorStop(0, '#87CEEB'); // Голубой центр
+    outerGradient.addColorStop(0.7, '#4169E1'); // Синий
+    outerGradient.addColorStop(1, '#000080'); // Темно-синий край
+    
+    ctx.fillStyle = outerGradient;
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Внутренний светящийся круг
+    const innerGradient = ctx.createRadialGradient(x, y, 0, x, y, size * 0.6);
+    innerGradient.addColorStop(0, '#FFFFFF'); // Белый центр
+    innerGradient.addColorStop(0.5, '#87CEEB'); // Голубой
+    innerGradient.addColorStop(1, 'rgba(135, 206, 235, 0)'); // Прозрачный
+    
+    ctx.fillStyle = innerGradient;
+    ctx.beginPath();
+    ctx.arc(x, y, size * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Магические частицы
+    ctx.fillStyle = '#FFFFFF';
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2 + this.animationTime * 2;
+      const particleX = x + Math.cos(angle) * size * 0.7;
+      const particleY = y + Math.sin(angle) * size * 0.7;
+      ctx.fillRect(particleX, particleY, 1, 1);
+    }
+  }
+  
+  renderCrystal(ctx, x, y) {
+    const size = TILE_SIZE * 0.4;
+    
+    // Основная форма кристалла
+    ctx.fillStyle = '#9370DB'; // Фиолетовый
+    ctx.beginPath();
+    ctx.moveTo(x, y - size);
+    ctx.lineTo(x + size * 0.5, y - size * 0.3);
+    ctx.lineTo(x + size * 0.3, y + size * 0.3);
+    ctx.lineTo(x - size * 0.3, y + size * 0.3);
+    ctx.lineTo(x - size * 0.5, y - size * 0.3);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Грани кристалла
+    ctx.strokeStyle = '#8A2BE2'; // Темно-фиолетовый
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x, y - size);
+    ctx.lineTo(x + size * 0.3, y + size * 0.3);
+    ctx.moveTo(x, y - size);
+    ctx.lineTo(x - size * 0.3, y + size * 0.3);
+    ctx.stroke();
+    
+    // Светящийся центр
+    const centerGradient = ctx.createRadialGradient(x, y, 0, x, y, size * 0.3);
+    centerGradient.addColorStop(0, '#FFFFFF'); // Белый центр
+    centerGradient.addColorStop(1, 'rgba(255, 255, 255, 0)'); // Прозрачный
+    
+    ctx.fillStyle = centerGradient;
+    ctx.beginPath();
+    ctx.arc(x, y, size * 0.3, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  
+  renderFire(ctx, x, y) {
+    const size = TILE_SIZE * 0.5;
+    
+    // Основание огня
+    ctx.fillStyle = '#8B4513'; // Коричневый
+    ctx.fillRect(x - size * 0.2, y + size * 0.1, size * 0.4, size * 0.2);
+    
+    // Основное пламя
+    const flameGradient = ctx.createRadialGradient(x, y, 0, x, y, size * 0.6);
+    flameGradient.addColorStop(0, '#FFFF00'); // Желтый центр
+    flameGradient.addColorStop(0.3, '#FF8C00'); // Оранжевый
+    flameGradient.addColorStop(0.7, '#FF4500'); // Красный
+    flameGradient.addColorStop(1, '#8B0000'); // Темно-красный
+    
+    ctx.fillStyle = flameGradient;
+    ctx.beginPath();
+    ctx.arc(x, y, size * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Языки пламени с анимацией
+    ctx.fillStyle = '#FF4500';
+    for (let i = 0; i < 3; i++) {
+      const flameX = x + (i - 1) * size * 0.2;
+      const flameY = y - size * 0.3 + Math.sin(this.animationTime * 4 + i) * size * 0.05;
+      const flameSize = size * 0.15 + Math.sin(this.animationTime * 3 + i) * size * 0.05;
+      ctx.beginPath();
+      ctx.arc(flameX, flameY, flameSize, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
   
   renderGlow(ctx, x, y) {

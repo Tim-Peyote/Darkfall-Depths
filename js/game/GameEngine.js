@@ -427,7 +427,8 @@ export class GameEngine {
     const clampedStartY = Math.max(0, startY);
     const clampedEndY = Math.min(MAP_SIZE, endY);
     
-    // Рендерим карту через WebGL для максимальной производительности
+    // Для WebGL используем стилизованные тайлы через Canvas 2D
+    // так как WebGL не поддерживает сложные градиенты и текстуры
     for (let y = clampedStartY; y < clampedEndY; y++) {
       for (let x = clampedStartX; x < clampedEndX; x++) {
         const screenX = x * TILE_SIZE - gameState.camera.x;
@@ -437,17 +438,12 @@ export class GameEngine {
         if (screenX >= -TILE_SIZE && screenX <= canvas.width / DPR && 
             screenY >= -TILE_SIZE && screenY <= canvas.height / DPR) {
           
-          // Временно отключаем проверку видимости для отладки
           if (gameState.map[y][x] === 1) {
-            // Стена - очень темная
-            this.webglRenderer.drawRect(screenX, screenY, TILE_SIZE, TILE_SIZE, {
-              r: 0.1, g: 0.1, b: 0.1, a: 1.0
-            });
+            // Стилизованная стена
+            this.renderWallTile(ctx, screenX, screenY, x, y);
           } else {
-            // Пол - темный для контраста со светом
-            this.webglRenderer.drawRect(screenX, screenY, TILE_SIZE, TILE_SIZE, {
-              r: 0.16, g: 0.16, b: 0.16, a: 1.0
-            });
+            // Стилизованный пол
+            this.renderFloorTile(ctx, screenX, screenY, x, y);
           }
         }
       }
@@ -459,10 +455,6 @@ export class GameEngine {
     const endX = Math.floor((gameState.camera.x + canvas.width / DPR) / TILE_SIZE) + 1;
     const startY = Math.floor(gameState.camera.y / TILE_SIZE) - 1;
     const endY = Math.floor((gameState.camera.y + canvas.height / DPR) / TILE_SIZE) + 1;
-    
-    // Кэшируем цвета для оптимизации - темные для контраста со светом
-    const wallColor = '#1a1a1a'; // Очень темные стены
-    const floorColor = '#2a2a2a'; // Темный пол
     
     // Ограничиваем область рендеринга
     const clampedStartX = Math.max(0, startX);
@@ -480,21 +472,185 @@ export class GameEngine {
         if (screenX >= -TILE_SIZE && screenX <= canvas.width / DPR && 
             screenY >= -TILE_SIZE && screenY <= canvas.height / DPR) {
           
-          // Временно отключаем проверку видимости для отладки
           if (gameState.map[y][x] === 1) {
-            // Стена
-            ctx.fillStyle = wallColor;
-            ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+            // Стилизованная стена
+            this.renderWallTile(ctx, screenX, screenY, x, y);
           } else {
-            // Пол
-            ctx.fillStyle = floorColor;
-            ctx.fillRect(screenX, screenY, TILE_SIZE, TILE_SIZE);
+            // Стилизованный пол
+            this.renderFloorTile(ctx, screenX, screenY, x, y);
           }
         }
       }
     }
   }
-
+  
+  // Рендеринг стилизованной стены
+  static renderWallTile(ctx, x, y, tileX, tileY) {
+    // Проверяем настройки производительности
+    const useSimpleTiles = false; // Временно отключаем для демонстрации стилизованных тайлов
+    
+    if (useSimpleTiles) {
+      // Простые тайлы для низкой производительности
+      ctx.fillStyle = '#0f0f0f';
+      ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+      return;
+    }
+    
+    // Базовый цвет стены - темно-серый
+    const baseColor = '#1a1a1a';
+    
+    // Создаем градиент для эффекта камня
+    const gradient = ctx.createLinearGradient(x, y, x + TILE_SIZE, y + TILE_SIZE);
+    gradient.addColorStop(0, '#0a0a0a'); // Очень темный
+    gradient.addColorStop(0.3, '#151515'); // Базовый
+    gradient.addColorStop(0.7, '#1f1f1f'); // Светлее
+    gradient.addColorStop(1, '#151515'); // Базовый
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+    
+    // Добавляем текстуру камня
+    ctx.strokeStyle = '#080808';
+    ctx.lineWidth = 1;
+    
+    // Рисуем линии текстуры камня
+    const seed = (tileX * 73856093) ^ (tileY * 19349663);
+    const random = (seed * 1103515245 + 12345) & 0x7fffffff;
+    
+    // Горизонтальные линии
+    for (let i = 0; i < 2; i++) {
+      const lineY = y + (i + 1) * TILE_SIZE / 3;
+      ctx.beginPath();
+      ctx.moveTo(x, lineY);
+      ctx.lineTo(x + TILE_SIZE, lineY);
+      ctx.stroke();
+    }
+    
+    // Вертикальные линии
+    for (let i = 0; i < 2; i++) {
+      const lineX = x + (i + 1) * TILE_SIZE / 3;
+      ctx.beginPath();
+      ctx.moveTo(lineX, y);
+      ctx.lineTo(lineX, y + TILE_SIZE);
+      ctx.stroke();
+    }
+    
+    // Добавляем случайные точки для текстуры
+    ctx.fillStyle = '#0d0d0d';
+    for (let i = 0; i < 3; i++) {
+      const pointX = x + ((random + i * 12345) % TILE_SIZE);
+      const pointY = y + ((random + i * 67890) % TILE_SIZE);
+      ctx.fillRect(pointX, pointY, 1, 1);
+    }
+  }
+  
+  // Рендеринг стилизованного пола
+  static renderFloorTile(ctx, x, y, tileX, tileY) {
+    // Проверяем настройки производительности
+    const useSimpleTiles = false; // Временно отключаем для демонстрации стилизованных тайлов
+    
+    if (useSimpleTiles) {
+      // Простые тайлы для низкой производительности
+      ctx.fillStyle = '#1a1a1a';
+      ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+      return;
+    }
+    
+    // Базовый цвет пола - темно-серый
+    const baseColor = '#2a2a2a';
+    
+    // Создаем градиент для эффекта каменного пола
+    const gradient = ctx.createLinearGradient(x, y, x + TILE_SIZE, y + TILE_SIZE);
+    gradient.addColorStop(0, '#1a1a1a'); // Темный
+    gradient.addColorStop(0.5, '#222222'); // Базовый
+    gradient.addColorStop(1, '#2a2a2a'); // Светлый
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+    
+    // Добавляем узор пола
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 0.5;
+    
+    // Рисуем сетку пола
+    ctx.beginPath();
+    ctx.moveTo(x, y + TILE_SIZE / 2);
+    ctx.lineTo(x + TILE_SIZE, y + TILE_SIZE / 2);
+    ctx.moveTo(x + TILE_SIZE / 2, y);
+    ctx.lineTo(x + TILE_SIZE / 2, y + TILE_SIZE);
+    ctx.stroke();
+    
+    // Добавляем угловые линии для эффекта плитки
+    ctx.strokeStyle = '#202020';
+    ctx.lineWidth = 1;
+    
+    // Верхний левый угол
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + TILE_SIZE / 4, y + TILE_SIZE / 4);
+    ctx.stroke();
+    
+    // Верхний правый угол
+    ctx.beginPath();
+    ctx.moveTo(x + TILE_SIZE, y);
+    ctx.lineTo(x + TILE_SIZE * 3 / 4, y + TILE_SIZE / 4);
+    ctx.stroke();
+    
+    // Нижний левый угол
+    ctx.beginPath();
+    ctx.moveTo(x, y + TILE_SIZE);
+    ctx.lineTo(x + TILE_SIZE / 4, y + TILE_SIZE * 3 / 4);
+    ctx.stroke();
+    
+    // Нижний правый угол
+    ctx.beginPath();
+    ctx.moveTo(x + TILE_SIZE, y + TILE_SIZE);
+    ctx.lineTo(x + TILE_SIZE * 3 / 4, y + TILE_SIZE * 3 / 4);
+        ctx.stroke();
+  }
+  
+  // Рендеринг стилизованной стены на миникарте
+  static renderMinimapWallTile(ctx, x, y, size, tileX, tileY) {
+    // Базовый цвет стены
+    ctx.fillStyle = '#0f0f0f';
+    ctx.fillRect(x, y, size, size);
+    
+    // Добавляем простую текстуру
+    ctx.strokeStyle = '#080808';
+    ctx.lineWidth = 0.5;
+    
+    // Центральная линия
+    ctx.beginPath();
+    ctx.moveTo(x + size / 2, y);
+    ctx.lineTo(x + size / 2, y + size);
+    ctx.stroke();
+    
+    // Горизонтальная линия
+    ctx.beginPath();
+    ctx.moveTo(x, y + size / 2);
+    ctx.lineTo(x + size, y + size / 2);
+    ctx.stroke();
+  }
+  
+  // Рендеринг стилизованного пола на миникарте
+  static renderMinimapFloorTile(ctx, x, y, size, tileX, tileY) {
+    // Базовый цвет пола
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(x, y, size, size);
+    
+    // Добавляем простой узор
+    ctx.strokeStyle = '#151515';
+    ctx.lineWidth = 0.3;
+    
+    // Диагональные линии для эффекта плитки
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + size, y + size);
+    ctx.moveTo(x + size, y);
+    ctx.lineTo(x, y + size);
+    ctx.stroke();
+  }
+  
   static renderFogOfWar() {
     if (!gameState.fogOfWar) return;
     
@@ -635,11 +791,11 @@ export class GameEngine {
         // Показываем только исследованные области (раскрытые игроком)
         if (gameState.fogOfWar && gameState.fogOfWar.explored[y][x]) {
           if (gameState.map[y][x] === 1) {
-            minimapCtx.fillStyle = '#1a1a1a'; // Темные стены
-            minimapCtx.fillRect(x * scale, y * scale, scale, scale);
+            // Стилизованная стена на миникарте
+            this.renderMinimapWallTile(minimapCtx, x * scale, y * scale, scale, x, y);
           } else {
-            minimapCtx.fillStyle = '#2a2a2a'; // Темный пол
-            minimapCtx.fillRect(x * scale, y * scale, scale, scale);
+            // Стилизованный пол на миникарте
+            this.renderMinimapFloorTile(minimapCtx, x * scale, y * scale, scale, x, y);
           }
         }
       }

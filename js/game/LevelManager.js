@@ -33,15 +33,15 @@ export class LevelManager {
     
     // Используем WebGL туман войны
     const { GameEngine } = await import('./GameEngine.js');
-    console.log('🔍 Проверяем WebGL рендерер:', GameEngine.webglRenderer);
-    console.log('🔍 WebGL поддерживается:', GameEngine.webglRenderer?.isSupported());
+    // console.log('🔍 Проверяем WebGL рендерер:', GameEngine.webglRenderer);
+    // console.log('🔍 WebGL поддерживается:', GameEngine.webglRenderer?.isSupported());
     
     if (GameEngine.webglRenderer && GameEngine.webglRenderer.isSupported()) {
       gameState.fogOfWar = new WebGLFogOfWar(GameEngine.webglRenderer);
-      console.log('✅ WebGL туман войны инициализирован');
+      // console.log('✅ WebGL туман войны инициализирован');
     } else {
       gameState.fogOfWar = new WebGLFogOfWar(null); // Fallback без WebGL
-      console.log('⚠️ Используем Canvas 2D fallback туман войны');
+      // console.log('⚠️ Используем Canvas 2D fallback туман войны');
     }
     
     // Очистка сущностей
