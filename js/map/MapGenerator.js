@@ -12,6 +12,8 @@ export class MapGenerator {
     return x >= 0 && x < mapSize && y >= 0 && y < mapSize;
   }
   
+
+  
   // Утилита для проверки валидной позиции для факела
   static isValidTorchPosition(x, y, mapSize, map) {
     // Проверяем границы с безопасным отступом
@@ -34,9 +36,9 @@ export class MapGenerator {
     const level = gameState.level || 1;
     
     // Динамический размер карты - растет бесконечно с уровнем
-    const dynamicMapSize = MAP_SIZE + Math.floor(level * 3.5); // +3.5 тайла за уровень (было 1.5)
-    const dynamicMinRooms = MIN_ROOMS + Math.floor(level * 0.8); // +0.8 комнаты за уровень (было 0.4)
-    const dynamicMaxRooms = MAX_ROOMS + Math.floor(level * 1.2); // +1.2 комнаты за уровень (было 0.6)
+    const dynamicMapSize = MAP_SIZE + Math.floor(level * 1.5); // Возвращаю оригинальное значение
+    const dynamicMinRooms = MIN_ROOMS + Math.floor(level * 0.4); // Возвращаю оригинальное значение
+    const dynamicMaxRooms = MAX_ROOMS + Math.floor(level * 0.6); // Возвращаю оригинальное значение
     
     Logger.map('Generating dungeon - Level:', level, 'Map size:', dynamicMapSize, 'Rooms:', dynamicMinRooms, '-', dynamicMaxRooms);
     
@@ -63,17 +65,17 @@ export class MapGenerator {
     
     // Создаем комнаты в каждом разделе
     partitions.forEach((partition, index) => {
-      const room = this.createRoomInPartition(partition, level);
+      const room = this.createRoomInPartition(partition, level, dynamicMapSize);
       if (room) {
         // Проверяем, что комната находится в пределах карты
         if (room.x >= 0 && room.y >= 0 && 
             room.x + room.width < dynamicMapSize && 
             room.y + room.height < dynamicMapSize) {
           rooms.push(room);
-          this.carveRoom(map, room);
-                Logger.debug('Room', index, ':', room);
-    } else {
-      Logger.warn('Room', index, 'out of bounds:', room);
+          this.carveRoom(map, room, dynamicMapSize);
+          Logger.debug('Room', index, ':', room);
+        } else {
+          Logger.warn('Room out of bounds, skipping:', room, 'Map size:', dynamicMapSize);
         }
       }
     });
@@ -88,7 +90,7 @@ export class MapGenerator {
         centerX: 9, centerY: 9
       };
       rooms.push(fallbackRoom);
-      this.carveRoom(map, fallbackRoom);
+      this.carveRoom(map, fallbackRoom, dynamicMapSize);
     }
     
     // Соединяем комнаты коридорами
@@ -126,20 +128,49 @@ export class MapGenerator {
     return null;
   }
   
-  static createRoomInPartition(partition, level) {
+  static createRoomInPartition(partition, level, mapSize) {
     const { x, y, width, height } = partition;
     
     // Увеличиваем размер комнат с уровнем (более агрессивная прогрессия)
-    const roomSizeMultiplier = 1 + (level - 1) * 0.15; // 15% увеличение за уровень (было 8%)
+    const roomSizeMultiplier = 1 + (level - 1) * 0.08; // Возвращаю оригинальное значение 8%
     const dynamicMinSize = Math.floor(ROOM_MIN_SIZE * roomSizeMultiplier);
     const dynamicMaxSize = Math.floor(ROOM_MAX_SIZE * roomSizeMultiplier);
     
-    // Убираем ограничение на максимальный размер комнаты
-    const roomWidth = Utils.random(dynamicMinSize, Math.min(dynamicMaxSize, width - 2));
-    const roomHeight = Utils.random(dynamicMinSize, Math.min(dynamicMaxSize, height - 2));
+    // Убираем ограничение на максимальный размер комнаты, но учитываем границы раздела
+    const maxRoomWidth = Math.min(dynamicMaxSize, width - 2); // Уменьшил отступ с 4 до 2
+    const maxRoomHeight = Math.min(dynamicMaxSize, height - 2);
     
-    const roomX = Utils.random(x + 1, x + width - roomWidth - 1);
-    const roomY = Utils.random(y + 1, y + height - roomHeight - 1);
+    // Проверяем, что минимальный размер не превышает доступное пространство
+    if (maxRoomWidth < dynamicMinSize || maxRoomHeight < dynamicMinSize) {
+      Logger.warn('Partition too small for room:', partition, 'Min size:', dynamicMinSize);
+      return null;
+    }
+    
+    const roomWidth = Utils.random(dynamicMinSize, maxRoomWidth);
+    const roomHeight = Utils.random(dynamicMinSize, maxRoomHeight);
+    
+    // Убеждаемся, что комната помещается в раздел с отступами
+    const maxX = x + width - roomWidth - 1; // Уменьшил отступ с 2 до 1
+    const maxY = y + height - roomHeight - 1;
+    
+    if (maxX < x + 1 || maxY < y + 1) { // Уменьшил отступ с 2 до 1
+      Logger.warn('Cannot place room in partition:', partition, 'Room size:', roomWidth, 'x', roomHeight);
+      return null;
+    }
+    
+    const roomX = Utils.random(x + 1, maxX); // Уменьшил отступ с 2 до 1
+    const roomY = Utils.random(y + 1, maxY);
+    
+    // Финальная проверка границ карты
+    if (roomX < 0 || roomY < 0 || 
+        roomX + roomWidth >= mapSize || 
+        roomY + roomHeight >= mapSize) {
+      Logger.warn('Room would be out of map bounds:', {
+        room: { x: roomX, y: roomY, width: roomWidth, height: roomHeight },
+        mapSize: mapSize
+      });
+      return null;
+    }
     
     return {
       x: roomX,
@@ -151,8 +182,7 @@ export class MapGenerator {
     };
   }
   
-  static carveRoom(map, room) {
-    const mapSize = map.length; // Используем реальный размер карты
+  static carveRoom(map, room, mapSize) {
     for (let y = room.y; y < room.y + room.height; y++) {
       for (let x = room.x; x < room.x + room.width; x++) {
         if (x >= 0 && x < mapSize && y >= 0 && y < mapSize) {
@@ -199,7 +229,7 @@ export class MapGenerator {
     const lightSourceChance = 0.2 + (level * 0.02); // Меньше источников света
     const wallTorchChance = 0.4; // 40% факелов на стенах
     const fireBowlChance = 0.3; // 30% чаш с огнем в центре
-    // Убираем магические сферы и кристаллы из комнат - они будут редкими находками
+    // Декоративные источники света (сферы, кристаллы) генерируются в больших комнатах
     
     Logger.map('Generating light sources for level', level);
     
@@ -232,8 +262,8 @@ export class MapGenerator {
         }
       }
       
-      // Очень редко добавляем декоративные источники света в больших комнатах
-      if (room.width >= 15 && room.height >= 15 && Utils.random(0, 1) < 0.05) {
+      // Добавляем декоративные источники света в больших комнатах
+      if (room.width >= 12 && room.height >= 12 && Utils.random(0, 1) < 0.15) {
         const decorativeLight = this.placeDecorativeLight(map, room, mapSize, level);
         if (decorativeLight) {
           // Валидация позиции декоративного источника света
@@ -266,90 +296,88 @@ export class MapGenerator {
     const roomHeight = room.height;
     
     // Верхняя стена - только углы и середина (с проверкой границ)
-    if (this.isWithinMapBounds(room.x, room.y - 1, mapSize)) {
+    if (room.y > 0 && this.isWithinMapBounds(room.x, room.y - 1, mapSize)) {
       // Левый угол
       if (room.x >= 0 && room.x < mapSize && map[room.y - 1][room.x] === 1) {
         wallPositions.push({ x: room.x, y: room.y - 1, side: 'top' });
       }
       // Середина верхней стены
-      if (room.x + Math.floor(roomWidth / 2) >= 0 && room.x + Math.floor(roomWidth / 2) < mapSize && 
-          map[room.y - 1][room.x + Math.floor(roomWidth / 2)] === 1) {
-        wallPositions.push({ x: room.x + Math.floor(roomWidth / 2), y: room.y - 1, side: 'top' });
+      const midX = room.x + Math.floor(roomWidth / 2);
+      if (midX >= 0 && midX < mapSize && map[room.y - 1][midX] === 1) {
+        wallPositions.push({ x: midX, y: room.y - 1, side: 'top' });
       }
       // Правый угол
-      if (room.x + roomWidth - 1 >= 0 && room.x + roomWidth - 1 < mapSize && 
-          map[room.y - 1][room.x + roomWidth - 1] === 1) {
-        wallPositions.push({ x: room.x + roomWidth - 1, y: room.y - 1, side: 'top' });
+      const rightX = room.x + roomWidth - 1;
+      if (rightX >= 0 && rightX < mapSize && map[room.y - 1][rightX] === 1) {
+        wallPositions.push({ x: rightX, y: room.y - 1, side: 'top' });
       }
     }
     
     // Нижняя стена - только углы и середина
-    if (room.y + roomHeight >= 0 && room.y + roomHeight < mapSize) {
+    const bottomY = room.y + roomHeight;
+    if (bottomY < mapSize && this.isWithinMapBounds(room.x, bottomY, mapSize)) {
       // Левый угол
-      if (room.x >= 0 && room.x < mapSize && map[room.y + roomHeight][room.x] === 1) {
-        wallPositions.push({ x: room.x, y: room.y + roomHeight, side: 'bottom' });
+      if (room.x >= 0 && room.x < mapSize && map[bottomY][room.x] === 1) {
+        wallPositions.push({ x: room.x, y: bottomY, side: 'bottom' });
       }
       // Середина нижней стены
-      if (room.x + Math.floor(roomWidth / 2) >= 0 && room.x + Math.floor(roomWidth / 2) < mapSize && 
-          map[room.y + roomHeight][room.x + Math.floor(roomWidth / 2)] === 1) {
-        wallPositions.push({ x: room.x + Math.floor(roomWidth / 2), y: room.y + roomHeight, side: 'bottom' });
+      const midX = room.x + Math.floor(roomWidth / 2);
+      if (midX >= 0 && midX < mapSize && map[bottomY][midX] === 1) {
+        wallPositions.push({ x: midX, y: bottomY, side: 'bottom' });
       }
       // Правый угол
-      if (room.x + roomWidth - 1 >= 0 && room.x + roomWidth - 1 < mapSize && 
-          map[room.y + roomHeight][room.x + roomWidth - 1] === 1) {
-        wallPositions.push({ x: room.x + roomWidth - 1, y: room.y + roomHeight, side: 'bottom' });
+      const rightX = room.x + roomWidth - 1;
+      if (rightX >= 0 && rightX < mapSize && map[bottomY][rightX] === 1) {
+        wallPositions.push({ x: rightX, y: bottomY, side: 'bottom' });
       }
     }
     
     // Левая стена - только углы и середина
-    if (room.x - 1 >= 0 && room.x - 1 < mapSize) {
+    if (room.x > 0 && this.isWithinMapBounds(room.x - 1, room.y, mapSize)) {
       // Верхний угол
       if (room.y >= 0 && room.y < mapSize && map[room.y][room.x - 1] === 1) {
         wallPositions.push({ x: room.x - 1, y: room.y, side: 'left' });
       }
       // Середина левой стены
-      if (room.y + Math.floor(roomHeight / 2) >= 0 && room.y + Math.floor(roomHeight / 2) < mapSize && 
-          map[room.y + Math.floor(roomHeight / 2)][room.x - 1] === 1) {
-        wallPositions.push({ x: room.x - 1, y: room.y + Math.floor(roomHeight / 2), side: 'left' });
+      const midY = room.y + Math.floor(roomHeight / 2);
+      if (midY >= 0 && midY < mapSize && map[midY][room.x - 1] === 1) {
+        wallPositions.push({ x: room.x - 1, y: midY, side: 'left' });
       }
       // Нижний угол
-      if (room.y + roomHeight - 1 >= 0 && room.y + roomHeight - 1 < mapSize && 
-          map[room.y + roomHeight - 1][room.x - 1] === 1) {
-        wallPositions.push({ x: room.x - 1, y: room.y + roomHeight - 1, side: 'left' });
+      const bottomY = room.y + roomHeight - 1;
+      if (bottomY >= 0 && bottomY < mapSize && map[bottomY][room.x - 1] === 1) {
+        wallPositions.push({ x: room.x - 1, y: bottomY, side: 'left' });
       }
     }
     
     // Правая стена - только углы и середина
-    if (room.x + roomWidth >= 0 && room.x + roomWidth < mapSize) {
+    const rightX = room.x + roomWidth;
+    if (rightX < mapSize && this.isWithinMapBounds(rightX, room.y, mapSize)) {
       // Верхний угол
-      if (room.y >= 0 && room.y < mapSize && map[room.y][room.x + roomWidth] === 1) {
-        wallPositions.push({ x: room.x + roomWidth, y: room.y, side: 'right' });
+      if (room.y >= 0 && room.y < mapSize && map[room.y][rightX] === 1) {
+        wallPositions.push({ x: rightX, y: room.y, side: 'right' });
       }
       // Середина правой стены
-      if (room.y + Math.floor(roomHeight / 2) >= 0 && room.y + Math.floor(roomHeight / 2) < mapSize && 
-          map[room.y + Math.floor(roomHeight / 2)][room.x + roomWidth] === 1) {
-        wallPositions.push({ x: room.x + roomWidth, y: room.y + Math.floor(roomHeight / 2), side: 'right' });
+      const midY = room.y + Math.floor(roomHeight / 2);
+      if (midY >= 0 && midY < mapSize && map[midY][rightX] === 1) {
+        wallPositions.push({ x: rightX, y: midY, side: 'right' });
       }
       // Нижний угол
-      if (room.y + roomHeight - 1 >= 0 && room.y + roomHeight - 1 < mapSize && 
-          map[room.y + roomHeight - 1][room.x + roomWidth] === 1) {
-        wallPositions.push({ x: room.x + roomWidth, y: room.y + roomHeight - 1, side: 'right' });
+      const bottomY = room.y + roomHeight - 1;
+      if (bottomY >= 0 && bottomY < mapSize && map[bottomY][rightX] === 1) {
+        wallPositions.push({ x: rightX, y: bottomY, side: 'right' });
       }
     }
     
-    // Выбираем случайную позицию на стене (максимум 1 факел на комнату)
-    if (wallPositions.length > 0) {
-      const wallPos = wallPositions[Utils.random(0, wallPositions.length - 1)];
-      const lightSource = LightSourceFactory.createTorch(
-        wallPos.x * TILE_SIZE + TILE_SIZE / 2, 
-        wallPos.y * TILE_SIZE + TILE_SIZE / 2, 
-        false
-      );
-      lightSource.wallSide = wallPos.side; // Сохраняем информацию о стороне стены
-      return lightSource;
+    if (wallPositions.length === 0) {
+      return null;
     }
     
-    return null;
+    const selectedWall = wallPositions[Utils.random(0, wallPositions.length - 1)];
+    const worldX = (selectedWall.x + 0.5) * TILE_SIZE;
+    const worldY = (selectedWall.y + 0.5) * TILE_SIZE;
+    
+    return LightSourceFactory.createTorch(worldX, worldY, false);
   }
   
   // Размещение чаши с огнем в центре комнаты
@@ -358,15 +386,12 @@ export class MapGenerator {
     const centerX = room.x + Math.floor(room.width / 2);
     const centerY = room.y + Math.floor(room.height / 2);
     
-    // Проверяем, что позиция свободна
+    // Проверяем, что позиция свободна и в пределах карты
     if (centerX >= 0 && centerX < mapSize && centerY >= 0 && centerY < mapSize && map[centerY][centerX] === 0) {
-      const lightSource = LightSourceFactory.createFire(
-        centerX * TILE_SIZE + TILE_SIZE / 2, 
-        centerY * TILE_SIZE + TILE_SIZE / 2, 
-        true // Постоянный источник
-      );
-      lightSource.isFireBowl = true; // Отмечаем как чашу с огнем
-      return lightSource;
+      const worldX = (centerX + 0.5) * TILE_SIZE;
+      const worldY = (centerY + 0.5) * TILE_SIZE;
+      
+      return LightSourceFactory.createFire(worldX, worldY, true);
     }
     
     return null;
@@ -378,13 +403,12 @@ export class MapGenerator {
     const x = Utils.random(room.x + 2, room.x + room.width - 3);
     const y = Utils.random(room.y + 2, room.y + room.height - 3);
     
-    // Проверяем, что позиция свободна
+    // Проверяем, что позиция свободна и в пределах карты
     if (x >= 0 && x < mapSize && y >= 0 && y < mapSize && map[y][x] === 0) {
-      return LightSourceFactory.createMagicOrb(
-        x * TILE_SIZE + TILE_SIZE / 2, 
-        y * TILE_SIZE + TILE_SIZE / 2, 
-        true
-      );
+      const worldX = (x + 0.5) * TILE_SIZE;
+      const worldY = (y + 0.5) * TILE_SIZE;
+      
+      return LightSourceFactory.createMagicOrb(worldX, worldY, true);
     }
     
     return null;
@@ -396,13 +420,12 @@ export class MapGenerator {
     const x = Utils.random(room.x + 2, room.x + room.width - 3);
     const y = Utils.random(room.y + 2, room.y + room.height - 3);
     
-    // Проверяем, что позиция свободна
+    // Проверяем, что позиция свободна и в пределах карты
     if (x >= 0 && x < mapSize && y >= 0 && y < mapSize && map[y][x] === 0) {
-      return LightSourceFactory.createCrystal(
-        x * TILE_SIZE + TILE_SIZE / 2, 
-        y * TILE_SIZE + TILE_SIZE / 2, 
-        true
-      );
+      const worldX = (x + 0.5) * TILE_SIZE;
+      const worldY = (y + 0.5) * TILE_SIZE;
+      
+      return LightSourceFactory.createCrystal(worldX, worldY, true);
     }
     
     return null;
@@ -414,28 +437,21 @@ export class MapGenerator {
     const x = Utils.random(room.x + 3, room.x + room.width - 4);
     const y = Utils.random(room.y + 3, room.y + room.height - 4);
     
-    // Проверяем, что позиция свободна
+    // Проверяем, что позиция свободна и в пределах карты
     if (x >= 0 && x < mapSize && y >= 0 && y < mapSize && map[y][x] === 0) {
-      // На высоких уровнях больше шанс на магические сферы
-      const rand = Utils.random(0, 1);
-      if (level >= 5 && rand < 0.7) {
-        // Магическая сфера на высоких уровнях
-        const lightSource = LightSourceFactory.createMagicOrb(
-          x * TILE_SIZE + TILE_SIZE / 2, 
-          y * TILE_SIZE + TILE_SIZE / 2, 
-          true
-        );
-        lightSource.isDecorative = true; // Отмечаем как декоративный
-        return lightSource;
+      const worldX = (x + 0.5) * TILE_SIZE;
+      const worldY = (y + 0.5) * TILE_SIZE;
+      
+      // Выбираем тип декоративного света на основе уровня
+      const lightTypes = ['magic_orb', 'crystal', 'fire_bowl'];
+      const lightType = lightTypes[Utils.random(0, lightTypes.length - 1)];
+      
+      if (lightType === 'magic_orb') {
+        return LightSourceFactory.createMagicOrb(worldX, worldY, true);
+      } else if (lightType === 'crystal') {
+        return LightSourceFactory.createCrystal(worldX, worldY, true);
       } else {
-        // Кристалл
-        const lightSource = LightSourceFactory.createCrystal(
-          x * TILE_SIZE + TILE_SIZE / 2, 
-          y * TILE_SIZE + TILE_SIZE / 2, 
-          true
-        );
-        lightSource.isDecorative = true; // Отмечаем как декоративный
-        return lightSource;
+        return LightSourceFactory.createFire(worldX, worldY, true);
       }
     }
     
@@ -459,10 +475,15 @@ export class MapGenerator {
         for (let i = 1; i < torchCount; i++) {
           const position = corridor[Math.floor(i * corridor.length / torchCount)];
           
+          // Проверяем границы карты
+          if (!this.isWithinMapBounds(position.x, position.y, mapSize)) {
+            continue;
+          }
+          
           // Проверяем, что рядом нет других факелов
           let tooClose = false;
           for (const existingLight of lightSources) {
-            if (existingLight.lightType === 'TORCH') {
+            if (existingLight.type === 'torch') { // Исправляю проверку типа
               const distance = Math.hypot(existingLight.x - position.x * TILE_SIZE, existingLight.y - position.y * TILE_SIZE);
               if (distance < minTorchDistance * TILE_SIZE) {
                 tooClose = true;
@@ -475,24 +496,15 @@ export class MapGenerator {
           
           // Проверяем, что позиция подходит для размещения факела
           if (this.isValidTorchPosition(position.x, position.y, mapSize, map)) {
-            const lightSource = LightSourceFactory.createTorch(
-              position.x * TILE_SIZE + TILE_SIZE / 2,
-              position.y * TILE_SIZE + TILE_SIZE / 2,
-              false
-            );
+            const worldX = (position.x + 0.5) * TILE_SIZE;
+            const worldY = (position.y + 0.5) * TILE_SIZE;
+            
+            const lightSource = LightSourceFactory.createTorch(worldX, worldY, false);
             lightSource.isCorridorTorch = true;
-            lightSource.corridorPosition = i; // Позиция в коридоре
+            lightSource.corridorPosition = i;
             
-            // Валидация позиции коридорного факела
-            const tileX = Math.floor(lightSource.x / TILE_SIZE);
-            const tileY = Math.floor(lightSource.y / TILE_SIZE);
-            
-            if (this.isWithinMapBounds(tileX, tileY, mapSize)) {
-              lightSources.push(lightSource);
-              Logger.map(`Added corridor torch at (${position.x}, ${position.y}) - position ${i}/${torchCount}`);
-            } else {
-              Logger.warn(`Corridor torch out of bounds at (${position.x}, ${position.y}), map size: ${mapSize}`);
-            }
+            lightSources.push(lightSource);
+            Logger.map(`Added corridor torch at (${position.x}, ${position.y}) - position ${i}/${torchCount}`);
           }
         }
       }
@@ -535,7 +547,8 @@ export class MapGenerator {
     while (queue.length > 0) {
       const current = queue.shift();
       
-      if (current.x < 0 || current.x >= mapSize || current.y < 0 || current.y >= mapSize) {
+      // Проверяем границы карты
+      if (!this.isWithinMapBounds(current.x, current.y, mapSize)) {
         continue;
       }
       
@@ -556,7 +569,7 @@ export class MapGenerator {
         const newX = current.x + dir.dx;
         const newY = current.y + dir.dy;
         
-        if (newX >= 0 && newX < mapSize && newY >= 0 && newY < mapSize &&
+        if (this.isWithinMapBounds(newX, newY, mapSize) &&
             !visited[newY][newX] && map[newY][newX] === 0) {
           queue.push({ x: newX, y: newY });
         }

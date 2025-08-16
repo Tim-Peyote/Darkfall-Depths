@@ -16,9 +16,30 @@ export class LevelManager {
     return x >= 0 && x < mapWidth && y >= 0 && y < mapHeight;
   }
   
+  // СТРОГАЯ проверка безопасных границ карты (с отступом от краев)
+  static isWithinSafeBounds(x, y, map) {
+    if (!map || !map.length || !map[0]) return false;
+    const mapWidth = map[0].length;
+    const mapHeight = map.length;
+    
+    // Безопасный отступ от краев карты (учитываем прогрессию)
+    // Начальная точка генерации карты: x: 2, y: 2
+    // Поэтому безопасная зона начинается с координат (2, 2)
+    const safeMargin = 2;
+    
+    return x >= safeMargin && x < mapWidth - safeMargin && 
+           y >= safeMargin && y < mapHeight - safeMargin;
+  }
+  
   // Утилита для проверки валидной позиции спавна (на полу)
   static isValidSpawnPosition(x, y, map) {
     if (!this.isWithinMapBounds(x, y, map)) return false;
+    return map[y][x] === 0; // 0 = пол, 1 = стена
+  }
+  
+  // СТРОГАЯ проверка безопасной позиции спавна (на полу + безопасные границы)
+  static isValidSafeSpawnPosition(x, y, map) {
+    if (!this.isWithinSafeBounds(x, y, map)) return false;
     return map[y][x] === 0; // 0 = пол, 1 = стена
   }
   
@@ -46,7 +67,8 @@ export class LevelManager {
       const tileX = Math.floor(worldX / TILE_SIZE);
       const tileY = Math.floor(worldY / TILE_SIZE);
       
-      if (this.isValidSpawnPosition(tileX, tileY, map)) {
+      // СТРОГАЯ проверка безопасных границ
+      if (this.isValidSafeSpawnPosition(tileX, tileY, map)) {
         return { worldX, worldY, tileX, tileY };
       }
     }
@@ -57,8 +79,8 @@ export class LevelManager {
     const tileX = Math.floor(worldX / TILE_SIZE);
     const tileY = Math.floor(worldY / TILE_SIZE);
     
-    // Проверяем, что даже центр комнаты валиден
-    if (this.isValidSpawnPosition(tileX, tileY, map)) {
+    // СТРОГАЯ проверка безопасных границ для центра комнаты
+    if (this.isValidSafeSpawnPosition(tileX, tileY, map)) {
       return { worldX, worldY, tileX, tileY };
     }
     
@@ -73,10 +95,11 @@ export class LevelManager {
     const tileX = Math.floor(entity.x / TILE_SIZE);
     const tileY = Math.floor(entity.y / TILE_SIZE);
     
-    const isValid = this.isValidSpawnPosition(tileX, tileY, gameState.map);
+    // СТРОГАЯ проверка безопасных границ
+    const isValid = this.isValidSafeSpawnPosition(tileX, tileY, gameState.map);
     
     if (!isValid) {
-      console.warn(`🚫 ${entityType} спавн за пределами карты:`, {
+      console.warn(`🚫 ${entityType} спавн за пределами безопасных границ карты:`, {
         entity: { x: entity.x, y: entity.y },
         tile: { x: tileX, y: tileY },
         mapSize: { width: gameState.map[0]?.length, height: gameState.map.length }
@@ -147,13 +170,11 @@ export class LevelManager {
         const playerX = (startRoom.centerX + 0.5) * TILE_SIZE;
         const playerY = (startRoom.centerY + 0.5) * TILE_SIZE;
         
-        // Проверяем, что позиция игрока не в стене
+        // СТРОГАЯ проверка позиции игрока (не в стене + безопасные границы)
         const tileX = Math.floor(playerX / TILE_SIZE);
         const tileY = Math.floor(playerY / TILE_SIZE);
         
-        if (tileX >= 0 && tileX < gameState.map[0].length && 
-            tileY >= 0 && tileY < gameState.map.length &&
-            gameState.map[tileY][tileX] === 0) { // 0 = пол, 1 = стена
+        if (this.isValidSafeSpawnPosition(tileX, tileY, gameState.map)) {
           
           console.log('👤 Player spawn position:', playerX, playerY);
           
@@ -229,14 +250,13 @@ export class LevelManager {
       } else {
         console.error('❌ Invalid start room position:', startRoom);
         
-        // Fallback: ищем любую подходящую комнату
+        // Fallback: ищем любую подходящую комнату в безопасных границах
         let fallbackRoom = null;
         for (let i = 0; i < rooms.length; i++) {
           const room = rooms[i];
           if (room && typeof room === 'object' && 
               room.centerX !== undefined && room.centerY !== undefined &&
-              room.centerX >= 0 && room.centerX < gameState.map[0].length &&
-              room.centerY >= 0 && room.centerY < gameState.map.length) {
+              this.isWithinSafeBounds(room.centerX, room.centerY, gameState.map)) {
             fallbackRoom = room;
             console.log('🔄 Using fallback room:', i, room);
             break;
@@ -266,15 +286,49 @@ export class LevelManager {
             console.log('🌫️ Fog of war initialized for fallback room');
           }
         } else {
-          // Последний fallback: спавним в центре карты
-          console.error('❌ No valid rooms found, spawning in center');
+          // Последний fallback: спавним в безопасном центре карты
+          console.error('❌ No valid rooms found, spawning in safe center');
           const centerX = Math.floor(gameState.map[0].length / 2);
           const centerY = Math.floor(gameState.map.length / 2);
-          gameState.player = new Player(
-            { ...gameState.selectedCharacter },
-            (centerX + 0.5) * TILE_SIZE,
-            (centerY + 0.5) * TILE_SIZE
-          );
+          
+          // Проверяем, что центр карты находится в безопасных границах
+          if (this.isWithinSafeBounds(centerX, centerY, gameState.map) && 
+              gameState.map[centerY][centerX] === 0) {
+            gameState.player = new Player(
+              { ...gameState.selectedCharacter },
+              (centerX + 0.5) * TILE_SIZE,
+              (centerY + 0.5) * TILE_SIZE
+            );
+          } else {
+            // Если центр не подходит, ищем ближайшую безопасную позицию
+            console.error('❌ Center not safe, searching for nearest safe position');
+            let foundSafePosition = false;
+            for (let radius = 1; radius <= 10; radius++) {
+              for (let dx = -radius; dx <= radius; dx++) {
+                for (let dy = -radius; dy <= radius; dy++) {
+                  const testX = centerX + dx;
+                  const testY = centerY + dy;
+                  if (this.isValidSafeSpawnPosition(testX, testY, gameState.map)) {
+                    gameState.player = new Player(
+                      { ...gameState.selectedCharacter },
+                      (testX + 0.5) * TILE_SIZE,
+                      (testY + 0.5) * TILE_SIZE
+                    );
+                    foundSafePosition = true;
+                    console.log('✅ Found safe fallback position:', testX, testY);
+                    break;
+                  }
+                }
+                if (foundSafePosition) break;
+              }
+              if (foundSafePosition) break;
+            }
+            
+            if (!foundSafePosition) {
+              console.error('❌ CRITICAL: No safe position found anywhere on map!');
+              return;
+            }
+          }
           
           // Инициализируем туман войны для центра карты
           if (gameState.fogOfWar) {
@@ -635,10 +689,10 @@ export class LevelManager {
   static findSafeSpawnPosition(room, map) {
     console.log('🔍 Looking for safe spawn position in room:', room);
     
-    // Ищем свободное место в комнате
+    // Ищем свободное место в комнате с СТРОГИМИ проверками границ
     for (let y = room.y; y < room.y + room.height; y++) {
       for (let x = room.x; x < room.x + room.width; x++) {
-        if (x >= 0 && x < map[0].length && y >= 0 && y < map.length && map[y][x] === 0) {
+        if (LevelManager.isValidSafeSpawnPosition(x, y, map)) {
           const playerX = (x + 0.5) * TILE_SIZE;
           const playerY = (y + 0.5) * TILE_SIZE;
           
@@ -667,16 +721,21 @@ export class LevelManager {
       }
     }
     
-    // Если не нашли безопасное место, используем центр комнаты
-    console.warn('⚠️ No safe position found, using room center');
-    const playerX = (room.centerX + 0.5) * TILE_SIZE;
-    const playerY = (room.centerY + 0.5) * TILE_SIZE;
-    
-    gameState.player = new Player(
-      { ...gameState.selectedCharacter },
-      playerX,
-      playerY
-    );
+    // Если не нашли безопасное место, проверяем центр комнаты
+    console.warn('⚠️ No safe position found, checking room center');
+    if (LevelManager.isValidSafeSpawnPosition(room.centerX, room.centerY, map)) {
+      const playerX = (room.centerX + 0.5) * TILE_SIZE;
+      const playerY = (room.centerY + 0.5) * TILE_SIZE;
+      
+      gameState.player = new Player(
+        { ...gameState.selectedCharacter },
+        playerX,
+        playerY
+      );
+    } else {
+      console.error('❌ Room center is not safe either!');
+      return;
+    }
     
     // Центрируем камеру на игроке
     const canvasWidth = canvas ? canvas.width / DPR : 800;
