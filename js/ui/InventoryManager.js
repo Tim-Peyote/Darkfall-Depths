@@ -301,7 +301,6 @@ export class InventoryManager {
           
           // Настройка контекстного меню
           ContextMenuManager.setupSlotContextMenu(slot, item, 'equipment', index);
-          this.setupDragDropForSlot(slot, 'equipment', index);
         } else {
           // Предмет несовместим со слотом - перемещаем в рюкзак
           
@@ -318,6 +317,9 @@ export class InventoryManager {
           }
         }
       }
+      
+      // Настройка drag & drop для всех слотов экипировки (с предметами и без)
+      this.setupDragDropForSlot(slot, 'equipment', index);
       
       equipmentSlots.appendChild(slot);
     });
@@ -483,8 +485,10 @@ export class InventoryManager {
         
         // Настройка контекстного меню
         ContextMenuManager.setupSlotContextMenu(slot, item, 'backpack', index);
-        this.setupDragDropForSlot(slot, 'backpack', index);
       }
+      
+      // Настройка drag & drop для всех слотов рюкзака (с предметами и без)
+      this.setupDragDropForSlot(slot, 'backpack', index);
       
       backpackSlots.appendChild(slot);
     }
@@ -636,6 +640,20 @@ export class InventoryManager {
           targetSlot = i;
           break;
         }
+      }
+    }
+    
+    // Специальная логика для украшений - если первый слот занят, используем второй
+    if (item.type === 'accessory' || item.slot === 'accessory') {
+      if (gameState.inventory.equipment[4] && !gameState.inventory.equipment[6]) {
+        // Если первый слот украшений занят, а второй свободен, используем второй
+        targetSlot = 6;
+      } else if (!gameState.inventory.equipment[4]) {
+        // Если первый слот свободен, используем его
+        targetSlot = 4;
+      } else if (gameState.inventory.equipment[4] && gameState.inventory.equipment[6]) {
+        // Если оба слота заняты, заменяем первый
+        targetSlot = 4;
       }
     }
     
@@ -1028,6 +1046,18 @@ export class InventoryManager {
       const slotConfig = equipmentStructure[to.index];
       if (!this.isItemCompatibleWithSlot(fromItem, slotConfig.allowedTypes)) {
         return false; // Предмет несовместим со слотом
+      }
+      
+      // Специальная логика для украшений - если первый слот занят, используем второй
+      if (slotConfig.allowedTypes.includes('accessory')) {
+        if (to.index === 4 && gameState.inventory.equipment[4] && !gameState.inventory.equipment[6]) {
+          // Если первый слот украшений занят, а второй свободен, используем второй
+          const actualTo = { type: 'equipment', index: 6 };
+          return this.handleDrop(from, actualTo);
+        } else if (to.index === 4 && gameState.inventory.equipment[4] && gameState.inventory.equipment[6]) {
+          // Если оба слота заняты, разрешаем замену в первом слоте
+          // Продолжаем выполнение без изменений
+        }
       }
     }
     
