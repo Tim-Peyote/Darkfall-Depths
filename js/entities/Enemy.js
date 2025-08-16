@@ -403,6 +403,33 @@ export class Enemy extends Entity {
     const screenX = this.x - gameState.camera.x;
     const screenY = this.y - gameState.camera.y;
     
+    // Эффект свечения при наличии дебафов
+    if (this.debuffs.active.length > 0) {
+      ctx.save();
+      const glowRadius = this.radius + 8;
+      const glowGradient = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, glowRadius);
+      
+      // Определяем цвет свечения на основе типа дебафа
+      let glowColor = '#ffffff';
+      if (this.debuffs.active.some(d => d.type === 'burn')) {
+        glowColor = '#e67e22'; // Оранжевый для ожога
+      } else if (this.debuffs.active.some(d => d.type === 'freeze')) {
+        glowColor = '#3498db'; // Синий для заморозки
+      } else if (this.debuffs.active.some(d => d.type === 'stun')) {
+        glowColor = '#f1c40f'; // Желтый для стана
+      }
+      
+      glowGradient.addColorStop(0, `${glowColor}40`);
+      glowGradient.addColorStop(0.7, `${glowColor}20`);
+      glowGradient.addColorStop(1, 'transparent');
+      
+      ctx.fillStyle = glowGradient;
+      ctx.beginPath();
+      ctx.arc(screenX, screenY, glowRadius, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    
     // Рисуем стилизованный спрайт врага
     this.renderCustomSprite(ctx, screenX, screenY);
     
@@ -418,10 +445,10 @@ export class Enemy extends Entity {
   renderDebuffs(ctx, x, y) {
     if (!this.debuffs.active.length) return;
     
-    const barWidth = 24;
-    const barHeight = 3;
-    const barSpacing = 2;
-    const startY = y - this.radius - 15; // Под HP баром
+    const barWidth = 28; // Оптимальная ширина для противников
+    const barHeight = 3; // Тонкие полоски
+    const barSpacing = 2; // Минимальные отступы
+    const startY = y - this.radius - 12; // Под HP баром
     
     this.debuffs.active.forEach((debuff, index) => {
       const barY = startY + index * (barHeight + barSpacing);
@@ -453,7 +480,7 @@ export class Enemy extends Entity {
       }
       
       // Фон полоски дебафа
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
       ctx.fillRect(barX, barY, barWidth, barHeight);
       
       // Полоска дебафа (убывает по времени)

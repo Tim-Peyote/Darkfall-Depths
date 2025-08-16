@@ -350,7 +350,16 @@
                 
                 <!-- Секция рюкзака -->
                 <div class="inventory-section">
-                    <h5>РЮКЗАК</h5>
+                    <div class="backpack-header">
+                        <h5>РЮКЗАК</h5>
+                        <button id="sortBackpackBtn" class="btn btn--outline btn--sm sort-btn" title="Сортировать предметы">
+                            <svg class="sort-icon" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M2 3h12v2H2V3zm0 4h8v2H2V7zm0 4h10v2H2v-2z"/>
+                                <path d="M14 8l-2-2v4l2-2z"/>
+                                <path d="M2 8l2-2v4L2 8z"/>
+                            </svg>
+                        </button>
+                    </div>
                     <div id="backpackSlots" class="backpack-grid">
                         <!-- Слоты рюкзака будут созданы динамически -->
                     </div>

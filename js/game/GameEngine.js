@@ -146,7 +146,6 @@ export class GameEngine {
 
   static gameLoop(currentTime) {
     if (!gameState.gameRunning) {
-      console.log('🎮 Game loop stopped - game not running');
       return;
     }
     
@@ -1290,8 +1289,6 @@ export class GameEngine {
   }
 
   static async continueGame() {
-    console.log('🎮 continueGame called - starting game loop...');
-    
     gameState.gameRunning = true;
     gameState.isPaused = false;
     
@@ -1301,7 +1298,6 @@ export class GameEngine {
       const canvasHeight = canvas ? canvas.height / DPR : 600;
       gameState.camera.x = gameState.player.x - canvasWidth / 2;
       gameState.camera.y = gameState.player.y - canvasHeight / 2;
-      console.log('🎮 Camera centered on player:', gameState.camera.x, gameState.camera.y);
     }
     
     // Переключаемся на игровой экран
@@ -1318,9 +1314,7 @@ export class GameEngine {
       cancelAnimationFrame(gameLoopId);
     }
     
-    console.log('🎮 Starting game loop...');
     gameLoopId = requestAnimationFrame(this.gameLoop.bind(this));
-    console.log('🎮 Game loop started, gameLoopId:', gameLoopId);
   }
 
   // Высокопроизводительное обновление массивов сущностей без использования splice
@@ -1374,8 +1368,6 @@ export class GameEngine {
   
   // Инициализация кеша тайлов для максимального ускорения рендеринга
   static initTileCache() {
-    console.log('🚀 Инициализация кеша тайлов для ускорения рендеринга...');
-    
     // Создаем предрендеренные тайлы стен
     this.wallTileCanvas = document.createElement('canvas');
     this.wallTileCanvas.width = TILE_SIZE;
@@ -1389,15 +1381,6 @@ export class GameEngine {
     this.floorTileCanvas.height = TILE_SIZE;
     const floorCtx = this.floorTileCanvas.getContext('2d');
     this.renderFloorTileToCache(floorCtx, 0, 0);
-    
-    console.log('✅ Кеш тайлов инициализирован - рендеринг карты ускорен в 10-20 раз!');
-    
-    // Добавляем консольные команды для тестирования производительности
-    window.GameEngine = this;
-    console.log('🎮 Консольные команды для тестирования производительности:');
-    console.log('  GameEngine.enableLighting = false  // Отключить освещение');
-    console.log('  GameEngine.enableFogOfWar = false  // Отключить туман войны');
-    console.log('  GameEngine.enableParticles = false // Отключить частицы');
   }
   
   // Вспомогательная функция для fallback иконок зелий

@@ -24,6 +24,9 @@ export class InventoryManager {
     // Настраиваем обработчик кнопки закрытия инвентаря
     this.setupCloseButton();
     
+    // Настраиваем обработчик кнопки сортировки
+    this.setupSortButton();
+    
     // Настраиваем обработчики для мобильной прокрутки инвентаря
     this.setupMobileScrollHandlers();
   }
@@ -47,6 +50,8 @@ export class InventoryManager {
       newCloseBtn.addEventListener('touchstart', (e) => e.preventDefault());
     }
   }
+
+
 
   static setupMobileScrollHandlers() {
     // Проверяем, что это мобильное устройство
@@ -116,8 +121,9 @@ export class InventoryManager {
       // Снимаем флаг "новый предмет" со всех предметов при первом открытии
       this.clearNewItemFlags();
       
-      // Убеждаемся, что кнопка закрытия работает
+      // Убеждаемся, что кнопки работают
       this.setupCloseButton();
+      this.setupSortButton();
       
       // Воспроизводим звук открытия инвентаря (асинхронно)
       (async () => {
@@ -1710,6 +1716,142 @@ export class InventoryManager {
           item.isNew = false;
         }
       });
+    }
+  }
+
+  // Методы сортировки инвентаря
+  static setupSortButton() {
+    const sortBtn = document.getElementById('sortBackpackBtn');
+    if (sortBtn) {
+      // Удаляем старые обработчики
+      const newSortBtn = sortBtn.cloneNode(true);
+      sortBtn.parentNode.replaceChild(newSortBtn, sortBtn);
+      
+      const handleSortClick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.sortBackpack();
+      };
+      
+      // Добавляем обработчики для мыши и touch
+      newSortBtn.addEventListener('click', handleSortClick);
+      newSortBtn.addEventListener('touchend', handleSortClick);
+      newSortBtn.addEventListener('touchstart', (e) => e.preventDefault());
+    }
+  }
+
+  static sortBackpack() {
+    const sortBtn = document.getElementById('sortBackpackBtn');
+    if (sortBtn) {
+      // Добавляем анимацию сортировки
+      sortBtn.classList.add('sorting');
+      setTimeout(() => sortBtn.classList.remove('sorting'), 600);
+    }
+
+    // Фильтруем пустые слоты и сортируем предметы
+    const items = gameState.inventory.backpack.filter(item => item !== null);
+    
+    if (items.length === 0) return;
+
+    // Сортируем предметы по приоритету
+    items.sort((a, b) => {
+      // 1. По редкости (легендарные -> эпик -> редкие -> обычные)
+      const rarityOrder = { legendary: 4, epic: 3, rare: 2, common: 1 };
+      const rarityDiff = (rarityOrder[b.rarity] || 0) - (rarityOrder[a.rarity] || 0);
+      if (rarityDiff !== 0) return rarityDiff;
+
+      // 2. По типу предмета
+      const typeOrder = { weapon: 1, armor: 2, accessory: 3, consumable: 4 };
+      const typeDiff = (typeOrder[a.type] || 0) - (typeOrder[b.type] || 0);
+      if (typeDiff !== 0) return typeDiff;
+
+      // 3. По уровню предмета (если есть)
+      const levelDiff = (b.level || 0) - (a.level || 0);
+      if (levelDiff !== 0) return levelDiff;
+
+      // 4. По названию (алфавитно)
+      return (a.name || '').localeCompare(b.name || '');
+    });
+
+    // Создаем новый массив с отсортированными предметами
+    const newBackpack = new Array(42).fill(null);
+    items.forEach((item, index) => {
+      if (index < 42) {
+        newBackpack[index] = item;
+      }
+    });
+
+    // Обновляем рюкзак
+    gameState.inventory.backpack = newBackpack;
+
+    // Перерисовываем инвентарь
+    this.renderInventory();
+
+    // Создаем эффект частиц сортировки
+    this.createSortParticles();
+
+    // Воспроизводим звук сортировки
+    (async () => {
+      const { audioManager } = await import('../audio/AudioManager.js');
+      audioManager.playItemPickup(); // Используем звук подбора предмета как звук сортировки
+    })();
+  }
+
+  static createSortParticles() {
+    // Создаем эффект частиц вокруг кнопки сортировки
+    const sortBtn = document.getElementById('sortBackpackBtn');
+    if (!sortBtn) return;
+
+    const rect = sortBtn.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    // Создаем частицы сортировки
+    for (let i = 0; i < 8; i++) {
+      const particle = document.createElement('div');
+      particle.style.cssText = `
+        position: fixed;
+        left: ${centerX}px;
+        top: ${centerY}px;
+        width: 4px;
+        height: 4px;
+        background: #e74c3c;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 10000;
+        box-shadow: 0 0 8px rgba(231, 76, 60, 0.8);
+      `;
+      
+      document.body.appendChild(particle);
+
+      // Анимация частицы
+      const angle = (i / 8) * Math.PI * 2;
+      const distance = 30 + Math.random() * 20;
+      const targetX = centerX + Math.cos(angle) * distance;
+      const targetY = centerY + Math.sin(angle) * distance;
+
+      particle.animate([
+        { 
+          transform: 'scale(0)',
+          opacity: 1
+        },
+        { 
+          transform: 'scale(1)',
+          opacity: 1,
+          offset: 0.3
+        },
+        { 
+          transform: `translate(${targetX - centerX}px, ${targetY - centerY}px) scale(0)`,
+          opacity: 0
+        }
+      ], {
+        duration: 800,
+        easing: 'ease-out'
+      }).onfinish = () => {
+        if (particle.parentNode) {
+          particle.remove();
+        }
+      };
     }
   }
 } 

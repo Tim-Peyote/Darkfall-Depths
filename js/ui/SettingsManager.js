@@ -38,7 +38,6 @@ export class SettingsManager {
   }
 
   static setupAudioEventListeners() {
-    console.log('🔧 Setting up audio event listeners...');
     
     // Обработчики для элементов управления звуком в главном меню
     const masterVol = document.getElementById('masterVol');
@@ -298,11 +297,8 @@ export class SettingsManager {
   }
 
   static setupGameButtonEventListeners() {
-    console.log('🔧 Setting up game button event listeners...');
-    
     // Кнопка паузы на игровом экране
     const pauseBtn = document.getElementById('pauseBtn');
-    console.log('🔴 Pause button found:', !!pauseBtn);
     if (pauseBtn) {
       // Удаляем старые обработчики
       const newPauseBtn = pauseBtn.cloneNode(true);
@@ -312,9 +308,6 @@ export class SettingsManager {
       const handlePauseClick = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🔴 PAUSE BUTTON CLICKED! Event type:', e.type);
-        console.log('🔴 Current gameState.screen:', gameState.screen);
-        console.log('🔴 Current gameState.isPaused:', gameState.isPaused);
         
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         await ScreenManager.togglePause();

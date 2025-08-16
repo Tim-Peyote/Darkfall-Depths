@@ -633,6 +633,7 @@ export class LevelManager {
     }
     
     if (enemiesKilledEl) {
+      // Показываем общее количество убитых врагов (включая текущую сессию)
       enemiesKilledEl.textContent = gameState.stats.enemiesKilled + gameState.stats.currentSessionKills;
     }
     
@@ -664,15 +665,18 @@ export class LevelManager {
     const { audioManager } = await import('../audio/AudioManager.js');
     audioManager.playGameOver();
     
+    // Добавляем убитых врагов текущей сессии к общему счетчику
+    gameState.stats.enemiesKilled += gameState.stats.currentSessionKills;
+    
     // Сохраняем рекорды
     const { RecordsManager } = await import('../ui/RecordsManager.js');
     RecordsManager.saveRecords();
     
-    // Сохраняем топ-рекорд
+    // Сохраняем топ-рекорд (используем только убитых в текущей сессии)
     if (gameState.selectedCharacter) {
       RecordsManager.saveTopRecord(gameState.selectedCharacter, {
         level: gameState.level,
-        enemiesKilled: gameState.stats.enemiesKilled + gameState.stats.currentSessionKills,
+        enemiesKilled: gameState.stats.currentSessionKills, // Только текущая сессия
         totalPlayTime: gameState.gameTime
       });
     }
@@ -687,7 +691,7 @@ export class LevelManager {
     }
     
     if (finalKillsEl) {
-      finalKillsEl.textContent = gameState.stats.enemiesKilled + gameState.stats.currentSessionKills;
+      finalKillsEl.textContent = gameState.stats.currentSessionKills; // Только текущая сессия
     }
     
     if (finalTimeEl) {
