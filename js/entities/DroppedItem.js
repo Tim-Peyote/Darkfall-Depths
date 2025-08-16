@@ -34,9 +34,6 @@ export class DroppedItem extends Entity {
         gameState.inventory.backpack[i] = this.itemData;
         this.isDead = true;
         
-        // Отладочная информация при подборе предмета
-        console.log(`🎒 PICKED UP: ID=${this.itemData.id || 'NO_ID'}, name: ${this.itemData.name}, base: ${this.itemData.base}, type: ${this.itemData.type}, slot: ${this.itemData.slot}`);
-        
         // Воспроизводим звук подбора предмета (для всех предметов одинаковый)
         audioManager.playItemPickup();
         

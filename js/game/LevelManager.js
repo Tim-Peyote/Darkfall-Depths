@@ -110,7 +110,11 @@ export class LevelManager {
   }
 
   static async generateLevel() {
-    console.log('🗺️ generateLevel called - starting level generation...');
+    // Очищаем предыдущий уровень
+    gameState.entities = [];
+    gameState.projectiles = [];
+    gameState.particles = [];
+    gameState.droppedItems = [];
     
     if (!gameState.selectedCharacter) {
       console.error('❌ No character selected!');
@@ -154,13 +158,7 @@ export class LevelManager {
     // Спавн игрока в первой комнате
     const startRoom = rooms[0];
     
-    console.log('🗺️ Rooms array:', rooms);
-    console.log('🗺️ Start room:', startRoom);
-    console.log('🗺️ Map size:', gameState.map.length, 'x', gameState.map[0].length);
-    
     if (gameState.selectedCharacter) {
-      console.log('👤 Creating player with character:', gameState.selectedCharacter);
-      
       // Проверяем, что комната существует и находится в пределах карты
       if (startRoom && typeof startRoom === 'object' && 
           startRoom.centerX !== undefined && startRoom.centerY !== undefined &&
@@ -175,8 +173,6 @@ export class LevelManager {
         const tileY = Math.floor(playerY / TILE_SIZE);
         
         if (this.isValidSafeSpawnPosition(tileX, tileY, gameState.map)) {
-          
-          console.log('👤 Player spawn position:', playerX, playerY);
           
           // Сохраняем состояние игрока если он уже существует
           let savedPlayer = null;
@@ -194,7 +190,6 @@ export class LevelManager {
               hasShield: gameState.player.hasShield,
               hasBlast: gameState.player.hasBlast
             };
-            console.log('👤 Saved player stats:', savedPlayer);
           }
           
           gameState.player = new Player(
@@ -216,11 +211,6 @@ export class LevelManager {
             gameState.player.hasDash = savedPlayer.hasDash;
             gameState.player.hasShield = savedPlayer.hasShield;
             gameState.player.hasBlast = savedPlayer.hasBlast;
-            console.log('👤 Restored player stats:', {
-              hp: gameState.player.hp,
-              maxHp: gameState.player.maxHp,
-              damage: gameState.player.damage
-            });
           }
           
           // Центрируем камеру на игроке (сразу в правильную позицию)
@@ -228,8 +218,6 @@ export class LevelManager {
           const canvasHeight = canvas ? canvas.height / DPR : 600; // fallback
           gameState.camera.x = gameState.player.x - canvasWidth / 2;
           gameState.camera.y = gameState.player.y - canvasHeight / 2;
-          
-          console.log('📷 Camera position:', gameState.camera.x, gameState.camera.y);
           
           // Принудительно инициализируем туман войны для игрока
           if (gameState.fogOfWar) {
