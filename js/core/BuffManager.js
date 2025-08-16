@@ -19,6 +19,23 @@ export class BuffManager {
     this.applyBuffToPlayer(buff);
   }
   
+  static addDebuff(type, value, duration, icon = null) {
+    const debuff = {
+      type,
+      value,
+      duration,
+      remainingTime: duration,
+      icon: icon || gameState.debuffs.icons[type] || '💀',
+      startTime: gameState.gameTime,
+      isDebuff: true
+    };
+    
+    gameState.debuffs.active.push(debuff);
+    
+    // Применяем дебаф к игроку
+    this.applyDebuffToPlayer(debuff);
+  }
+  
   static applyBuffToPlayer(buff) {
     if (!gameState.player) return;
     
@@ -42,8 +59,54 @@ export class BuffManager {
         gameState.player.attackRadius += buff.value;
         break;
       case 'fire':
-      case 'ice':
+        // Огненный перк: увеличивает урон и добавляет шанс поджечь врагов
         gameState.player.damage += buff.value;
+        gameState.player.fireChance = (gameState.player.fireChance || 0) + 0.08; // 8% вместо 15%
+        gameState.player.fireDamage = (gameState.player.fireDamage || 0) + Math.floor(buff.value * 0.3); // 30% вместо 50%
+        break;
+      case 'ice':
+        // Ледяной перк: увеличивает урон и добавляет шанс заморозить врагов
+        gameState.player.damage += buff.value;
+        gameState.player.iceChance = (gameState.player.iceChance || 0) + 0.06; // 6% вместо 12%
+        gameState.player.iceSlow = (gameState.player.iceSlow || 0) + 0.2; // 20% вместо 30%
+        break;
+    }
+  }
+  
+  static applyDebuffToPlayer(debuff) {
+    if (!gameState.player) return;
+    
+    switch (debuff.type) {
+      case 'poison':
+        // Яд наносит урон каждый тик
+        debuff.lastTick = 0;
+        debuff.tickInterval = 1.0; // Урон каждую секунду
+        break;
+      case 'burn':
+        // Ожог наносит урон каждый тик
+        debuff.lastTick = 0;
+        debuff.tickInterval = 0.8; // Урон каждые 0.8 секунды
+        break;
+      case 'freeze':
+        // Заморозка замедляет движение и атаку
+        gameState.player.moveSpeed = Math.max(10, gameState.player.moveSpeed * 0.3);
+        gameState.player.attackSpeed = Math.max(0.3, gameState.player.attackSpeed * 0.5);
+        break;
+      case 'stun':
+        // Стан полностью блокирует действия
+        gameState.player.isStunned = true;
+        break;
+      case 'slow':
+        // Замедление
+        gameState.player.moveSpeed = Math.max(20, gameState.player.moveSpeed * 0.6);
+        break;
+      case 'weakness':
+        // Слабость снижает урон
+        gameState.player.damage = Math.max(1, gameState.player.damage * 0.7);
+        break;
+      case 'vulnerability':
+        // Уязвимость снижает защиту
+        gameState.player.defense = Math.max(0, gameState.player.defense - debuff.value);
         break;
     }
   }
@@ -71,8 +134,44 @@ export class BuffManager {
         gameState.player.attackRadius -= buff.value;
         break;
       case 'fire':
-      case 'ice':
+        // Убираем огненные эффекты
         gameState.player.damage -= buff.value;
+        gameState.player.fireChance = Math.max(0, (gameState.player.fireChance || 0) - 0.08);
+        gameState.player.fireDamage = Math.max(0, (gameState.player.fireDamage || 0) - Math.floor(buff.value * 0.3));
+        break;
+      case 'ice':
+        // Убираем ледяные эффекты
+        gameState.player.damage -= buff.value;
+        gameState.player.iceChance = Math.max(0, (gameState.player.iceChance || 0) - 0.06);
+        gameState.player.iceSlow = Math.max(0, (gameState.player.iceSlow || 0) - 0.2);
+        break;
+    }
+  }
+  
+  static removeDebuffFromPlayer(debuff) {
+    if (!gameState.player) return;
+    
+    switch (debuff.type) {
+      case 'freeze':
+        // Восстанавливаем скорость движения и атаки
+        gameState.player.moveSpeed = gameState.player.baseMoveSpeed || gameState.player.moveSpeed;
+        gameState.player.attackSpeed = gameState.player.baseAttackSpeed || gameState.player.attackSpeed;
+        break;
+      case 'stun':
+        // Убираем стан
+        gameState.player.isStunned = false;
+        break;
+      case 'slow':
+        // Восстанавливаем скорость движения
+        gameState.player.moveSpeed = gameState.player.baseMoveSpeed || gameState.player.moveSpeed;
+        break;
+      case 'weakness':
+        // Восстанавливаем урон
+        gameState.player.damage = gameState.player.baseDamage || gameState.player.damage;
+        break;
+      case 'vulnerability':
+        // Восстанавливаем защиту
+        gameState.player.defense = gameState.player.baseDefense || gameState.player.defense;
         break;
     }
   }
@@ -88,26 +187,96 @@ export class BuffManager {
         buff.lastTick += dt;
         
         if (buff.lastTick >= buff.tickInterval) {
-                            if (gameState.player) {
-                    const healAmount = Math.min(buff.value, gameState.player.maxHp - gameState.player.hp);
-                    if (healAmount > 0) {
-                      gameState.player.hp += healAmount;
-                    }
-                  }
+          if (gameState.player) {
+            const healAmount = Math.min(buff.value, gameState.player.maxHp - gameState.player.hp);
+            if (healAmount > 0) {
+              gameState.player.hp += healAmount;
+            }
+          }
           buff.lastTick = 0;
         }
       }
       
-                        // Если бафф истек, удаляем его
-                  if (buff.remainingTime <= 0) {
-                    this.removeBuffFromPlayer(buff);
-                    gameState.buffs.active.splice(i, 1);
-                  }
+      // Если бафф истек, удаляем его
+      if (buff.remainingTime <= 0) {
+        this.removeBuffFromPlayer(buff);
+        gameState.buffs.active.splice(i, 1);
+      }
+    }
+    
+    // Обновляем время всех активных дебафов
+    for (let i = gameState.debuffs.active.length - 1; i >= 0; i--) {
+      const debuff = gameState.debuffs.active[i];
+      debuff.remainingTime -= dt;
+      
+      // Обрабатываем яд
+      if (debuff.type === 'poison') {
+        debuff.lastTick += dt;
+        
+        if (debuff.lastTick >= debuff.tickInterval) {
+          if (gameState.player) {
+            gameState.player.takeDamage(debuff.value);
+            // Создаем частицы яда
+            (async () => {
+              const { createParticle } = await import('../effects/Particle.js');
+              for (let j = 0; j < 3; j++) {
+                createParticle(
+                  gameState.player.x + Utils.random(-15, 15),
+                  gameState.player.y + Utils.random(-15, 15),
+                  Utils.randomFloat(-20, 20),
+                  Utils.randomFloat(-20, 20),
+                  '#27ae60',
+                  0.8,
+                  1.5
+                );
+              }
+            })();
+          }
+          debuff.lastTick = 0;
+        }
+      }
+      
+      // Обрабатываем ожог
+      if (debuff.type === 'burn') {
+        debuff.lastTick += dt;
+        
+        if (debuff.lastTick >= debuff.tickInterval) {
+          if (gameState.player) {
+            gameState.player.takeDamage(debuff.value);
+            // Создаем огненные частицы
+            (async () => {
+              const { createParticle } = await import('../effects/Particle.js');
+              for (let j = 0; j < 4; j++) {
+                createParticle(
+                  gameState.player.x + Utils.random(-15, 15),
+                  gameState.player.y + Utils.random(-15, 15),
+                  Utils.randomFloat(-30, 30),
+                  Utils.randomFloat(-30, 30),
+                  '#e67e22',
+                  0.9,
+                  2
+                );
+              }
+            })();
+          }
+          debuff.lastTick = 0;
+        }
+      }
+      
+      // Если дебаф истек, удаляем его
+      if (debuff.remainingTime <= 0) {
+        this.removeDebuffFromPlayer(debuff);
+        gameState.debuffs.active.splice(i, 1);
+      }
     }
   }
   
   static getActiveBuffs() {
     return gameState.buffs.active;
+  }
+  
+  static getActiveDebuffs() {
+    return gameState.debuffs.active;
   }
   
   static clearAllBuffs() {
@@ -118,6 +287,16 @@ export class BuffManager {
     
     // Очищаем список баффов
     gameState.buffs.active = [];
+  }
+  
+  static clearAllDebuffs() {
+    // Удаляем все дебафы с игрока
+    gameState.debuffs.active.forEach(debuff => {
+      this.removeDebuffFromPlayer(debuff);
+    });
+    
+    // Очищаем список дебафов
+    gameState.debuffs.active = [];
   }
   
   static applyConsumableEffects(item) {

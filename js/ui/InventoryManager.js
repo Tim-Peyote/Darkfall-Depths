@@ -113,6 +113,9 @@ export class InventoryManager {
       this.renderInventory();
       overlay.classList.remove('hidden');
       
+      // Снимаем флаг "новый предмет" со всех предметов при первом открытии
+      this.clearNewItemFlags();
+      
       // Убеждаемся, что кнопка закрытия работает
       this.setupCloseButton();
       
@@ -228,6 +231,12 @@ export class InventoryManager {
     }
     
     if (gameState.player) {
+      // Вычисляем общие статы с учетом экипировки
+      const totalFireChance = Math.round((gameState.player.fireChance || 0) * 100);
+      const totalFireDamage = gameState.player.fireDamage || 0;
+      const totalIceChance = Math.round((gameState.player.iceChance || 0) * 100);
+      const totalIceSlow = Math.round((gameState.player.iceSlow || 0) * 100);
+      
       statsBlock.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
           <div style="color: #e74c3c; font-weight: bold;">❤️ HP: ${gameState.player.hp}/${gameState.player.maxHp}</div>
@@ -237,6 +246,8 @@ export class InventoryManager {
           <div style="color: #27ae60; font-weight: bold;">💨 Скорость: ${gameState.player.moveSpeed}</div>
           <div style="color: #3498db; font-weight: bold;">⚡ Атака: ${gameState.player.attackSpeed}с</div>
           <div style="color: #9b59b6; font-weight: bold; grid-column: 1 / -1;">🎯 Дальность: ${gameState.player.attackRadius}px</div>
+          ${totalFireChance > 0 ? `<div style="color: #e67e22; font-weight: bold;">🔥 Огонь: ${totalFireChance}% (${totalFireDamage})</div>` : ''}
+          ${totalIceChance > 0 ? `<div style="color: #3498db; font-weight: bold;">❄️ Лед: ${totalIceChance}% (${totalIceSlow}%)</div>` : ''}
         </div>
       `;
     } else {
@@ -465,6 +476,11 @@ export class InventoryManager {
       
       if (item) {
         slot.classList.add('filled', item.rarity);
+        
+        // Добавляем класс мигания для новых предметов
+        if (item.isNew) {
+          slot.classList.add('new-item');
+        }
         
         // Создаем спрайт предмета
         const spriteElement = InventorySpriteRenderer.createSpriteElement(item, 48);
@@ -747,8 +763,16 @@ export class InventoryManager {
             gameState.player.attackRadius += value;
             break;
           case 'fire':
-          case 'ice':
+            // Огненный перк: увеличивает урон и добавляет шанс поджечь врагов
             gameState.player.damage += value;
+            gameState.player.fireChance = (gameState.player.fireChance || 0) + 0.08;
+            gameState.player.fireDamage = (gameState.player.fireDamage || 0) + Math.floor(value * 0.3);
+            break;
+          case 'ice':
+            // Ледяной перк: увеличивает урон и добавляет шанс заморозить врагов
+            gameState.player.damage += value;
+            gameState.player.iceChance = (gameState.player.iceChance || 0) + 0.06;
+            gameState.player.iceSlow = (gameState.player.iceSlow || 0) + 0.2;
             break;
         }
       });
@@ -821,9 +845,16 @@ export class InventoryManager {
           gameState.player.attackRadius -= value;
           break;
         case 'fire':
-        case 'ice':
-          // Элементальные бонусы вычитаются из урона
+          // Убираем огненные эффекты
           gameState.player.damage -= value;
+          gameState.player.fireChance = Math.max(0, (gameState.player.fireChance || 0) - 0.08);
+          gameState.player.fireDamage = Math.max(0, (gameState.player.fireDamage || 0) - Math.floor(value * 0.3));
+          break;
+        case 'ice':
+          // Убираем ледяные эффекты
+          gameState.player.damage -= value;
+          gameState.player.iceChance = Math.max(0, (gameState.player.iceChance || 0) - 0.06);
+          gameState.player.iceSlow = Math.max(0, (gameState.player.iceSlow || 0) - 0.2);
           break;
       }
     });
@@ -1660,5 +1691,25 @@ export class InventoryManager {
         element.remove();
       }
     });
+  }
+
+  static clearNewItemFlags() {
+    // Снимаем флаг "новый предмет" со всех предметов в рюкзаке
+    if (gameState.inventory.backpack) {
+      gameState.inventory.backpack.forEach(item => {
+        if (item && item.isNew) {
+          item.isNew = false;
+        }
+      });
+    }
+    
+    // Снимаем флаг "новый предмет" со всех предметов в экипировке
+    if (gameState.inventory.equipment) {
+      gameState.inventory.equipment.forEach(item => {
+        if (item && item.isNew) {
+          item.isNew = false;
+        }
+      });
+    }
   }
 } 

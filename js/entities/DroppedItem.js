@@ -30,6 +30,7 @@ export class DroppedItem extends Entity {
     // Добавляем в инвентарь
     for (let i = 0; i < gameState.inventory.backpack.length; i++) {
       if (!gameState.inventory.backpack[i]) {
+        this.itemData.isNew = true; // Флаг нового предмета
         gameState.inventory.backpack[i] = this.itemData;
         this.isDead = true;
         

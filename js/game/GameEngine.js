@@ -106,6 +106,7 @@ export class GameEngine {
       (async () => {
         const { BuffManager } = await import('../core/BuffManager.js');
         BuffManager.clearAllBuffs();
+        BuffManager.clearAllDebuffs();
       })();
     }
     
@@ -1197,6 +1198,7 @@ export class GameEngine {
     if (!buffsContainer) return;
     
     const activeBuffs = gameState.buffs.active;
+    const activeDebuffs = gameState.debuffs.active;
     
     // Очищаем контейнер
     buffsContainer.innerHTML = '';
@@ -1228,6 +1230,35 @@ export class GameEngine {
       buffElement.appendChild(iconElement);
       buffElement.appendChild(timeElement);
       buffsContainer.appendChild(buffElement);
+    });
+    
+    // Добавляем активные дебафы
+    activeDebuffs.forEach(debuff => {
+      const debuffElement = document.createElement('div');
+      debuffElement.className = 'active-debuff';
+      
+      // Добавляем классы предупреждения для дебафов
+      if (debuff.remainingTime < 3) {
+        debuffElement.classList.add('critical');
+      } else if (debuff.remainingTime < 6) {
+        debuffElement.classList.add('warning');
+      }
+      
+      const iconElement = document.createElement('span');
+      iconElement.textContent = debuff.icon;
+      iconElement.style.fontSize = '14px';
+      
+      const timeElement = document.createElement('span');
+      timeElement.textContent = `${Math.ceil(debuff.remainingTime)}s`;
+      timeElement.style.color = debuff.remainingTime < 3 ? '#ff4444' : '#ff6666';
+      
+      // Устанавливаем ширину прогресс-бара через CSS переменную
+      const progressPercent = (debuff.remainingTime / debuff.duration) * 100;
+      debuffElement.style.setProperty('--progress-width', `${progressPercent}%`);
+      
+      debuffElement.appendChild(iconElement);
+      debuffElement.appendChild(timeElement);
+      buffsContainer.appendChild(debuffElement);
     });
   }
   

@@ -38,6 +38,18 @@ export const gameState = {
       ice: '❄️'
     }
   },
+  debuffs: {
+    active: [], // Активные временные дебафы
+    icons: {
+      poison: '🦠',
+      burn: '🔥',
+      freeze: '❄️',
+      stun: '⚡',
+      slow: '🐌',
+      weakness: '💀',
+      vulnerability: '🩸'
+    }
+  },
   stats: {
     enemiesKilled: 0,
     levelsCompleted: 0,

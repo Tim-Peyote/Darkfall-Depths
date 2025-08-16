@@ -95,6 +95,18 @@ export const ENEMY_TYPES = [
     sprite: '💀'
   },
   { 
+    type: 'Skeleton Archer', 
+    hp: 25, 
+    damage: 15, 
+    speed: 55, 
+    attackRange: 180, 
+    color: '#95a5a6', 
+    reward: 15,
+    sprite: '🏹',
+    projectileSpeed: 250,
+    hasBow: true
+  },
+  { 
     type: 'Dark Mage', 
     hp: 25, 
     damage: 12, 
@@ -104,6 +116,48 @@ export const ENEMY_TYPES = [
     reward: 15,
     sprite: '🧙‍♂️',
     projectileSpeed: 200
+  },
+  { 
+    type: 'Frost Mage', 
+    hp: 30, 
+    damage: 10, 
+    speed: 40, 
+    attackRange: 160, 
+    color: '#3498db', 
+    reward: 20,
+    sprite: '❄️',
+    projectileSpeed: 180,
+    canFreeze: true,
+    freezeChance: 0.3,
+    freezeDuration: 3.0
+  },
+  { 
+    type: 'Poison Spitter', 
+    hp: 35, 
+    damage: 8, 
+    speed: 50, 
+    attackRange: 140, 
+    color: '#27ae60', 
+    reward: 18,
+    sprite: '🦎',
+    projectileSpeed: 150,
+    canPoison: true,
+    poisonChance: 0.4,
+    poisonDamage: 5,
+    poisonDuration: 8.0
+  },
+  { 
+    type: 'Stun Warrior', 
+    hp: 45, 
+    damage: 20, 
+    speed: 55, 
+    attackRange: 48, 
+    color: '#f39c12', 
+    reward: 22,
+    sprite: '⚡',
+    canStun: true,
+    stunChance: 0.25,
+    stunDuration: 2.5
   },
   { 
     type: 'Orc Warrior', 
@@ -148,6 +202,33 @@ export const ENEMY_TYPES = [
     reward: 40,
     sprite: '🛡️',
     levelRequirement: 8
+  },
+  { 
+    type: 'Void Wraith', 
+    hp: 50, 
+    damage: 28, 
+    speed: 70, 
+    attackRange: 120, 
+    color: '#9b59b6', 
+    reward: 35,
+    sprite: '👻',
+    levelRequirement: 6,
+    projectileSpeed: 220,
+    canTeleport: true,
+    teleportChance: 0.15
+  },
+  { 
+    type: 'Crystal Golem', 
+    hp: 90, 
+    damage: 32, 
+    speed: 30, 
+    attackRange: 48, 
+    color: '#e67e22', 
+    reward: 45,
+    sprite: '💎',
+    levelRequirement: 7,
+    canReflect: true,
+    reflectChance: 0.2
   }
 ];
 

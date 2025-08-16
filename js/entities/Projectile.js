@@ -36,7 +36,48 @@ export class Projectile extends Entity {
       const entity = gameState.entities[i];
       if (entity.constructor.name === 'Enemy' && !entity.isDead) {
         if (Utils.distance(this, entity) < this.radius + entity.radius) {
-          entity.takeDamage(this.damage);
+          let totalDamage = this.damage;
+          
+          // Применяем огненные эффекты от игрока
+          if (gameState.player && gameState.player.fireChance && Math.random() < gameState.player.fireChance) {
+            totalDamage += gameState.player.fireDamage || 0;
+            // Поджигаем врага
+            entity.addDebuff('burn', Math.floor((gameState.player.fireDamage || 0) * 0.3), 5.0, '🔥');
+            
+            // Создаем огненные частицы
+            for (let j = 0; j < 4; j++) {
+              createParticle(
+                entity.x + Utils.random(-8, 8),
+                entity.y + Utils.random(-8, 8),
+                Utils.randomFloat(-50, 50),
+                Utils.randomFloat(-50, 50),
+                '#e67e22',
+                0.8,
+                2
+              );
+            }
+          }
+          
+          // Применяем ледяные эффекты от игрока
+          if (gameState.player && gameState.player.iceChance && Math.random() < gameState.player.iceChance) {
+            // Замораживаем врага
+            entity.addDebuff('freeze', 0, 3.0, '❄️');
+            
+            // Создаем ледяные частицы
+            for (let j = 0; j < 4; j++) {
+              createParticle(
+                entity.x + Utils.random(-8, 8),
+                entity.y + Utils.random(-8, 8),
+                Utils.randomFloat(-50, 50),
+                Utils.randomFloat(-50, 50),
+                '#3498db',
+                0.8,
+                2
+              );
+            }
+          }
+          
+          entity.takeDamage(totalDamage);
           this.isDead = true;
           
           // Частицы взрыва
@@ -308,7 +349,7 @@ export class EnemyProjectile extends Projectile {
     this.radius = 4;
   }
   
-  update(dt) {
+  async update(dt) {
     this.x += this.vx * dt;
     this.y += this.vy * dt;
     this.life -= dt;
@@ -322,16 +363,35 @@ export class EnemyProjectile extends Projectile {
     // Проверка попадания в игрока
     if (gameState.player && Utils.distance(this, gameState.player) < this.radius + gameState.player.radius) {
       gameState.player.takeDamage(this.damage);
+      
+      // Применяем дебафы если они есть
+      if (this.canFreeze && Math.random() < this.freezeChance) {
+        const { BuffManager } = await import('../core/BuffManager.js');
+        BuffManager.addDebuff('freeze', 0, this.freezeDuration, '❄️');
+      }
+      
+      if (this.canPoison && Math.random() < this.poisonChance) {
+        const { BuffManager } = await import('../core/BuffManager.js');
+        BuffManager.addDebuff('poison', this.poisonDamage, this.poisonDuration, '🦠');
+      }
+      
       this.isDead = true;
       
-      // Частицы попадания
+      // Частицы попадания (разные цвета для разных типов)
+      let particleColor = '#8e44ad'; // По умолчанию фиолетовый
+      if (this.canFreeze) {
+        particleColor = '#3498db'; // Синий для заморозки
+      } else if (this.canPoison) {
+        particleColor = '#27ae60'; // Зеленый для яда
+      }
+      
       for (let i = 0; i < 6; i++) {
         createParticle(
           this.x + Utils.random(-6, 6),
           this.y + Utils.random(-6, 6),
           Utils.randomFloat(-60, 60),
           Utils.randomFloat(-60, 60),
-          '#8e44ad',
+          particleColor,
           0.4,
           2
         );
@@ -345,10 +405,25 @@ export class EnemyProjectile extends Projectile {
     
     ctx.save();
     
+    // Определяем цвет снаряда в зависимости от типа
+    let glowColor = '#8e44ad';
+    let mainColor = '#9b59b6';
+    let accentColor = '#e8d5ff';
+    
+    if (this.canFreeze) {
+      glowColor = '#3498db';
+      mainColor = '#2980b9';
+      accentColor = '#85c1e9';
+    } else if (this.canPoison) {
+      glowColor = '#27ae60';
+      mainColor = '#229954';
+      accentColor = '#a9dfbf';
+    }
+    
     // Внешнее свечение
     const glowGradient = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, this.radius * 1.3);
-    glowGradient.addColorStop(0, '#8e44ad40');
-    glowGradient.addColorStop(0.7, '#8e44ad20');
+    glowGradient.addColorStop(0, `${glowColor}40`);
+    glowGradient.addColorStop(0.7, `${glowColor}20`);
     glowGradient.addColorStop(1, 'transparent');
     
     ctx.fillStyle = glowGradient;
@@ -358,9 +433,9 @@ export class EnemyProjectile extends Projectile {
     
     // Основной снаряд
     const mainGradient = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, this.radius);
-    mainGradient.addColorStop(0, '#e8d5ff');
-    mainGradient.addColorStop(0.5, '#9b59b6');
-    mainGradient.addColorStop(1, '#8e44ad');
+    mainGradient.addColorStop(0, accentColor);
+    mainGradient.addColorStop(0.5, mainColor);
+    mainGradient.addColorStop(1, glowColor);
     
     ctx.fillStyle = mainGradient;
     ctx.beginPath();
@@ -368,7 +443,7 @@ export class EnemyProjectile extends Projectile {
     ctx.fill();
     
     // Анимированные искры
-    ctx.fillStyle = '#e8d5ff';
+    ctx.fillStyle = accentColor;
     for (let i = 0; i < 3; i++) {
       const angle = (i / 3) * Math.PI * 2 + this.animationTime;
       const sparkleX = screenX + Math.cos(angle) * this.radius * 0.5;

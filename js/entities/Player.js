@@ -12,6 +12,13 @@ export class Player extends Entity {
   constructor(charData, x, y) {
     super(x, y);
     Object.assign(this, charData);
+    
+    // Сохраняем базовые значения для восстановления после дебафов
+    this.baseMoveSpeed = this.moveSpeed;
+    this.baseAttackSpeed = this.attackSpeed;
+    this.baseDamage = this.damage;
+    this.baseDefense = this.defense;
+    
     this.attackCooldown = 0;
     this.dashCooldown = 0;
     this.shieldCooldown = 0;
@@ -35,6 +42,11 @@ export class Player extends Entity {
   }
   
   updateMovement(dt) {
+    // Проверяем, не оглушен ли игрок
+    if (this.isStunned) {
+      return; // Не двигаемся если оглушены
+    }
+    
     let dx = 0, dy = 0;
     
     // Ввод с клавиатуры
@@ -111,6 +123,11 @@ export class Player extends Entity {
   }
   
   updateAttack(dt) {
+    // Проверяем, не оглушен ли игрок
+    if (this.isStunned) {
+      return; // Не атакуем если оглушены
+    }
+    
     // Оптимизированный поиск врагов - избегаем filter, проходим напрямую
     let closestEnemy = null;
     let closestDistance = Infinity;
@@ -169,7 +186,48 @@ export class Player extends Entity {
     }
     
     if (closestEnemy) {
-      closestEnemy.takeDamage(this.damage);
+      let totalDamage = this.damage;
+      
+      // Применяем огненные эффекты
+      if (this.fireChance && Math.random() < this.fireChance) {
+        totalDamage += this.fireDamage || 0;
+        // Поджигаем врага
+        closestEnemy.addDebuff('burn', Math.floor((this.fireDamage || 0) * 0.3), 5.0, '🔥');
+        
+        // Создаем огненные частицы
+        for (let i = 0; i < 6; i++) {
+          createParticle(
+            closestEnemy.x + Utils.random(-10, 10),
+            closestEnemy.y + Utils.random(-10, 10),
+            Utils.randomFloat(-60, 60),
+            Utils.randomFloat(-60, 60),
+            '#e67e22',
+            0.8,
+            2
+          );
+        }
+      }
+      
+      // Применяем ледяные эффекты
+      if (this.iceChance && Math.random() < this.iceChance) {
+        // Замораживаем врага
+        closestEnemy.addDebuff('freeze', 0, 3.0, '❄️');
+        
+        // Создаем ледяные частицы
+        for (let i = 0; i < 6; i++) {
+          createParticle(
+            closestEnemy.x + Utils.random(-10, 10),
+            closestEnemy.y + Utils.random(-10, 10),
+            Utils.randomFloat(-60, 60),
+            Utils.randomFloat(-60, 60),
+            '#3498db',
+            0.8,
+            2
+          );
+        }
+      }
+      
+      closestEnemy.takeDamage(totalDamage);
       
       // Воспроизводим звук атаки в зависимости от персонажа
       if (this.id === 'andre') {
@@ -368,6 +426,12 @@ export class Player extends Entity {
       // Воспроизводим звук смерти героя
       audioManager.playHeroesDie();
       
+      // Очищаем все дебафы при смерти
+      (async () => {
+        const { BuffManager } = await import('../core/BuffManager.js');
+        BuffManager.clearAllDebuffs();
+      })();
+      
       // Используем setTimeout для асинхронного вызова
       setTimeout(async () => {
         const { LevelManager } = await import('../game/LevelManager.js');
@@ -472,6 +536,32 @@ export class Player extends Entity {
       ctx.beginPath();
       ctx.arc(x, y, this.radius + 8, 0, Math.PI * 2);
       ctx.stroke();
+    }
+    
+    // Визуализация стана
+    if (this.isStunned) {
+      ctx.globalAlpha = 0.4;
+      ctx.strokeStyle = '#ffff00';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(x, y, this.radius + 12, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Электрические разряды вокруг игрока
+      ctx.strokeStyle = '#ffff00';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI * 2 + this.animationTime * 8;
+        const startX = x + Math.cos(angle) * (this.radius + 8);
+        const startY = y + Math.sin(angle) * (this.radius + 8);
+        const endX = x + Math.cos(angle) * (this.radius + 20);
+        const endY = y + Math.sin(angle) * (this.radius + 20);
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
     }
     
     ctx.restore();

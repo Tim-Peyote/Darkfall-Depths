@@ -3709,3 +3709,86 @@ html, body {
 .active-buff.critical::after {
   background: var(--color-error);
 }
+
+.active-debuff {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-xs);
+  color: var(--color-cream-50);
+  backdrop-filter: blur(4px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.active-debuff:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+}
+
+.active-debuff::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: var(--progress-width, 100%);
+  background: linear-gradient(to right, var(--color-error), #ff6666);
+  transition: width 0.1s ease;
+  z-index: 1;
+}
+
+.active-debuff.warning::after {
+  background: linear-gradient(to right, #ff6666, var(--color-error));
+}
+
+.active-debuff.critical::after {
+  background: var(--color-error);
+}
+
+/* Стили для новых предметов */
+.inventory-slot.new-item {
+  animation: newItemPulse 2s ease-in-out infinite;
+  position: relative;
+}
+
+.inventory-slot.new-item::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border: 2px solid #f1c40f;
+  border-radius: 6px;
+  animation: newItemGlow 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes newItemPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(241, 196, 15, 0);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.6);
+  }
+}
+
+@keyframes newItemGlow {
+  0%, 100% {
+    opacity: 0.3;
+    border-color: #f1c40f;
+  }
+  50% {
+    opacity: 1;
+    border-color: #f39c12;
+  }
+}

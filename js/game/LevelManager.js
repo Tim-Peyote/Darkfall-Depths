@@ -351,17 +351,71 @@ export class LevelManager {
         let enemyType;
         let availableEnemies = ENEMY_TYPES.filter(enemy => !enemy.levelRequirement || gameState.level >= enemy.levelRequirement);
         
-        if (gameState.level >= 10) {
-          // На высоких уровнях больше шанс на сильных врагов
-          const strongEnemyChance = Math.min(0.3 + (gameState.level - 10) * 0.05, 0.7);
-          if (Math.random() < strongEnemyChance) {
-            // Выбираем из сильных врагов (последние 3 типа)
-            const strongEnemies = availableEnemies.slice(-3);
-            enemyType = strongEnemies[Utils.random(0, strongEnemies.length - 1)].type;
-          } else {
-            enemyType = availableEnemies[Utils.random(0, availableEnemies.length - 1)].type;
-          }
+        // Система весов для разных типов врагов на разных уровнях
+        let enemyWeights = [];
+        
+        if (gameState.level >= 15) {
+          // На очень высоких уровнях - все враги доступны
+          enemyWeights = availableEnemies.map(enemy => ({
+            enemy: enemy,
+            weight: enemy.type === 'Demon Lord' || enemy.type === 'Ancient Guardian' ? 15 : 10
+          }));
+        } else if (gameState.level >= 10) {
+          // На высоких уровнях - больше сильных врагов
+          enemyWeights = availableEnemies.map(enemy => {
+            if (enemy.type === 'Demon Lord' || enemy.type === 'Ancient Guardian') {
+              return { enemy: enemy, weight: 20 };
+            } else if (enemy.type === 'Void Wraith' || enemy.type === 'Crystal Golem') {
+              return { enemy: enemy, weight: 15 };
+            } else if (enemy.type === 'Frost Mage' || enemy.type === 'Poison Spitter' || enemy.type === 'Stun Warrior') {
+              return { enemy: enemy, weight: 12 };
+            } else if (enemy.type === 'Skeleton Archer') {
+              return { enemy: enemy, weight: 8 };
+            } else {
+              return { enemy: enemy, weight: 5 };
+            }
+          });
+        } else if (gameState.level >= 6) {
+          // На средних уровнях - появляются новые типы
+          enemyWeights = availableEnemies.map(enemy => {
+            if (enemy.type === 'Void Wraith' || enemy.type === 'Crystal Golem') {
+              return { enemy: enemy, weight: 8 };
+            } else if (enemy.type === 'Frost Mage' || enemy.type === 'Poison Spitter' || enemy.type === 'Stun Warrior') {
+              return { enemy: enemy, weight: 12 };
+            } else if (enemy.type === 'Skeleton Archer') {
+              return { enemy: enemy, weight: 10 };
+            } else {
+              return { enemy: enemy, weight: 8 };
+            }
+          });
+        } else if (gameState.level >= 3) {
+          // На низких уровнях - базовые враги + лучники
+          enemyWeights = availableEnemies.map(enemy => {
+            if (enemy.type === 'Skeleton Archer') {
+              return { enemy: enemy, weight: 8 };
+            } else {
+              return { enemy: enemy, weight: 10 };
+            }
+          });
         } else {
+          // На самых низких уровнях - только базовые враги
+          enemyWeights = availableEnemies.map(enemy => ({ enemy: enemy, weight: 10 }));
+        }
+        
+        // Выбираем врага на основе весов
+        const totalWeight = enemyWeights.reduce((sum, item) => sum + item.weight, 0);
+        let randomWeight = Math.random() * totalWeight;
+        
+        for (const item of enemyWeights) {
+          randomWeight -= item.weight;
+          if (randomWeight <= 0) {
+            enemyType = item.enemy.type;
+            break;
+          }
+        }
+        
+        // Fallback на случай ошибки
+        if (!enemyType) {
           enemyType = availableEnemies[Utils.random(0, availableEnemies.length - 1)].type;
         }
         

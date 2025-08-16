@@ -138,10 +138,10 @@ export class MapGenerator {
       const maxSplit = y + height - ROOM_MIN_SIZE - 2;
       if (minSplit < maxSplit) {
         const split = Utils.random(minSplit, maxSplit);
-        return {
-          left: { x, y, width, height: split - y },
-          right: { x, y: split + 1, width, height: y + height - split - 1 }
-        };
+      return {
+        left: { x, y, width, height: split - y },
+        right: { x, y: split + 1, width, height: y + height - split - 1 }
+      };
       }
     } else if (!horizontal && width >= minSplitSize) {
       // Вертикальное разделение
@@ -149,10 +149,10 @@ export class MapGenerator {
       const maxSplit = x + width - ROOM_MIN_SIZE - 2;
       if (minSplit < maxSplit) {
         const split = Utils.random(minSplit, maxSplit);
-        return {
-          left: { x, y, width: split - x, height },
-          right: { x: split + 1, y, width: x + width - split - 1, height }
-        };
+      return {
+        left: { x, y, width: split - x, height },
+        right: { x: split + 1, y, width: x + width - split - 1, height }
+      };
       }
     }
     
