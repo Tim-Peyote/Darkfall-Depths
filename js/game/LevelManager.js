@@ -633,7 +633,7 @@ export class LevelManager {
     }
     
     if (enemiesKilledEl) {
-      enemiesKilledEl.textContent = gameState.stats.currentSessionKills;
+      enemiesKilledEl.textContent = gameState.stats.enemiesKilled + gameState.stats.currentSessionKills;
     }
     
     // Воспроизводим звук завершения уровня (асинхронно)
@@ -672,7 +672,7 @@ export class LevelManager {
     if (gameState.selectedCharacter) {
       RecordsManager.saveTopRecord(gameState.selectedCharacter, {
         level: gameState.level,
-        enemiesKilled: gameState.stats.currentSessionKills,
+        enemiesKilled: gameState.stats.enemiesKilled + gameState.stats.currentSessionKills,
         totalPlayTime: gameState.gameTime
       });
     }
@@ -687,7 +687,7 @@ export class LevelManager {
     }
     
     if (finalKillsEl) {
-      finalKillsEl.textContent = gameState.stats.currentSessionKills;
+      finalKillsEl.textContent = gameState.stats.enemiesKilled + gameState.stats.currentSessionKills;
     }
     
     if (finalTimeEl) {
