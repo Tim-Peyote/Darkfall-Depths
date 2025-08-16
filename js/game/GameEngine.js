@@ -431,16 +431,22 @@ export class GameEngine {
   }
   
   static renderMapWebGL() {
+    if (!gameState.map) return;
+    
+    // Используем динамический размер карты
+    const mapWidth = gameState.map[0] ? gameState.map[0].length : MAP_SIZE;
+    const mapHeight = gameState.map.length;
+    
     const startX = Math.floor(gameState.camera.x / TILE_SIZE) - 1;
     const endX = Math.floor((gameState.camera.x + canvas.width / DPR) / TILE_SIZE) + 1;
     const startY = Math.floor(gameState.camera.y / TILE_SIZE) - 1;
     const endY = Math.floor((gameState.camera.y + canvas.height / DPR) / TILE_SIZE) + 1;
     
-    // Ограничиваем область рендеринга
+    // Ограничиваем область рендеринга динамическим размером карты
     const clampedStartX = Math.max(0, startX);
-    const clampedEndX = Math.min(MAP_SIZE, endX);
+    const clampedEndX = Math.min(mapWidth, endX);
     const clampedStartY = Math.max(0, startY);
-    const clampedEndY = Math.min(MAP_SIZE, endY);
+    const clampedEndY = Math.min(mapHeight, endY);
     
     // Для WebGL используем стилизованные тайлы через Canvas 2D
     // так как WebGL не поддерживает сложные градиенты и текстуры
@@ -466,16 +472,22 @@ export class GameEngine {
   }
   
   static renderMapCanvas2D() {
+    if (!gameState.map) return;
+    
+    // Используем динамический размер карты
+    const mapWidth = gameState.map[0] ? gameState.map[0].length : MAP_SIZE;
+    const mapHeight = gameState.map.length;
+    
     const startX = Math.floor(gameState.camera.x / TILE_SIZE) - 1;
     const endX = Math.floor((gameState.camera.x + canvas.width / DPR) / TILE_SIZE) + 1;
     const startY = Math.floor(gameState.camera.y / TILE_SIZE) - 1;
     const endY = Math.floor((gameState.camera.y + canvas.height / DPR) / TILE_SIZE) + 1;
     
-    // Ограничиваем область рендеринга
+    // Ограничиваем область рендеринга динамическим размером карты
     const clampedStartX = Math.max(0, startX);
-    const clampedEndX = Math.min(MAP_SIZE, endX);
+    const clampedEndX = Math.min(mapWidth, endX);
     const clampedStartY = Math.max(0, startY);
-    const clampedEndY = Math.min(MAP_SIZE, endY);
+    const clampedEndY = Math.min(mapHeight, endY);
     
     // Рендерим карту через Canvas 2D
     for (let y = clampedStartY; y < clampedEndY; y++) {
@@ -704,16 +716,21 @@ export class GameEngine {
       return;
     }
     
+    // Используем динамический размер карты
+    const mapWidth = gameState.map[0] ? gameState.map[0].length : MAP_SIZE;
+    const mapHeight = gameState.map.length;
+    const maxMapSize = Math.max(mapWidth, mapHeight);
+    
     const minimapSize = this.getMinimapSize();
-    const scale = minimapSize / MAP_SIZE;
+    const scale = minimapSize / maxMapSize;
     
     minimapCtx.fillStyle = '#000';
     minimapCtx.fillRect(0, 0, minimapSize, minimapSize);
     
     // Отрисовка карты только в исследованных областях
     // Источники света НЕ влияют на исследование карты - только игрок может раскрывать туман войны
-    for (let y = 0; y < MAP_SIZE; y++) {
-      for (let x = 0; x < MAP_SIZE; x++) {
+    for (let y = 0; y < mapHeight; y++) {
+      for (let x = 0; x < mapWidth; x++) {
         // Показываем только исследованные области (раскрытые игроком)
         if (gameState.fogOfWar && gameState.fogOfWar.explored[y][x]) {
           if (gameState.map[y][x] === 1) {
@@ -1306,17 +1323,22 @@ export class GameEngine {
     const screenWidth = canvas.width / DPR;
     const screenHeight = canvas.height / DPR;
     
-    // Буфер для объектов за краем экрана (чтобы они плавно появлялись/исчезали)
-    const buffer = 100;
+    // Базовый буфер для объектов за краем экрана
+    const baseBuffer = 100;
     
-    // Проверяем, находится ли объект в области видимости с учетом буфера
+    // Динамический буфер, который растет вместе с картой
+    // Карта растет на 1.5 тайла за уровень, игровая зона должна расти пропорционально
+    const level = gameState.level || 1;
+    const dynamicBuffer = baseBuffer + (level - 1) * 24; // 24 пикселя = 0.75 тайла за уровень
+    
+    // Проверяем, находится ли объект в области видимости с учетом динамического буфера
     const entityScreenX = entity.x - gameState.camera.x;
     const entityScreenY = entity.y - gameState.camera.y;
     
-    return entityScreenX >= -buffer &&
-           entityScreenX <= screenWidth + buffer &&
-           entityScreenY >= -buffer &&
-           entityScreenY <= screenHeight + buffer;
+    return entityScreenX >= -dynamicBuffer &&
+           entityScreenX <= screenWidth + dynamicBuffer &&
+           entityScreenY >= -dynamicBuffer &&
+           entityScreenY <= screenHeight + dynamicBuffer;
   }
   
   // Инициализация кеша тайлов для максимального ускорения рендеринга

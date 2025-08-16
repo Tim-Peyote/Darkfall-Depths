@@ -96,6 +96,13 @@ export class MapGenerator {
     // Соединяем комнаты коридорами
     this.connectRooms(map, rooms);
     
+    // Проверяем связность лабиринта
+    const isConnected = this.checkLabyrinthConnectivity(map, rooms);
+    if (!isConnected) {
+      Logger.warn('Labyrinth is not fully connected, adding additional corridors');
+      this.ensureConnectivity(map, rooms);
+    }
+    
     // Генерируем источники света
     const lightSources = this.generateLightSources(map, rooms, level);
     
@@ -105,24 +112,48 @@ export class MapGenerator {
   static splitPartition(partition) {
     const { x, y, width, height } = partition;
     
-    if (width < ROOM_MIN_SIZE * 2 + 3 && height < ROOM_MIN_SIZE * 2 + 3) {
+    // Минимальный размер для разделения - должен поместиться две комнаты + коридор
+    const minSplitSize = ROOM_MIN_SIZE * 2 + 3;
+    
+    if (width < minSplitSize && height < minSplitSize) {
       return null;
     }
     
-    const horizontal = Utils.random(0, 1) === 0;
+    // Улучшенная логика разделения - учитываем пропорции раздела
+    let horizontal = false;
     
-    if (horizontal && height >= ROOM_MIN_SIZE * 2 + 3) {
-      const split = Utils.random(y + ROOM_MIN_SIZE + 1, y + height - ROOM_MIN_SIZE - 2);
-      return {
-        left: { x, y, width, height: split - y },
-        right: { x, y: split + 1, width, height: y + height - split - 1 }
-      };
-    } else if (!horizontal && width >= ROOM_MIN_SIZE * 2 + 3) {
-      const split = Utils.random(x + ROOM_MIN_SIZE + 1, x + width - ROOM_MIN_SIZE - 2);
-      return {
-        left: { x, y, width: split - x, height },
-        right: { x: split + 1, y, width: x + width - split - 1, height }
-      };
+    // Если одна сторона значительно больше другой, выбираем её для разделения
+    if (width > height * 1.5) {
+      horizontal = false; // Вертикальное разделение
+    } else if (height > width * 1.5) {
+      horizontal = true; // Горизонтальное разделение
+    } else {
+      // Если стороны примерно равны, выбираем случайно
+      horizontal = Utils.random(0, 1) === 0;
+    }
+    
+    if (horizontal && height >= minSplitSize) {
+      // Горизонтальное разделение
+      const minSplit = y + ROOM_MIN_SIZE + 1;
+      const maxSplit = y + height - ROOM_MIN_SIZE - 2;
+      if (minSplit < maxSplit) {
+        const split = Utils.random(minSplit, maxSplit);
+        return {
+          left: { x, y, width, height: split - y },
+          right: { x, y: split + 1, width, height: y + height - split - 1 }
+        };
+      }
+    } else if (!horizontal && width >= minSplitSize) {
+      // Вертикальное разделение
+      const minSplit = x + ROOM_MIN_SIZE + 1;
+      const maxSplit = x + width - ROOM_MIN_SIZE - 2;
+      if (minSplit < maxSplit) {
+        const split = Utils.random(minSplit, maxSplit);
+        return {
+          left: { x, y, width: split - x, height },
+          right: { x: split + 1, y, width: x + width - split - 1, height }
+        };
+      }
     }
     
     return null;
@@ -131,13 +162,12 @@ export class MapGenerator {
   static createRoomInPartition(partition, level, mapSize) {
     const { x, y, width, height } = partition;
     
-    // Увеличиваем размер комнат с уровнем (более агрессивная прогрессия)
-    const roomSizeMultiplier = 1 + (level - 1) * 0.08; // Возвращаю оригинальное значение 8%
-    const dynamicMinSize = Math.floor(ROOM_MIN_SIZE * roomSizeMultiplier);
-    const dynamicMaxSize = Math.floor(ROOM_MAX_SIZE * roomSizeMultiplier);
+    // Размер комнат НЕ растет с уровнем - лабиринт усложняется количеством комнат, а не их размером
+    const dynamicMinSize = ROOM_MIN_SIZE;
+    const dynamicMaxSize = ROOM_MAX_SIZE;
     
-    // Убираем ограничение на максимальный размер комнаты, но учитываем границы раздела
-    const maxRoomWidth = Math.min(dynamicMaxSize, width - 2); // Уменьшил отступ с 4 до 2
+    // Ограничиваем размер комнаты границами раздела
+    const maxRoomWidth = Math.min(dynamicMaxSize, width - 2);
     const maxRoomHeight = Math.min(dynamicMaxSize, height - 2);
     
     // Проверяем, что минимальный размер не превышает доступное пространство
@@ -193,9 +223,192 @@ export class MapGenerator {
   }
   
   static connectRooms(map, rooms) {
+    if (rooms.length <= 1) return;
+    
+    // Создаем минимальное остовное дерево для гарантии связности
+    // Используем алгоритм Прима для соединения всех комнат
+    const connected = new Set([0]); // Начинаем с первой комнаты
+    const unconnected = new Set();
     for (let i = 1; i < rooms.length; i++) {
-      this.createCorridor(map, rooms[i - 1], rooms[i]);
+      unconnected.add(i);
     }
+    
+    // Соединяем все комнаты
+    while (unconnected.size > 0) {
+      let minDistance = Infinity;
+      let bestConnected = -1;
+      let bestUnconnected = -1;
+      
+      // Находим ближайшую пару комнат
+      for (const connectedRoom of connected) {
+        for (const unconnectedRoom of unconnected) {
+          const distance = this.getRoomDistance(rooms[connectedRoom], rooms[unconnectedRoom]);
+          if (distance < minDistance) {
+            minDistance = distance;
+            bestConnected = connectedRoom;
+            bestUnconnected = unconnectedRoom;
+          }
+        }
+      }
+      
+      // Соединяем найденную пару
+      if (bestConnected !== -1 && bestUnconnected !== -1) {
+        this.createCorridor(map, rooms[bestConnected], rooms[bestUnconnected]);
+        connected.add(bestUnconnected);
+        unconnected.delete(bestUnconnected);
+      } else {
+        break; // Защита от бесконечного цикла
+      }
+    }
+    
+    // Добавляем несколько дополнительных соединений для создания альтернативных путей
+    // Это делает лабиринт более интересным, но не нарушает связность
+    const extraConnections = Math.min(rooms.length / 3, 5); // Не более 5 дополнительных соединений
+    for (let i = 0; i < extraConnections; i++) {
+      const room1 = Utils.random(0, rooms.length - 1);
+      const room2 = Utils.random(0, rooms.length - 1);
+      if (room1 !== room2) {
+        this.createCorridor(map, rooms[room1], rooms[room2]);
+      }
+    }
+  }
+  
+  // Вспомогательная функция для вычисления расстояния между комнатами
+  static getRoomDistance(room1, room2) {
+    const dx = room1.centerX - room2.centerX;
+    const dy = room1.centerY - room2.centerY;
+    return Math.sqrt(dx * dx + dy * dy);
+  }
+  
+  // Проверка связности лабиринта с помощью BFS
+  static checkLabyrinthConnectivity(map, rooms) {
+    if (rooms.length <= 1) return true;
+    
+    // Начинаем с первой комнаты
+    const visited = new Set();
+    const queue = [0]; // Индекс первой комнаты
+    visited.add(0);
+    
+    while (queue.length > 0) {
+      const currentRoomIndex = queue.shift();
+      const currentRoom = rooms[currentRoomIndex];
+      
+      // Проверяем все остальные комнаты
+      for (let i = 0; i < rooms.length; i++) {
+        if (visited.has(i)) continue;
+        
+        const otherRoom = rooms[i];
+        // Проверяем, есть ли путь между комнатами
+        if (this.hasPathBetweenRooms(map, currentRoom, otherRoom)) {
+          visited.add(i);
+          queue.push(i);
+        }
+      }
+    }
+    
+    // Если посетили все комнаты, лабиринт связен
+    return visited.size === rooms.length;
+  }
+  
+  // Проверка наличия пути между двумя комнатами
+  static hasPathBetweenRooms(map, room1, room2) {
+    // Простая проверка: если есть прямой коридор между центрами комнат
+    const path = this.findPath(map, room1.centerX, room1.centerY, room2.centerX, room2.centerY);
+    return path !== null;
+  }
+  
+  // Поиск пути между двумя точками с помощью BFS
+  static findPath(map, startX, startY, endX, endY) {
+    const visited = new Set();
+    const queue = [{ x: startX, y: startY, path: [] }];
+    
+    while (queue.length > 0) {
+      const current = queue.shift();
+      const key = `${current.x},${current.y}`;
+      
+      if (visited.has(key)) continue;
+      visited.add(key);
+      
+      if (current.x === endX && current.y === endY) {
+        return current.path;
+      }
+      
+      // Проверяем соседние тайлы
+      const directions = [
+        { dx: 1, dy: 0 }, { dx: -1, dy: 0 },
+        { dx: 0, dy: 1 }, { dx: 0, dy: -1 }
+      ];
+      
+      for (const dir of directions) {
+        const newX = current.x + dir.dx;
+        const newY = current.y + dir.dy;
+        
+        if (newX >= 0 && newX < map[0].length && 
+            newY >= 0 && newY < map.length && 
+            map[newY][newX] === 0) { // 0 = пол/коридор
+          queue.push({
+            x: newX,
+            y: newY,
+            path: [...current.path, { x: newX, y: newY }]
+          });
+        }
+      }
+    }
+    
+    return null; // Путь не найден
+  }
+  
+  // Обеспечение связности лабиринта
+  static ensureConnectivity(map, rooms) {
+    if (rooms.length <= 1) return;
+    
+    // Находим изолированные компоненты
+    const components = this.findConnectedComponents(map, rooms);
+    
+    if (components.length > 1) {
+      // Соединяем компоненты
+      for (let i = 1; i < components.length; i++) {
+        const room1 = components[0][0]; // Комната из первого компонента
+        const room2 = components[i][0]; // Комната из i-го компонента
+        this.createCorridor(map, room1, room2);
+      }
+    }
+  }
+  
+  // Поиск связных компонентов
+  static findConnectedComponents(map, rooms) {
+    const visited = new Set();
+    const components = [];
+    
+    for (let i = 0; i < rooms.length; i++) {
+      if (visited.has(i)) continue;
+      
+      // Начинаем новый компонент
+      const component = [];
+      const queue = [i];
+      visited.add(i);
+      
+      while (queue.length > 0) {
+        const currentIndex = queue.shift();
+        const currentRoom = rooms[currentIndex];
+        component.push(currentRoom);
+        
+        // Проверяем все остальные комнаты
+        for (let j = 0; j < rooms.length; j++) {
+          if (visited.has(j)) continue;
+          
+          const otherRoom = rooms[j];
+          if (this.hasPathBetweenRooms(map, currentRoom, otherRoom)) {
+            visited.add(j);
+            queue.push(j);
+          }
+        }
+      }
+      
+      components.push(component);
+    }
+    
+    return components;
   }
   
   static createCorridor(map, room1, room2) {

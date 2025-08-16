@@ -6,16 +6,26 @@ import { gameState } from '../core/GameState.js';
 export class WebGLFogOfWar {
   constructor(webglRenderer) {
     this.webglRenderer = webglRenderer;
-    this.explored = Array.from({ length: MAP_SIZE }, () => Array(MAP_SIZE).fill(false));
-    this.visible = Array.from({ length: MAP_SIZE }, () => Array(MAP_SIZE).fill(false));
+    
+    // Получаем динамический размер карты
+    const mapWidth = gameState.map && gameState.map[0] ? gameState.map[0].length : MAP_SIZE;
+    const mapHeight = gameState.map ? gameState.map.length : MAP_SIZE;
+    const maxMapSize = Math.max(mapWidth, mapHeight);
+    
+    this.mapWidth = mapWidth;
+    this.mapHeight = mapHeight;
+    this.maxMapSize = maxMapSize;
+    
+    this.explored = Array.from({ length: mapHeight }, () => Array(mapWidth).fill(false));
+    this.visible = Array.from({ length: mapHeight }, () => Array(mapWidth).fill(false));
     
     // Создаем отдельный canvas для тумана войны
     this.canvas = document.createElement('canvas');
     this.ctx = this.canvas.getContext('2d');
     
     // Устанавливаем размер canvas равным размеру игрового поля
-    this.canvas.width = MAP_SIZE * TILE_SIZE;
-    this.canvas.height = MAP_SIZE * TILE_SIZE;
+    this.canvas.width = maxMapSize * TILE_SIZE;
+    this.canvas.height = maxMapSize * TILE_SIZE;
     
     // Кэш для оптимизации
     this.lastPlayerX = 0;
@@ -128,7 +138,7 @@ export class WebGLFogOfWar {
       const y = Math.floor(startY + sin * distance);
       
       // Проверяем границы карты
-      if (x < 0 || x >= MAP_SIZE || y < 0 || y >= MAP_SIZE) {
+      if (x < 0 || x >= this.mapWidth || y < 0 || y >= this.mapHeight) {
         break;
       }
       
@@ -160,8 +170,8 @@ export class WebGLFogOfWar {
     });
     
     // Отрисовываем исследованные области (полупрозрачные)
-    for (let y = 0; y < MAP_SIZE; y++) {
-      for (let x = 0; x < MAP_SIZE; x++) {
+    for (let y = 0; y < this.mapHeight; y++) {
+      for (let x = 0; x < this.mapWidth; x++) {
         if (this.explored[y][x] && !this.visible[y][x]) {
           const screenX = x * TILE_SIZE - cameraX;
           const screenY = y * TILE_SIZE - cameraY;
@@ -181,8 +191,8 @@ export class WebGLFogOfWar {
     const playerX = Math.floor(gameState.player.x / TILE_SIZE);
     const playerY = Math.floor(gameState.player.y / TILE_SIZE);
     
-    for (let y = 0; y < MAP_SIZE; y++) {
-      for (let x = 0; x < MAP_SIZE; x++) {
+    for (let y = 0; y < this.mapHeight; y++) {
+      for (let x = 0; x < this.mapWidth; x++) {
         if (this.visible[y][x]) {
           const screenX = x * TILE_SIZE - cameraX;
           const screenY = y * TILE_SIZE - cameraY;
@@ -217,8 +227,8 @@ export class WebGLFogOfWar {
     
     // Отрисовываем исследованные области (полупрозрачные)
     this.ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
-    for (let y = 0; y < MAP_SIZE; y++) {
-      for (let x = 0; x < MAP_SIZE; x++) {
+    for (let y = 0; y < this.mapHeight; y++) {
+      for (let x = 0; x < this.mapWidth; x++) {
         if (this.explored[y][x] && !this.visible[y][x]) {
           this.ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
         }
@@ -229,8 +239,8 @@ export class WebGLFogOfWar {
     const playerX = Math.floor(gameState.player.x / TILE_SIZE);
     const playerY = Math.floor(gameState.player.y / TILE_SIZE);
     
-    for (let y = 0; y < MAP_SIZE; y++) {
-      for (let x = 0; x < MAP_SIZE; x++) {
+    for (let y = 0; y < this.mapHeight; y++) {
+      for (let x = 0; x < this.mapWidth; x++) {
         if (this.visible[y][x]) {
           const distance = Math.hypot(x - playerX, y - playerY);
           const maxDistance = 12;

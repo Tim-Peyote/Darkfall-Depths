@@ -23,6 +23,10 @@ export class Entity {
   checkCollisionWithWalls(newX, newY) {
     if (!gameState.map) return true;
     
+    // Используем динамический размер карты вместо фиксированной константы
+    const mapWidth = gameState.map[0] ? gameState.map[0].length : MAP_SIZE;
+    const mapHeight = gameState.map.length;
+    
     const margin = this.radius;
     const points = [
       { x: newX - margin, y: newY - margin },
@@ -39,7 +43,7 @@ export class Entity {
       const tileX = Math.floor(point.x / TILE_SIZE);
       const tileY = Math.floor(point.y / TILE_SIZE);
       
-      if (tileX < 0 || tileX >= MAP_SIZE || tileY < 0 || tileY >= MAP_SIZE ||
+      if (tileX < 0 || tileX >= mapWidth || tileY < 0 || tileY >= mapHeight ||
           gameState.map[tileY][tileX] === 1) {
         return true;
       }
