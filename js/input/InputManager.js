@@ -19,9 +19,21 @@ export class InputManager {
       }
     }, { passive: false });
     
-    // Предотвращение скролла на мобильных
+    // Предотвращение скролла на мобильных только в игровом экране
     document.addEventListener('touchmove', (e) => {
-      e.preventDefault();
+      // Разрешаем прокрутку в инвентаре
+      const inventoryOverlay = document.getElementById('inventoryOverlay');
+      if (inventoryOverlay && !inventoryOverlay.classList.contains('hidden')) {
+        // Проверяем, что touch событие происходит внутри инвентаря или его элементов
+        if (inventoryOverlay.contains(e.target)) {
+          return; // Разрешаем прокрутку в инвентаре
+        }
+      }
+      
+      // Блокируем скролл только в игровом экране
+      if (gameState.screen === 'game') {
+        e.preventDefault();
+      }
     }, { passive: false });
     
     // Клавиатура - только для игры

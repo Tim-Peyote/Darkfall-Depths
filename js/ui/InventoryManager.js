@@ -68,10 +68,14 @@ export class InventoryManager {
     // Добавляем обработчики для обеспечения правильной прокрутки
     let isScrolling = false;
     let scrollStartY = 0;
+    let scrollStartX = 0;
+    let touchStartTime = 0;
     
     inventoryBody.addEventListener('touchstart', (e) => {
       if (e.touches.length === 1) {
         scrollStartY = e.touches[0].clientY;
+        scrollStartX = e.touches[0].clientX;
+        touchStartTime = Date.now();
         isScrolling = false;
       }
     }, { passive: true });
@@ -79,16 +83,32 @@ export class InventoryManager {
     inventoryBody.addEventListener('touchmove', (e) => {
       if (e.touches.length === 1) {
         const currentY = e.touches[0].clientY;
+        const currentX = e.touches[0].clientX;
         const deltaY = Math.abs(currentY - scrollStartY);
+        const deltaX = Math.abs(currentX - scrollStartX);
         
-        // Если это вертикальный свайп больше 10px, считаем это прокруткой
-        if (deltaY > 10) {
+        // Если это преимущественно вертикальный свайп больше 10px, считаем это прокруткой
+        if (deltaY > 10 && deltaY > deltaX) {
           isScrolling = true;
+          // Разрешаем нативную прокрутку
+          e.stopPropagation();
         }
       }
     }, { passive: true });
     
     inventoryBody.addEventListener('touchend', (e) => {
+      const touchDuration = Date.now() - touchStartTime;
+      
+      // Если это был быстрый тап (менее 200ms) и не было прокрутки, это клик
+      if (touchDuration < 200 && !isScrolling) {
+        // Обрабатываем как клик
+        const target = e.target.closest('.inventory-slot');
+        if (target) {
+          // Симулируем клик для слота
+          target.click();
+        }
+      }
+      
       // Сбрасываем флаг прокрутки
       isScrolling = false;
     }, { passive: true });
@@ -100,6 +120,9 @@ export class InventoryManager {
         return false;
       }
     });
+    
+    // Улучшаем touch-action для лучшей прокрутки
+    inventoryBody.style.touchAction = 'pan-y';
   }
   
   static toggleInventory() {
@@ -124,6 +147,9 @@ export class InventoryManager {
       // Убеждаемся, что кнопки работают
       this.setupCloseButton();
       this.setupSortButton();
+      
+      // Настраиваем мобильную прокрутку при открытии инвентаря
+      this.setupMobileScrollHandlers();
       
       // Воспроизводим звук открытия инвентаря (асинхронно)
       (async () => {

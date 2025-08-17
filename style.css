@@ -2995,6 +2995,10 @@ select.form-control {
     /* Улучшаем прокрутку на мобильных */
     scroll-behavior: smooth;
     touch-action: pan-y;
+    /* Предотвращаем горизонтальную прокрутку */
+    overflow-x: hidden;
+    /* Улучшаем производительность прокрутки */
+    will-change: scroll-position;
   }
   
   .inventory-section {
@@ -3028,6 +3032,11 @@ select.form-control {
     font-size: var(--font-size-lg);
     /* Улучшаем touch взаимодействие */
     touch-action: manipulation;
+    /* Предотвращаем двойной тап для зума */
+    -webkit-tap-highlight-color: transparent;
+    /* Улучшаем отзывчивость */
+    user-select: none;
+    -webkit-user-select: none;
   }
   
   .close-btn {
