@@ -4,6 +4,7 @@ import { gameState } from './GameState.js';
 
 export class BuffManager {
   static addBuff(type, value, duration, icon = null) {
+    
     const buff = {
       type,
       value,
@@ -20,6 +21,7 @@ export class BuffManager {
   }
   
   static addDebuff(type, value, duration, icon = null) {
+    
     const debuff = {
       type,
       value,
@@ -302,6 +304,12 @@ export class BuffManager {
   static applyConsumableEffects(item) {
     if (!item || !item.bonus) return;
     
+    // Тайная банка - применяем случайные эффекты
+    if (item.bonus.mystery && item.bonus.effects) {
+      this.applyMysteryEffects(item.bonus.effects);
+      return;
+    }
+    
     // Зелье очищения - снимает все негативные эффекты
     if (item.bonus.purify) {
       this.clearAllDebuffs();
@@ -366,5 +374,80 @@ export class BuffManager {
   static updateRegeneration(dt) {
     // Обновляем регенерацию в основном цикле update, поэтому здесь ничего не делаем
     // Регенерация обрабатывается в update() через общий механизм баффов
+  }
+  
+  static applyMysteryEffects(effects) {
+    if (!gameState.player) return;
+    
+    // Создаем эффект тайной банки
+    (async () => {
+      const { Utils } = await import('../utils/Utils.js');
+      const { createParticle } = await import('../effects/Particle.js');
+      
+      // Создаем частицы тайной банки
+      for (let i = 0; i < 12; i++) {
+        createParticle(
+          gameState.player.x + Utils.random(-25, 25),
+          gameState.player.y + Utils.random(-25, 25),
+          Utils.randomFloat(-50, 50),
+          Utils.randomFloat(-50, 50),
+          '#8e44ad', // Фиолетовый цвет для тайной банки
+          1.5,
+          4
+        );
+      }
+    })();
+    
+    // Применяем каждый эффект
+    effects.forEach(effect => {
+      if (effect.isPositive) {
+        // Положительные эффекты
+        switch (effect.type) {
+          case 'heal':
+            gameState.player.hp = Math.min(gameState.player.hp + effect.value, gameState.player.maxHp);
+            break;
+          case 'maxHp':
+            gameState.player.maxHp += effect.value;
+            gameState.player.hp += effect.value; // Восстанавливаем здоровье при увеличении максимума
+            break;
+          case 'damage':
+          case 'defense':
+          case 'moveSpeed':
+          case 'crit':
+          case 'attackSpeed':
+          case 'attackRadius':
+          case 'fire':
+          case 'ice':
+            if (effect.duration) {
+              this.addBuff(effect.type, effect.value, effect.duration);
+            } else {
+              // Мгновенные эффекты
+              this.applyBuffToPlayer({ type: effect.type, value: effect.value });
+            }
+            break;
+        }
+      } else {
+        // Отрицательные эффекты
+        switch (effect.type) {
+          case 'poison':
+          case 'burn':
+          case 'freeze':
+          case 'slow':
+          case 'weakness':
+          case 'vulnerability':
+            this.addDebuff(effect.type, effect.value, effect.duration);
+            break;
+          case 'damage_debuff':
+            this.addDebuff('weakness', effect.value, effect.duration, '💀');
+            break;
+          case 'defense_debuff':
+            this.addDebuff('vulnerability', effect.value, effect.duration, '🛡️');
+            break;
+          case 'moveSpeed_debuff':
+            this.addDebuff('slow', effect.value, effect.duration, '🐌');
+            break;
+        }
+      }
+    });
   }
 }

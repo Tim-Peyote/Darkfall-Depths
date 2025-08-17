@@ -10,7 +10,7 @@ import { LevelManager } from './LevelManager.js';
 import { Player } from '../entities/Player.js';
 import { Enemy } from '../entities/Enemy.js';
 import { MapGenerator } from '../map/MapGenerator.js';
-import { TILE_SIZE, MAP_SIZE, ENEMY_TYPES, FRAME_TIME } from '../config/constants.js';
+import { TILE_SIZE, MAP_SIZE, ENEMY_TYPES, FRAME_TIME, CHARACTERS } from '../config/constants.js';
 import { PerformanceMonitor } from '../core/PerformanceMonitor.js';
 import { WebGLRenderer } from '../core/WebGLRenderer.js';
 import { WebGLFogOfWar } from '../map/WebGLFogOfWar.js';
@@ -114,17 +114,35 @@ export class GameEngine {
       gameState.inventory.equipment = new Array(9).fill(null); // 9 слотов экипировки
       gameState.inventory.backpack = new Array(42).fill(null); // 42 слота рюкзака
       gameState.inventory.quickSlots = [null, null, null];
-      
-      // Очищаем все временные баффы при новом запуске
-      (async () => {
-        const { BuffManager } = await import('../core/BuffManager.js');
-        BuffManager.clearAllBuffs();
-        BuffManager.clearAllDebuffs();
-      })();
+    } else {
+      // При рестарте (после смерти) сбрасываем selectedCharacter к исходным значениям
+      gameState.isRestart = true;
+      gameState.isLevelTransition = false; // Это НЕ переход на следующий уровень
+      if (gameState.selectedCharacter) {
+        const originalChar = CHARACTERS.find(char => char.id === gameState.selectedCharacter.id);
+        if (originalChar) {
+          gameState.selectedCharacter = { ...originalChar };
+        }
+      }
     }
+    
+    // ВСЕГДА очищаем все временные баффы при запуске игры (новой или респауне)
+    (async () => {
+      const { BuffManager } = await import('../core/BuffManager.js');
+      BuffManager.clearAllBuffs();
+      BuffManager.clearAllDebuffs();
+    })();
     
     gameState.gameRunning = true;
     gameState.isPaused = false;
+    
+    // Останавливаем любую текущую музыку и запускаем музыку уровня
+    (async () => {
+      const { audioManager } = await import('../audio/AudioManager.js');
+      audioManager.stopMusic(); // Останавливаем любую текущую музыку (включая levelComplete)
+      audioManager.stopLevelComplete(); // Принудительно останавливаем levelComplete
+      audioManager.playMusic('stage1'); // Запускаем музыку уровня
+    })();
     
     await LevelManager.generateLevel();
     
@@ -954,6 +972,12 @@ export class GameEngine {
           case 'combo_potion':
             borderColor = '#ffff66'; // Желтый для комбо
             break;
+          case 'mystery_potion':
+            borderColor = '#8e44ad'; // Фиолетовый для тайной банки
+            break;
+          case 'purification_potion':
+            borderColor = '#f39c12'; // Золотой для очищения
+            break;
           default:
             borderColor = '#ff6666';
         }
@@ -1212,6 +1236,8 @@ export class GameEngine {
     const activeBuffs = gameState.buffs.active;
     const activeDebuffs = gameState.debuffs.active;
     
+
+    
     // Очищаем контейнер
     buffsContainer.innerHTML = '';
     
@@ -1406,6 +1432,8 @@ export class GameEngine {
       case 'defense_potion': icon = '🛡️'; break;
       case 'regen_potion': icon = '💚'; break;
       case 'combo_potion': icon = '✨'; break;
+      case 'mystery_potion': icon = '❓'; break;
+      case 'purification_potion': icon = '✨'; break;
     }
     potionIcon.textContent = icon;
   }

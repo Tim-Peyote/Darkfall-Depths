@@ -199,11 +199,7 @@ export class AudioManager {
   }
 
   playMusic(trackName, loop = true) {
-    console.log(`🎵 Attempting to play music: ${trackName}`);
-    console.log(`🎵 Music loaded: ${this.isMusicLoaded}, Audio enabled: ${gameState.audio.enabled}`);
-    
     if (!this.isMusicLoaded || !gameState.audio.enabled) {
-      console.log('🎵 Music not loaded or disabled');
       return;
     }
     
@@ -221,13 +217,11 @@ export class AudioManager {
 
     // Проверяем, не играет ли уже нужный трек
     if (this.currentMusic === track && !this.currentMusic.paused) {
-      console.log('🎵 Track already playing:', trackName);
       return; // Уже играет нужный трек
     }
 
     // Останавливаем текущую музыку
     if (this.currentMusic && this.currentMusic !== track) {
-      console.log('🎵 Stopping current music');
       this.currentMusic.pause();
       this.currentMusic.currentTime = 0;
     }
@@ -253,6 +247,14 @@ export class AudioManager {
       this.currentMusic.currentTime = 0;
       this.currentMusic = null;
     }
+    
+    // Принудительно останавливаем все треки музыки
+    Object.values(this.musicTracks).forEach(track => {
+      if (track && !track.paused) {
+        track.pause();
+        track.currentTime = 0;
+      }
+    });
   }
 
   updateMusicVolume() {
@@ -372,6 +374,27 @@ export class AudioManager {
   playLevelComplete() {
     this.stopMusic();
     this.playMusic('levelComplete', false);
+    
+    // Принудительно устанавливаем loop = false для levelComplete
+    if (this.currentMusic) {
+      this.currentMusic.loop = false;
+      
+      // Добавляем обработчик для автоматической остановки
+      this.currentMusic.addEventListener('ended', () => {
+        this.currentMusic.pause();
+        this.currentMusic.currentTime = 0;
+        this.currentMusic = null;
+      }, { once: true });
+    }
+  }
+
+  stopLevelComplete() {
+    // Принудительно останавливаем музыку levelComplete
+    if (this.currentMusic && this.currentMusic.src && this.currentMusic.src.includes('Level_Complite')) {
+      this.currentMusic.pause();
+      this.currentMusic.currentTime = 0;
+      this.currentMusic = null;
+    }
   }
 
   createBeep(frequency, duration, volume = 0.1) {

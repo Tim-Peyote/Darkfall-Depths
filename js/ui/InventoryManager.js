@@ -416,6 +416,16 @@ export class InventoryManager {
             color = '#ffff66';
             name = 'Комбо зелье';
             break;
+          case 'mystery_potion':
+            icon = '❓';
+            color = '#8e44ad';
+            name = 'Тайная банка';
+            break;
+          case 'purification_potion':
+            icon = '✨';
+            color = '#f39c12';
+            name = 'Зелье очищения';
+            break;
         }
         
         // Подсчитываем количество зелий этого типа в рюкзаке
@@ -700,8 +710,30 @@ export class InventoryManager {
         // Если первый слот свободен, используем его
         targetSlot = 4;
       } else if (gameState.inventory.equipment[4] && gameState.inventory.equipment[6]) {
-        // Если оба слота заняты, заменяем первый
-        targetSlot = 4;
+        // Если оба слота заняты, заменяем самое слабое украшение
+        const accessory1 = gameState.inventory.equipment[4];
+        const accessory2 = gameState.inventory.equipment[6];
+        const accessory1Value = (accessory1.damage || 0) + (accessory1.defense || 0) + (accessory1.crit || 0);
+        const accessory2Value = (accessory2.damage || 0) + (accessory2.defense || 0) + (accessory2.crit || 0);
+        targetSlot = accessory1Value <= accessory2Value ? 4 : 6;
+      }
+    }
+    
+    // Специальная логика для оружия - если первый слот занят, используем второй
+    if (item.type === 'weapon' || item.slot === 'weapon') {
+      if (gameState.inventory.equipment[1] && !gameState.inventory.equipment[3]) {
+        // Если первый слот оружия занят, а второй свободен, используем второй
+        targetSlot = 3;
+      } else if (!gameState.inventory.equipment[1]) {
+        // Если первый слот свободен, используем его
+        targetSlot = 1;
+      } else if (gameState.inventory.equipment[1] && gameState.inventory.equipment[3]) {
+        // Если оба слота заняты, заменяем самое слабое оружие
+        const weapon1 = gameState.inventory.equipment[1];
+        const weapon2 = gameState.inventory.equipment[3];
+        const weapon1Value = (weapon1.damage || 0) + (weapon1.crit || 0);
+        const weapon2Value = (weapon2.damage || 0) + (weapon2.crit || 0);
+        targetSlot = weapon1Value <= weapon2Value ? 1 : 3;
       }
     }
     

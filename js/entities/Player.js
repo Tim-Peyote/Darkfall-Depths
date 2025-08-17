@@ -18,6 +18,10 @@ export class Player extends Entity {
     this.baseAttackSpeed = this.attackSpeed;
     this.baseDamage = this.damage;
     this.baseDefense = this.defense;
+    this.baseMaxHp = this.maxHp;
+    
+    // Устанавливаем полное здоровье при создании игрока (ПОСЛЕ Object.assign)
+    this.hp = this.maxHp;
     
     this.attackCooldown = 0;
     this.dashCooldown = 0;

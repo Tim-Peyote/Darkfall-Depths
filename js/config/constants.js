@@ -275,7 +275,8 @@ export const BASE_ITEMS = [
   { base: 'defense_potion', name: 'Зелье защиты', class: null, icon: '🛡️', color: '#95a5a6', type: 'consumable', slot: 'consumable' },
   { base: 'regen_potion', name: 'Зелье регенерации', class: null, icon: '💚', color: '#27ae60', type: 'consumable', slot: 'consumable' },
   { base: 'combo_potion', name: 'Комплексное зелье', class: null, icon: '🌈', color: '#9b59b6', type: 'consumable', slot: 'consumable' },
-  { base: 'purification_potion', name: 'Зелье очищения', class: null, icon: '✨', color: '#f39c12', type: 'consumable', slot: 'consumable' }
+  { base: 'purification_potion', name: 'Зелье очищения', class: null, icon: '✨', color: '#f39c12', type: 'consumable', slot: 'consumable' },
+  { base: 'mystery_potion', name: 'Тайная банка', class: null, icon: '❓', color: '#8e44ad', type: 'consumable', slot: 'consumable' }
 ];
 
 export const AFFIXES = [
@@ -413,6 +414,11 @@ export function generateRandomItem(level, playerClass) {
         bonus.purify = true; // Флаг для очищения
         bonus.heal = 20 + Math.floor(level * 1.5); // Небольшое восстановление здоровья
         break;
+      case 'mystery_potion':
+        // Тайная банка - случайные эффекты (положительные и/или отрицательные)
+        bonus.mystery = true; // Флаг для тайной банки
+        bonus.effects = generateMysteryEffects(level);
+        break;
       default:
         bonus.heal = 40 + Math.floor(level * 2.5);
     }
@@ -462,6 +468,9 @@ export function generateRandomItem(level, playerClass) {
         if (bonus.moveSpeed) effects.push(`Скорость +${bonus.moveSpeed}`);
         description = `${effects.join(', ')} на ${bonus.duration}с`;
         break;
+      case 'mystery_potion':
+        description = 'Содержит неизвестные эффекты. Может быть как полезным, так и вредным...';
+        break;
       default:
         description = `Восстанавливает ${bonus.heal} здоровья`;
     }
@@ -504,4 +513,66 @@ export function generateRandomItem(level, playerClass) {
     description,
     attackRadius
   };
+}
+
+// Функция генерации случайных эффектов для тайной банки
+export function generateMysteryEffects(level) {
+  const effects = [];
+  
+  // Определяем количество эффектов (1-3)
+  const effectCount = Math.floor(Math.random() * 3) + 1;
+  
+  // Список возможных положительных эффектов
+  const positiveEffects = [
+    { type: 'heal', value: 30 + Math.floor(level * 2), description: 'Восстановление здоровья' },
+    { type: 'damage', value: 10 + Math.floor(level * 1.5), duration: 15, description: 'Увеличение урона' },
+    { type: 'defense', value: 8 + Math.floor(level * 1.2), duration: 12, description: 'Увеличение защиты' },
+    { type: 'moveSpeed', value: 15 + Math.floor(level * 1), duration: 10, description: 'Увеличение скорости' },
+    { type: 'crit', value: 8 + Math.floor(level * 0.8), duration: 18, description: 'Увеличение критического удара' },
+    { type: 'attackSpeed', value: 12 + Math.floor(level * 1), duration: 14, description: 'Увеличение скорости атаки' },
+    { type: 'maxHp', value: 20 + Math.floor(level * 2), description: 'Увеличение максимального здоровья' },
+    { type: 'fire', value: 8 + Math.floor(level * 1), duration: 20, description: 'Огненный урон' },
+    { type: 'ice', value: 6 + Math.floor(level * 0.8), duration: 16, description: 'Ледяной урон' }
+  ];
+  
+  // Список возможных отрицательных эффектов
+  const negativeEffects = [
+    { type: 'poison', value: 5 + Math.floor(level * 0.5), duration: 8, description: 'Отравление' },
+    { type: 'burn', value: 4 + Math.floor(level * 0.4), duration: 6, description: 'Ожог' },
+    { type: 'freeze', value: 0, duration: 3, description: 'Заморозка' },
+    { type: 'slow', value: 0, duration: 5, description: 'Замедление' },
+    { type: 'weakness', value: 0, duration: 7, description: 'Слабость' },
+    { type: 'vulnerability', value: 5 + Math.floor(level * 0.3), duration: 10, description: 'Уязвимость' },
+    { type: 'damage_debuff', value: 8 + Math.floor(level * 1), duration: 12, description: 'Снижение урона' },
+    { type: 'defense_debuff', value: 6 + Math.floor(level * 0.8), duration: 10, description: 'Снижение защиты' },
+    { type: 'moveSpeed_debuff', value: 10 + Math.floor(level * 0.6), duration: 8, description: 'Снижение скорости' }
+  ];
+  
+  // Выбираем случайные эффекты
+  const usedTypes = new Set();
+  
+  for (let i = 0; i < effectCount; i++) {
+    // 60% шанс положительного эффекта, 40% отрицательного
+    const isPositive = Math.random() < 0.6;
+    const effectPool = isPositive ? positiveEffects : negativeEffects;
+    
+    let effect;
+    let attempts = 0;
+    
+    // Пытаемся найти эффект, который еще не использован
+    do {
+      effect = effectPool[Math.floor(Math.random() * effectPool.length)];
+      attempts++;
+    } while (usedTypes.has(effect.type) && attempts < 10);
+    
+    if (!usedTypes.has(effect.type)) {
+      usedTypes.add(effect.type);
+      effects.push({
+        ...effect,
+        isPositive
+      });
+    }
+  }
+  
+  return effects;
 } // Принудительное обновление кеша - Fri Aug  1 19:38:58 MSK 2025

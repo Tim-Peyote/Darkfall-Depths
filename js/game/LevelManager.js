@@ -175,44 +175,23 @@ export class LevelManager {
         
         if (this.isValidSafeSpawnPosition(tileX, tileY, gameState.map)) {
           
-          // Сохраняем состояние игрока если он уже существует
-          let savedPlayer = null;
-          if (gameState.player) {
-            savedPlayer = {
-              hp: gameState.player.hp,
-              maxHp: gameState.player.maxHp,
-              damage: gameState.player.damage,
-              moveSpeed: gameState.player.moveSpeed,
-              attackSpeed: gameState.player.attackSpeed,
-              attackRadius: gameState.player.attackRadius,
-              crit: gameState.player.crit,
-              defense: gameState.player.defense,
-              hasDash: gameState.player.hasDash,
-              hasShield: gameState.player.hasShield,
-              hasBlast: gameState.player.hasBlast
-            };
+          // При переходе на следующий уровень НЕ создаем нового игрока, а перемещаем существующего
+          if (gameState.player && gameState.isLevelTransition) {
+            // Просто перемещаем игрока на новую позицию
+            gameState.player.x = playerX;
+            gameState.player.y = playerY;
+          } else {
+            // При рестарте или новом запуске создаем нового игрока
+            gameState.player = new Player(
+              { ...gameState.selectedCharacter },
+              playerX,
+              playerY
+            );
           }
           
-          gameState.player = new Player(
-            { ...gameState.selectedCharacter },
-            playerX,
-            playerY
-          );
-          
-          // Восстанавливаем состояние игрока если он был сохранен
-          if (savedPlayer) {
-            gameState.player.hp = savedPlayer.hp;
-            gameState.player.maxHp = savedPlayer.maxHp;
-            gameState.player.damage = savedPlayer.damage;
-            gameState.player.moveSpeed = savedPlayer.moveSpeed;
-            gameState.player.attackSpeed = savedPlayer.attackSpeed;
-            gameState.player.attackRadius = savedPlayer.attackRadius;
-            gameState.player.crit = savedPlayer.crit;
-            gameState.player.defense = savedPlayer.defense;
-            gameState.player.hasDash = savedPlayer.hasDash;
-            gameState.player.hasShield = savedPlayer.hasShield;
-            gameState.player.hasBlast = savedPlayer.hasBlast;
-          }
+          // Сбрасываем флаги
+          gameState.isRestart = false;
+          gameState.isLevelTransition = false;
           
           // Центрируем камеру на игроке (сразу в правильную позицию)
           const canvasWidth = canvas ? canvas.width / DPR : 800; // fallback
@@ -573,6 +552,10 @@ export class LevelManager {
   static async nextLevel() {
     console.log(`🎮 nextLevel called - current level: ${gameState.level}`);
     
+    // Устанавливаем флаг перехода на следующий уровень
+    gameState.isLevelTransition = true;
+    gameState.isRestart = false;
+    
     // Увеличиваем уровень ДО генерации нового уровня
     gameState.level++;
     console.log(`🎮 nextLevel - level increased to: ${gameState.level}`);
@@ -720,6 +703,13 @@ export class LevelManager {
     gameState.particles = [];
     gameState.map = null;
     gameState.fogOfWar = null;
+    
+    // Очищаем все баффы и дебафы при завершении игры
+    (async () => {
+      const { BuffManager } = await import('../core/BuffManager.js');
+      BuffManager.clearAllBuffs();
+      BuffManager.clearAllDebuffs();
+    })();
   }
 
   static restartGame() {
@@ -734,7 +724,7 @@ export class LevelManager {
   }
 
   static findSafeSpawnPosition(room, map) {
-    console.log('🔍 Looking for safe spawn position in room:', room);
+
     
     // Ищем свободное место в комнате с СТРОГИМИ проверками границ
     for (let y = room.y; y < room.y + room.height; y++) {
@@ -750,6 +740,21 @@ export class LevelManager {
             playerX,
             playerY
           );
+          
+          // Новый персонаж уже создан с дефолтными значениями, только сбрасываем флаги состояния
+          if (gameState.player) {
+            gameState.player.isDead = false;
+            gameState.player.isInvulnerable = false;
+            gameState.player.invulnerabilityTime = 0;
+            gameState.player.isStunned = false;
+            gameState.player.isShieldActive = false;
+            gameState.player.shieldTime = 0;
+            gameState.player.attackCooldown = 0;
+            gameState.player.dashCooldown = 0;
+            gameState.player.shieldCooldown = 0;
+            gameState.player.blastCooldown = 0;
+            gameState.player.attackAnimation = 0;
+          }
           
           // Центрируем камеру на игроке
           const canvasWidth = canvas ? canvas.width / DPR : 800;
@@ -779,6 +784,21 @@ export class LevelManager {
         playerX,
         playerY
       );
+      
+      // Новый персонаж уже создан с дефолтными значениями, только сбрасываем флаги состояния
+      if (gameState.player) {
+        gameState.player.isDead = false;
+        gameState.player.isInvulnerable = false;
+        gameState.player.invulnerabilityTime = 0;
+        gameState.player.isStunned = false;
+        gameState.player.isShieldActive = false;
+        gameState.player.shieldTime = 0;
+        gameState.player.attackCooldown = 0;
+        gameState.player.dashCooldown = 0;
+        gameState.player.shieldCooldown = 0;
+        gameState.player.blastCooldown = 0;
+        gameState.player.attackAnimation = 0;
+      }
     } else {
       console.error('❌ Room center is not safe either!');
       return;

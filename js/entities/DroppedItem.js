@@ -166,6 +166,7 @@ export class DroppedItem extends Entity {
           case 'defense_potion':
           case 'regen_potion':
           case 'combo_potion':
+          case 'mystery_potion':
             // Зелья всегда должны отрисовываться правильно
             DroppedItem.renderConsumable(ctx, x, y, rotation, this.radius, this.itemData, this.sparkleTime);
             break;
@@ -215,6 +216,8 @@ export class DroppedItem extends Entity {
                 case 'defense_potion': symbol = '🛡️'; break;
                 case 'regen_potion': symbol = '💚'; break;
                 case 'combo_potion': symbol = '🌈'; break;
+                case 'mystery_potion': symbol = '❓'; break;
+                case 'purification_potion': symbol = '✨'; break;
                 default: symbol = '📦'; break;
               }
             }
@@ -824,6 +827,112 @@ export class DroppedItem extends Entity {
           ctx.fillRect(-1, -1, 2, 2);
           ctx.restore();
         }
+        break;
+        
+      case 'purification_potion':
+        // Зелье очищения - золотое с эффектом очищения
+        // Основная бутылка
+        ctx.fillStyle = '#f39c12';
+        ctx.fillRect(-size * 0.25, -size * 0.35, size * 0.5, size * 0.7);
+        
+        // Обводка зелья
+        ctx.strokeStyle = '#e67e22';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(-size * 0.25, -size * 0.35, size * 0.5, size * 0.7);
+        
+        // Горлышко
+        ctx.fillStyle = '#8b4513';
+        ctx.fillRect(-size * 0.12, -size * 0.45, size * 0.24, size * 0.1);
+        
+        // Эффект очищения - анимированные звездочки
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 5; i++) {
+          const starX = -size * 0.2 + (i * size * 0.1);
+          const starY = -size * 0.2 + (i * size * 0.05) + Math.sin(sparkleTime + i) * size * 0.05;
+          const starSize = size * 0.03 + Math.sin(sparkleTime * 2 + i) * size * 0.01;
+          
+          // Рисуем звездочку
+          ctx.beginPath();
+          ctx.moveTo(starX, starY - starSize);
+          ctx.lineTo(starX + starSize * 0.3, starY - starSize * 0.3);
+          ctx.lineTo(starX + starSize, starY);
+          ctx.lineTo(starX + starSize * 0.3, starY + starSize * 0.3);
+          ctx.lineTo(starX, starY + starSize);
+          ctx.lineTo(starX - starSize * 0.3, starY + starSize * 0.3);
+          ctx.lineTo(starX - starSize, starY);
+          ctx.lineTo(starX - starSize * 0.3, starY - starSize * 0.3);
+          ctx.closePath();
+          ctx.fill();
+        }
+        
+        // Дополнительный эффект - анимированное сияние
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.6 + Math.sin(sparkleTime * 2) * 0.3;
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.arc(0, 0, size * (0.3 + i * 0.1 + Math.sin(sparkleTime + i) * 0.05), 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1.0;
+        break;
+        
+      case 'mystery_potion':
+        // Тайная банка - загадочная с анимированными эффектами
+        // Основная бутылка с градиентом
+        const mysteryGradient = ctx.createLinearGradient(-size * 0.25, -size * 0.35, size * 0.25, size * 0.35);
+        mysteryGradient.addColorStop(0, '#8e44ad');
+        mysteryGradient.addColorStop(0.3, '#9b59b6');
+        mysteryGradient.addColorStop(0.7, '#6c3483');
+        mysteryGradient.addColorStop(1, '#4a235a');
+        ctx.fillStyle = mysteryGradient;
+        ctx.fillRect(-size * 0.25, -size * 0.35, size * 0.5, size * 0.7);
+        
+        // Обводка зелья
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(-size * 0.25, -size * 0.35, size * 0.5, size * 0.7);
+        
+        // Горлышко
+        ctx.fillStyle = '#8b4513';
+        ctx.fillRect(-size * 0.12, -size * 0.45, size * 0.24, size * 0.1);
+        
+        // Загадочные символы внутри с анимацией
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = 0.8 + Math.sin(sparkleTime * 2) * 0.2;
+        for (let i = 0; i < 3; i++) {
+          const symbolX = -size * 0.15 + (i * size * 0.15);
+          const symbolY = -size * 0.1 + (i * size * 0.1) + Math.sin(sparkleTime + i) * size * 0.05;
+          const symbolSize = size * 0.08 + Math.sin(sparkleTime * 3 + i) * size * 0.02;
+          
+          // Рисуем загадочные символы (вопросительные знаки)
+          ctx.font = `${symbolSize}px Arial`;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('?', symbolX, symbolY);
+        }
+        ctx.globalAlpha = 1.0;
+        
+        // Эффект таинственности - мерцающие частицы
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = 0.6 + Math.sin(sparkleTime * 4) * 0.4;
+        for (let i = 0; i < 6; i++) {
+          const particleX = Math.cos(sparkleTime + i * Math.PI / 3) * size * 0.2;
+          const particleY = Math.sin(sparkleTime * 2 + i * Math.PI / 3) * size * 0.2;
+          const particleSize = size * 0.02 + Math.sin(sparkleTime * 5 + i) * size * 0.01;
+          
+          ctx.beginPath();
+          ctx.arc(particleX, particleY, particleSize, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1.0;
+        
+        // Дополнительная обводка для эффекта с анимацией
+        ctx.strokeStyle = '#e74c3c';
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.5 + Math.sin(sparkleTime * 3) * 0.3;
+        ctx.strokeRect(-size * 0.3, -size * 0.4, size * 0.6, size * 0.8);
+        ctx.globalAlpha = 1.0;
         break;
         
       default:
