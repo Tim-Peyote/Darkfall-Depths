@@ -488,6 +488,180 @@ export class Player extends Entity {
     const healthPercent = this.hp / this.maxHp;
     ctx.fillRect(barX + 1, barY + 1, (barWidth - 2) * healthPercent, barHeight - 2);
   }
+
+  // Проверка активных дебаффов
+  hasDebuff(type) {
+    return gameState.debuffs.active.some(debuff => debuff.type === type);
+  }
+
+  // Получение активных дебаффов
+  getActiveDebuffs() {
+    return gameState.debuffs.active;
+  }
+
+  // Визуализация дебаффов на игроке
+  renderDebuffs(ctx, x, y) {
+    const activeDebuffs = this.getActiveDebuffs();
+    if (activeDebuffs.length === 0) return;
+
+    // Стан - электрические разряды
+    if (this.hasDebuff('stun')) {
+      ctx.globalAlpha = 0.4;
+      ctx.strokeStyle = '#ffff00';
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(x, y, this.radius + 12, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Электрические разряды вокруг игрока
+      ctx.strokeStyle = '#ffff00';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 6; i++) {
+        const angle = (i / 6) * Math.PI * 2 + this.animationTime * 8;
+        const startX = x + Math.cos(angle) * (this.radius + 8);
+        const startY = y + Math.sin(angle) * (this.radius + 8);
+        const endX = x + Math.cos(angle) * (this.radius + 20);
+        const endY = y + Math.sin(angle) * (this.radius + 20);
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
+    }
+
+    // Ожог - огненная аура
+    if (this.hasDebuff('burn')) {
+      ctx.globalAlpha = 0.3;
+      ctx.strokeStyle = '#e67e22';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x, y, this.radius + 10, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Огненные частицы
+      ctx.strokeStyle = '#e67e22';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 4; i++) {
+        const angle = (i / 4) * Math.PI * 2 + this.animationTime * 6;
+        const startX = x + Math.cos(angle) * (this.radius + 5);
+        const startY = y + Math.sin(angle) * (this.radius + 5);
+        const endX = x + Math.cos(angle) * (this.radius + 15);
+        const endY = y + Math.sin(angle) * (this.radius + 15);
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
+    }
+
+    // Заморозка - ледяная аура
+    if (this.hasDebuff('freeze')) {
+      ctx.globalAlpha = 0.4;
+      ctx.strokeStyle = '#3498db';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x, y, this.radius + 10, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Ледяные кристаллы
+      ctx.strokeStyle = '#3498db';
+      ctx.lineWidth = 2;
+      for (let i = 0; i < 5; i++) {
+        const angle = (i / 5) * Math.PI * 2 + this.animationTime * 4;
+        const startX = x + Math.cos(angle) * (this.radius + 6);
+        const startY = y + Math.sin(angle) * (this.radius + 6);
+        const endX = x + Math.cos(angle) * (this.radius + 16);
+        const endY = y + Math.sin(angle) * (this.radius + 16);
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
+    }
+
+    // Яд - зеленая аура
+    if (this.hasDebuff('poison')) {
+      ctx.globalAlpha = 0.3;
+      ctx.strokeStyle = '#27ae60';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x, y, this.radius + 10, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Токсичные частицы
+      ctx.strokeStyle = '#27ae60';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 3; i++) {
+        const angle = (i / 3) * Math.PI * 2 + this.animationTime * 5;
+        const startX = x + Math.cos(angle) * (this.radius + 5);
+        const startY = y + Math.sin(angle) * (this.radius + 5);
+        const endX = x + Math.cos(angle) * (this.radius + 12);
+        const endY = y + Math.sin(angle) * (this.radius + 12);
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
+    }
+
+    // Замедление - фиолетовая аура
+    if (this.hasDebuff('slow')) {
+      ctx.globalAlpha = 0.3;
+      ctx.strokeStyle = '#9b59b6';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x, y, this.radius + 10, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Замедляющие частицы
+      ctx.strokeStyle = '#9b59b6';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 3; i++) {
+        const angle = (i / 3) * Math.PI * 2 + this.animationTime * 3;
+        const startX = x + Math.cos(angle) * (this.radius + 5);
+        const startY = y + Math.sin(angle) * (this.radius + 5);
+        const endX = x + Math.cos(angle) * (this.radius + 12);
+        const endY = y + Math.sin(angle) * (this.radius + 12);
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
+    }
+
+    // Слабость - красная аура
+    if (this.hasDebuff('weakness')) {
+      ctx.globalAlpha = 0.3;
+      ctx.strokeStyle = '#e74c3c';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(x, y, this.radius + 10, 0, Math.PI * 2);
+      ctx.stroke();
+      
+      // Ослабляющие частицы
+      ctx.strokeStyle = '#e74c3c';
+      ctx.lineWidth = 1;
+      for (let i = 0; i < 3; i++) {
+        const angle = (i / 3) * Math.PI * 2 + this.animationTime * 4;
+        const startX = x + Math.cos(angle) * (this.radius + 5);
+        const startY = y + Math.sin(angle) * (this.radius + 5);
+        const endX = x + Math.cos(angle) * (this.radius + 12);
+        const endY = y + Math.sin(angle) * (this.radius + 12);
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(endX, endY);
+        ctx.stroke();
+      }
+    }
+
+    ctx.globalAlpha = 1.0;
+  }
   
 
   
@@ -538,31 +712,8 @@ export class Player extends Entity {
       ctx.stroke();
     }
     
-    // Визуализация стана
-    if (this.isStunned) {
-      ctx.globalAlpha = 0.4;
-      ctx.strokeStyle = '#ffff00';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.arc(x, y, this.radius + 12, 0, Math.PI * 2);
-      ctx.stroke();
-      
-      // Электрические разряды вокруг игрока
-      ctx.strokeStyle = '#ffff00';
-      ctx.lineWidth = 2;
-      for (let i = 0; i < 6; i++) {
-        const angle = (i / 6) * Math.PI * 2 + this.animationTime * 8;
-        const startX = x + Math.cos(angle) * (this.radius + 8);
-        const startY = y + Math.sin(angle) * (this.radius + 8);
-        const endX = x + Math.cos(angle) * (this.radius + 20);
-        const endY = y + Math.sin(angle) * (this.radius + 20);
-        
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(endX, endY);
-        ctx.stroke();
-      }
-    }
+    // Визуализация дебаффов
+    this.renderDebuffs(ctx, x, y);
     
     ctx.restore();
   }
