@@ -274,7 +274,8 @@ export const BASE_ITEMS = [
   { base: 'strength_potion', name: 'Зелье силы', class: null, icon: '💪', color: '#e67e22', type: 'consumable', slot: 'consumable' },
   { base: 'defense_potion', name: 'Зелье защиты', class: null, icon: '🛡️', color: '#95a5a6', type: 'consumable', slot: 'consumable' },
   { base: 'regen_potion', name: 'Зелье регенерации', class: null, icon: '💚', color: '#27ae60', type: 'consumable', slot: 'consumable' },
-  { base: 'combo_potion', name: 'Комплексное зелье', class: null, icon: '🌈', color: '#9b59b6', type: 'consumable', slot: 'consumable' }
+  { base: 'combo_potion', name: 'Комплексное зелье', class: null, icon: '🌈', color: '#9b59b6', type: 'consumable', slot: 'consumable' },
+  { base: 'purification_potion', name: 'Зелье очищения', class: null, icon: '✨', color: '#f39c12', type: 'consumable', slot: 'consumable' }
 ];
 
 export const AFFIXES = [
@@ -300,8 +301,21 @@ export const RARITIES = [
 export function generateRandomItem(level, playerClass) {
   // 1. Сначала выбираем базу с учётом класса
   let pool = BASE_ITEMS.filter(it => !it.class || it.class === playerClass);
-  // 5% шанс на "не свой" предмет (уменьшили с 10% до 5%)
-  if (Math.random() < 0.05) pool = BASE_ITEMS;
+  
+  // 5% шанс на "не свой" предмет
+  if (Math.random() < 0.05) {
+    pool = BASE_ITEMS;
+  }
+  
+  // 2. Применяем пониженный шанс для зелья очищения
+  const purificationPotion = pool.find(it => it.base === 'purification_potion');
+  if (purificationPotion) {
+    // 15% шанс что зелье очищения будет исключено из пула
+    if (Math.random() < 0.15) {
+      pool = pool.filter(it => it.base !== 'purification_potion');
+    }
+  }
+  
   const base = pool[Math.floor(Math.random() * pool.length)];
   
   // 2. Редкость
@@ -393,6 +407,11 @@ export function generateRandomItem(level, playerClass) {
         bonus.damage = 10 + Math.floor(level * 1.5);
         bonus.moveSpeed = 15 + Math.floor(level * 1);
         bonus.duration = 12; // 12 секунд
+        break;
+      case 'purification_potion':
+        // Зелье очищения - снимает все негативные эффекты
+        bonus.purify = true; // Флаг для очищения
+        bonus.heal = 20 + Math.floor(level * 1.5); // Небольшое восстановление здоровья
         break;
       default:
         bonus.heal = 40 + Math.floor(level * 2.5);

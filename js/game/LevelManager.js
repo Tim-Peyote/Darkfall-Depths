@@ -121,7 +121,7 @@ export class LevelManager {
       return;
     }
     
-    const { map, rooms, lightSources } = MapGenerator.generateDungeon();
+    const { map, rooms, lightSources, chests } = MapGenerator.generateDungeon();
     
     if (!rooms || rooms.length === 0) {
       console.error('❌ No rooms generated!');
@@ -136,6 +136,7 @@ export class LevelManager {
     gameState.map = map;
     gameState.rooms = rooms;
     gameState.lightSources = lightSources || [];
+    gameState.chests = chests || [];
     
     // Используем WebGL туман войны
     const { GameEngine } = await import('./GameEngine.js');
@@ -504,6 +505,27 @@ export class LevelManager {
       console.warn('Портал не был создан, потому что нет подходящей комнаты! rooms:', rooms);
     }
     
+    // Создание сундуков
+    if (gameState.chests && gameState.chests.length > 0) {
+      try {
+        const { Chest } = await import('../entities/Chest.js');
+        
+        gameState.chests.forEach((chestData, index) => {
+          const chest = new Chest(chestData.x, chestData.y, chestData.level);
+          
+          // Валидация спавна сундука
+          if (this.validateSpawnBounds(chest, 'Chest')) {
+            gameState.entities.push(chest);
+            console.log(`Сундук ${index + 1} создан на позиции: (${chestData.x}, ${chestData.y})`);
+          } else {
+            console.warn(`Сундук ${index + 1} не может быть создан - валидация границ не пройдена`);
+          }
+        });
+      } catch (e) {
+        console.error('Ошибка при создании сундуков:', e);
+      }
+    }
+    
     // Спавн предметов (улучшенная система прогрессии)
     const baseItemChance = 0.3;
     const levelBonus = Math.min(0.4, gameState.level * 0.03);
@@ -558,11 +580,11 @@ export class LevelManager {
     gameState.stats.levelsCompleted++;
     gameState.stats.bestLevel = Math.max(gameState.stats.bestLevel, gameState.level);
     
-    // Добавляем убитых врагов в текущей сессии к общему счетчику
-    gameState.stats.enemiesKilled += gameState.stats.currentSessionKills;
-    
-    // Сбрасываем счетчик убийств для нового уровня
-    gameState.stats.currentSessionKills = 0;
+    // Сбрасываем счетчик убийств для нового уровня (но сохраняем сессионные)
+    (async () => {
+      const { RecordsManager } = await import('../ui/RecordsManager.js');
+      RecordsManager.resetLevelKills();
+    })();
     
     // В рогалике НЕ восстанавливаем здоровье автоматически - игрок должен сам лечиться
     console.log(`🎮 Level ${gameState.level} - Player HP: ${gameState.player?.hp}/${gameState.player?.maxHp} (no auto-heal)`);
@@ -665,50 +687,29 @@ export class LevelManager {
     const { audioManager } = await import('../audio/AudioManager.js');
     audioManager.playGameOver();
     
-    // Добавляем убитых врагов текущей сессии к общему счетчику
-    gameState.stats.enemiesKilled += gameState.stats.currentSessionKills;
-    
-    // Сохраняем рекорды
+    // Сохраняем сессию в историю и показываем экран смерти
     const { RecordsManager } = await import('../ui/RecordsManager.js');
-    RecordsManager.saveRecords();
+    RecordsManager.showDeathScreen();
     
-    // Сохраняем топ-рекорд (используем только убитых в текущей сессии)
+    // Сохраняем топ-рекорд (используем данные сессии)
     if (gameState.selectedCharacter) {
       RecordsManager.saveTopRecord(gameState.selectedCharacter, {
         level: gameState.level,
-        enemiesKilled: gameState.stats.currentSessionKills, // Только текущая сессия
-        totalPlayTime: gameState.gameTime
+        currentSessionKills: gameState.stats.currentSessionKills,
+        currentSessionTime: gameState.stats.currentSessionTime
       });
     }
     
-    // Обновляем данные в экране окончания игры
-    const finalLevelEl = document.getElementById('finalLevel');
-    const finalKillsEl = document.getElementById('finalKills');
-    const finalTimeEl = document.getElementById('finalTime');
+    // Обновляем общую статистику
+    gameState.stats.enemiesKilled += gameState.stats.currentSessionKills;
+    gameState.stats.totalPlayTime += gameState.stats.currentSessionTime;
     
-    if (finalLevelEl) {
-      finalLevelEl.textContent = gameState.level;
+    if (gameState.level > gameState.stats.bestLevel) {
+      gameState.stats.bestLevel = gameState.level;
     }
     
-    if (finalKillsEl) {
-      finalKillsEl.textContent = gameState.stats.currentSessionKills; // Только текущая сессия
-    }
-    
-    if (finalTimeEl) {
-      finalTimeEl.textContent = Utils.formatTime(gameState.gameTime);
-    }
-    
-    // Показываем экран окончания игры
-    const overlay = document.getElementById('gameOverOverlay');
-    if (overlay) {
-      overlay.classList.remove('hidden');
-    }
-    
-    // Переинициализируем обработчики событий
-    (async () => {
-      const { SettingsManager } = await import('../ui/SettingsManager.js');
-      SettingsManager.reinitEventListeners();
-    })();
+    // Сохраняем рекорды
+    RecordsManager.saveRecords();
   }
 
   static endGame() {

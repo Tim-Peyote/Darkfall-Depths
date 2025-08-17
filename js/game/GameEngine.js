@@ -66,6 +66,14 @@ export class GameEngine {
     // Инициализация ввода
     InputManager.init();
     
+    // Инициализация менеджера сундуков
+    try {
+      const { ChestManager } = await import('../ui/ChestManager.js');
+      ChestManager.init();
+    } catch (e) {
+      console.warn('Ошибка инициализации ChestManager:', e);
+    }
+    
     // Загрузка настроек и рекордов
     SettingsManager.loadSettings();
     RecordsManager.loadRecords();
@@ -95,7 +103,12 @@ export class GameEngine {
       // Только при новом запуске игры сбрасываем прогрессию
       gameState.level = 1;
       gameState.gameTime = 0;
-      gameState.stats.currentSessionKills = 0;
+      
+      // Инициализируем новую сессию
+      (async () => {
+        const { RecordsManager } = await import('../ui/RecordsManager.js');
+        RecordsManager.startNewSession();
+      })();
       
       // Сброс инвентаря только при новом запуске
       gameState.inventory.equipment = new Array(9).fill(null); // 9 слотов экипировки

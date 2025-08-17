@@ -51,11 +51,15 @@ export const gameState = {
     }
   },
   stats: {
-    enemiesKilled: 0,
-    levelsCompleted: 0,
-    totalPlayTime: 0,
-    bestLevel: 0,
-    currentSessionKills: 0
+    enemiesKilled: 0, // Общее количество убитых врагов (все время)
+    levelsCompleted: 0, // Общее количество пройденных уровней
+    totalPlayTime: 0, // Общее время игры
+    bestLevel: 0, // Лучший достигнутый уровень
+    currentSessionKills: 0, // Убито врагов в текущей сессии
+    currentSessionTime: 0, // Время текущей сессии
+    currentSessionStartTime: 0, // Время начала текущей сессии
+    levelKills: 0, // Убито врагов на текущем уровне
+    sessionHistory: [] // История сессий
   },
   audio: {
     enabled: true,

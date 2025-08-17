@@ -2020,4 +2020,36 @@ export class InventoryManager {
     
     return true;
   }
+  
+  // Метод для добавления предмета в инвентарь игрока
+  static addItemToInventory(item) {
+    if (!gameState.inventory || !gameState.inventory.backpack) {
+      console.warn('Инвентарь не инициализирован');
+      return false;
+    }
+    
+    // Добавляем флаг нового предмета
+    item.isNew = true;
+    
+    // Ищем свободное место в рюкзаке
+    for (let i = 0; i < gameState.inventory.backpack.length; i++) {
+      if (!gameState.inventory.backpack[i]) {
+        gameState.inventory.backpack[i] = item;
+        
+        // Перерисовываем инвентарь
+        this.renderInventory();
+        
+        // Воспроизводим звук подбора предмета
+        if (gameState.audioManager) {
+          gameState.audioManager.playItemPickup();
+        }
+        
+        console.log(`Предмет "${item.name}" добавлен в инвентарь в слот ${i}`);
+        return true;
+      }
+    }
+    
+    console.warn('Рюкзак полон');
+    return false;
+  }
 } 

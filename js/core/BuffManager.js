@@ -302,11 +302,35 @@ export class BuffManager {
   static applyConsumableEffects(item) {
     if (!item || !item.bonus) return;
     
+    // Зелье очищения - снимает все негативные эффекты
+    if (item.bonus.purify) {
+      this.clearAllDebuffs();
+      
+      // Создаем эффект очищения
+      (async () => {
+        const { Utils } = await import('../utils/Utils.js');
+        const { createParticle } = await import('../effects/Particle.js');
+        
+        // Создаем частицы очищения
+        for (let i = 0; i < 8; i++) {
+          createParticle(
+            gameState.player.x + Utils.random(-20, 20),
+            gameState.player.y + Utils.random(-20, 20),
+            Utils.randomFloat(-40, 40),
+            Utils.randomFloat(-40, 40),
+            '#f39c12', // Золотой цвет для очищения
+            1.2,
+            3
+          );
+        }
+      })();
+    }
+    
     // Мгновенное восстановление здоровья
     if (item.bonus.heal && !item.bonus.regenDuration) {
-                      if (gameState.player) {
-                  gameState.player.hp = Math.min(gameState.player.hp + item.bonus.heal, gameState.player.maxHp);
-                }
+      if (gameState.player) {
+        gameState.player.hp = Math.min(gameState.player.hp + item.bonus.heal, gameState.player.maxHp);
+      }
     }
     
     // Временные баффы

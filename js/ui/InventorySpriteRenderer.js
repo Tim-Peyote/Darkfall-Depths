@@ -25,7 +25,7 @@ export class InventorySpriteRenderer {
       'sword', 'axe', 'shield', 'staff', 'wand', 'dagger', 'crossbow',
       'robe', 'leather', 'plate', 'helmet', 'hood', 'cap', 'gloves', 'belt', 'boots',
       'amulet', 'ring',
-      'potion', 'speed_potion', 'strength_potion', 'defense_potion', 'regen_potion', 'combo_potion'
+      'potion', 'speed_potion', 'strength_potion', 'defense_potion', 'regen_potion', 'combo_potion', 'purification_potion'
     ];
     
     baseItems.forEach(base => {
@@ -74,6 +74,7 @@ export class InventorySpriteRenderer {
       case 'defense_potion': color = '#95a5a6'; break;
       case 'regen_potion': color = '#27ae60'; break;
       case 'combo_potion': color = '#9b59b6'; break;
+      case 'purification_potion': color = '#f39c12'; break;
     }
     
     // Рисуем предмет в зависимости от типа
@@ -91,7 +92,7 @@ export class InventorySpriteRenderer {
       this.renderBootsSprite(ctx, centerX, centerY, itemSize, base, color);
     } else if (['amulet', 'ring'].includes(base)) {
       this.renderAccessorySprite(ctx, centerX, centerY, itemSize, base, color, rarity);
-    } else if (['potion', 'speed_potion', 'strength_potion', 'defense_potion', 'regen_potion', 'combo_potion'].includes(base)) {
+    } else if (['potion', 'speed_potion', 'strength_potion', 'defense_potion', 'regen_potion', 'combo_potion', 'purification_potion'].includes(base)) {
       this.renderConsumableSprite(ctx, centerX, centerY, itemSize, base, color);
     }
     
@@ -450,6 +451,54 @@ export class InventorySpriteRenderer {
           const particleY = y + Math.sin(i * Math.PI / 2) * size * 0.15;
           ctx.fillRect(particleX, particleY, 2, 2);
         }
+        break;
+        
+      case 'purification_potion':
+        // Зелье очищения - золотое с эффектом очищения
+        // Основная бутылка
+        ctx.fillStyle = '#f39c12';
+        ctx.fillRect(x - size * 0.25, y - size * 0.35, size * 0.5, size * 0.7);
+        
+        // Обводка зелья
+        ctx.strokeStyle = '#e67e22';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(x - size * 0.25, y - size * 0.35, size * 0.5, size * 0.7);
+        
+        // Горлышко
+        ctx.fillStyle = '#8b4513';
+        ctx.fillRect(x - size * 0.12, y - size * 0.45, size * 0.24, size * 0.1);
+        
+        // Эффект очищения - звездочки
+        ctx.fillStyle = '#ffffff';
+        for (let i = 0; i < 5; i++) {
+          const starX = x - size * 0.2 + (i * size * 0.1);
+          const starY = y - size * 0.2 + (i * size * 0.05);
+          const starSize = size * 0.03;
+          
+          // Рисуем звездочку
+          ctx.beginPath();
+          ctx.moveTo(starX, starY - starSize);
+          ctx.lineTo(starX + starSize * 0.3, starY - starSize * 0.3);
+          ctx.lineTo(starX + starSize, starY);
+          ctx.lineTo(starX + starSize * 0.3, starY + starSize * 0.3);
+          ctx.lineTo(starX, starY + starSize);
+          ctx.lineTo(starX - starSize * 0.3, starY + starSize * 0.3);
+          ctx.lineTo(starX - starSize, starY);
+          ctx.lineTo(starX - starSize * 0.3, starY - starSize * 0.3);
+          ctx.closePath();
+          ctx.fill();
+        }
+        
+        // Дополнительный эффект - сияние
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
+        ctx.globalAlpha = 0.6;
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.arc(x, y, size * (0.3 + i * 0.1), 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1.0;
         break;
     }
     

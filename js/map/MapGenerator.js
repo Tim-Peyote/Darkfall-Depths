@@ -106,7 +106,10 @@ export class MapGenerator {
     // Генерируем источники света
     const lightSources = this.generateLightSources(map, rooms, level);
     
-    return { map, rooms, lightSources };
+    // Генерируем сундуки
+    const chests = this.generateChests(map, rooms, level);
+    
+    return { map, rooms, lightSources, chests };
   }
   
   static splitPartition(partition) {
@@ -790,6 +793,86 @@ export class MapGenerator {
     }
     
     return corridor;
+  }
+  
+  // Генерация сундуков в комнатах
+  static generateChests(map, rooms, level) {
+    const chests = [];
+    
+    // Балансированная система: количество сундуков пропорционально размеру карты
+    // Цель: примерно 1 сундук на каждые 5-7 комнат
+    const targetChestsPerRoom = 0.15; // 15% шанс сундука в комнате (стабильно)
+    const minChests = Math.max(1, Math.floor(rooms.length * 0.1)); // Минимум 10% от комнат
+    const maxChests = Math.floor(rooms.length * 0.25); // Максимум 25% от комнат
+    
+    Logger.map(`Generating chests - Level: ${level}, Rooms: ${rooms.length}, Target: ${(targetChestsPerRoom * 100).toFixed(1)}%`);
+    
+    // Сначала определяем количество сундуков для этого уровня
+    const targetChestCount = Math.floor(rooms.length * targetChestsPerRoom);
+    const actualChestCount = Math.max(minChests, Math.min(maxChests, targetChestCount));
+    
+    // Выбираем случайные комнаты для сундуков (исключая первую)
+    const availableRooms = rooms.slice(1); // Исключаем первую комнату (спавн игрока)
+    const selectedRooms = this.selectRandomRooms(availableRooms, actualChestCount);
+    
+    selectedRooms.forEach((room, index) => {
+      // Ищем подходящую позицию в комнате
+      const chestPosition = this.findChestPosition(room, map);
+      
+      if (chestPosition) {
+        const chest = {
+          x: chestPosition.x * TILE_SIZE + TILE_SIZE / 2,
+          y: chestPosition.y * TILE_SIZE + TILE_SIZE / 2,
+          level: level
+        };
+        
+        chests.push(chest);
+        Logger.map(`Added chest ${index + 1}/${actualChestCount} in room at (${chestPosition.x}, ${chestPosition.y})`);
+      }
+    });
+    
+    Logger.map(`Generated ${chests.length} chests out of ${actualChestCount} target`);
+    return chests;
+  }
+  
+  // Выбор случайных комнат для сундуков
+  static selectRandomRooms(rooms, count) {
+    const shuffled = [...rooms].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, Math.min(count, rooms.length));
+  }
+  
+  // Поиск подходящей позиции для сундука в комнате
+  static findChestPosition(room, map) {
+    const attempts = 50; // Максимум попыток поиска позиции
+    
+    for (let attempt = 0; attempt < attempts; attempt++) {
+      // Случайная позиция в комнате с отступом от стен
+      const x = Utils.random(room.x + 2, room.x + room.width - 3);
+      const y = Utils.random(room.y + 2, room.y + room.height - 3);
+      
+      // Проверяем, что позиция свободна
+      if (map[y][x] === 0) {
+        // Проверяем, что рядом есть стена (для реалистичности)
+        const hasAdjacentWall = (
+          map[y-1][x] === 1 || map[y+1][x] === 1 ||
+          map[y][x-1] === 1 || map[y][x+1] === 1
+        );
+        
+        if (hasAdjacentWall) {
+          return { x, y };
+        }
+      }
+    }
+    
+    // Если не нашли подходящую позицию, возвращаем центр комнаты
+    const centerX = Math.floor(room.x + room.width / 2);
+    const centerY = Math.floor(room.y + room.height / 2);
+    
+    if (map[centerY][centerX] === 0) {
+      return { x: centerX, y: centerY };
+    }
+    
+    return null;
   }
   
 } 

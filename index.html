@@ -202,6 +202,14 @@
             <!-- Мобильная кнопка инвентаря - отдельно от других кнопок -->
             <button id="mobileInventoryBtn" class="ctrl-btn btn--inventory" title="Инвентарь">🎒</button>
         </div>
+        
+        <!-- Interaction Hint -->
+        <div id="interactionHint" class="interaction-hint hidden">
+            <div class="hint-content">
+                <span class="hint-key">E</span>
+                <span class="hint-text">Открыть сундук</span>
+            </div>
+        </div>
     </div>
 
     <!-- ЭКРАН РЕКОРДОВ -->
@@ -392,21 +400,8 @@
     </div>
 
     <!-- ОВЕРЛЕЙ ОКОНЧАНИЯ ИГРЫ -->
-    <div id="gameOverOverlay" class="game-over-overlay card hidden">
-        <div class="card__header">
-            <h4>💀 Игра окончена</h4>
-        </div>
-        <div class="card__body">
-            <p>Достигнут уровень: <span id="finalLevel">1</span></p>
-            <p>Убито врагов: <span id="finalKills">0</span></p>
-            <p>Время игры: <span id="finalTime">0м 0с</span></p>
-        </div>
-        <div class="card__footer">
-            <div class="flex gap-8">
-                <button id="restartBtn" class="btn btn--primary">🔄 Снова</button>
-                <button id="menuBtn" class="btn btn--outline">🏠 Меню</button>
-            </div>
-        </div>
+    <div id="deathScreen" class="game-over-overlay card hidden">
+        <!-- Содержимое будет заполнено динамически -->
     </div>
 
     <!-- Добавляем pop-up корзину для удаления предметов -->
@@ -419,6 +414,6 @@
       </div>
     </div>
 
-            <script type="module" src="js/main.js?v=82"></script>
+            <script type="module" src="js/main.js?v=86"></script>
 </body>
 </html>

@@ -105,6 +105,14 @@ export class InputManager {
         })();
       }
       
+      if (e.code === 'KeyE') {
+        e.preventDefault();
+        if (gameState.screen === 'game' && gameState.player && !gameState.isPaused) {
+          // Проверяем взаимодействие с сундуками
+          this.interactWithChests();
+        }
+      }
+      
       if (e.code === 'KeyQ' && !this.qPressed) {
         e.preventDefault();
         this.qPressed = true; // Устанавливаем флаг
@@ -282,6 +290,128 @@ export class InputManager {
           }
         }
       }, 100);
+    }
+    
+    // Мобильное взаимодействие с сундуками
+    this.initMobileChestInteraction();
+  }
+  
+  // Инициализация мобильного взаимодействия с сундуками
+  static initMobileChestInteraction() {
+    // Обработчик кликов по канвасу для взаимодействия с сундуками
+    const canvas = document.getElementById('gameCanvas');
+    if (!canvas) return;
+    
+    canvas.addEventListener('click', async (e) => {
+      // Проверяем, что мы в игре и не в паузе
+      if (gameState.screen !== 'game' || gameState.isPaused) return;
+      
+      // Получаем координаты клика относительно канваса
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+      
+      // Конвертируем в игровые координаты
+      const gameX = clickX + gameState.camera.x;
+      const gameY = clickY + gameState.camera.y;
+      
+      // Проверяем, есть ли сундук в этой области И игрок рядом с ним
+      if (gameState.entities && gameState.player) {
+        for (const entity of gameState.entities) {
+          if (entity.constructor.name === 'Chest' && entity.inventory.length > 0) {
+            // Расстояние от клика до сундука
+            const clickDistance = Math.sqrt(
+              Math.pow(entity.x - gameX, 2) + 
+              Math.pow(entity.y - gameY, 2)
+            );
+            
+            // Расстояние от игрока до сундука
+            const playerDistance = Math.sqrt(
+              Math.pow(entity.x - gameState.player.x, 2) + 
+              Math.pow(entity.y - gameState.player.y, 2)
+            );
+            
+            // Если клик был достаточно близко к сундуку И игрок в зоне досягаемости
+            if (clickDistance < entity.radius + 20 && 
+                playerDistance < entity.radius + gameState.player.radius + 20) {
+              await entity.open();
+              return; // Прерываем поиск после первого найденного сундука
+            }
+          }
+        }
+      }
+    });
+    
+    // Обработчик тапов для мобильных устройств
+    canvas.addEventListener('touchend', async (e) => {
+      // Проверяем, что мы в игре и не в паузе
+      if (gameState.screen !== 'game' || gameState.isPaused) return;
+      
+      e.preventDefault();
+      
+      // Получаем координаты тапа относительно канваса
+      const rect = canvas.getBoundingClientRect();
+      const touch = e.changedTouches[0];
+      const tapX = touch.clientX - rect.left;
+      const tapY = touch.clientY - rect.top;
+      
+      // Конвертируем в игровые координаты
+      const gameX = tapX + gameState.camera.x;
+      const gameY = tapY + gameState.camera.y;
+      
+      // Проверяем, есть ли сундук в этой области И игрок рядом с ним
+      if (gameState.entities && gameState.player) {
+        for (const entity of gameState.entities) {
+          if (entity.constructor.name === 'Chest' && entity.inventory.length > 0) {
+            // Расстояние от тапа до сундука
+            const tapDistance = Math.sqrt(
+              Math.pow(entity.x - gameX, 2) + 
+              Math.pow(entity.y - gameY, 2)
+            );
+            
+            // Расстояние от игрока до сундука
+            const playerDistance = Math.sqrt(
+              Math.pow(entity.x - gameState.player.x, 2) + 
+              Math.pow(entity.y - gameState.player.y, 2)
+            );
+            
+            // Если тап был достаточно близко к сундуку И игрок в зоне досягаемости
+            if (tapDistance < entity.radius + 20 && 
+                playerDistance < entity.radius + gameState.player.radius + 20) {
+              await entity.open();
+              return; // Прерываем поиск после первого найденного сундука
+            }
+          }
+        }
+      }
+    }, { passive: false });
+  }
+  
+  // Взаимодействие с сундуками
+  static async interactWithChests() {
+    if (!gameState.player || !gameState.entities) return;
+    
+    // Ищем ближайший сундук для взаимодействия
+    let nearestChest = null;
+    let minDistance = Infinity;
+    
+    for (const entity of gameState.entities) {
+      if (entity.constructor.name === 'Chest' && !entity.isOpened) {
+        const distance = Math.sqrt(
+          Math.pow(entity.x - gameState.player.x, 2) + 
+          Math.pow(entity.y - gameState.player.y, 2)
+        );
+        
+        if (distance < minDistance && distance < entity.radius + gameState.player.radius + 20) {
+          minDistance = distance;
+          nearestChest = entity;
+        }
+      }
+    }
+    
+    if (nearestChest) {
+      // Открываем сундук
+      await nearestChest.open();
     }
   }
 } 

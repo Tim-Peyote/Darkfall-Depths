@@ -3,12 +3,62 @@
 import { gameState, Utils } from '../core/GameState.js';
 
 export class RecordsManager {
+  // Инициализация новой сессии
+  static startNewSession() {
+    gameState.stats.currentSessionKills = 0;
+    gameState.stats.currentSessionTime = 0;
+    gameState.stats.currentSessionStartTime = Date.now();
+    gameState.stats.levelKills = 0;
+  }
+
+  // Обновление времени сессии
+  static updateSessionTime() {
+    if (gameState.stats.currentSessionStartTime > 0) {
+      gameState.stats.currentSessionTime = (Date.now() - gameState.stats.currentSessionStartTime) / 1000;
+    }
+  }
+
+  // Добавление убийства в сессию
+  static addSessionKill() {
+    gameState.stats.currentSessionKills++;
+    gameState.stats.levelKills++;
+    gameState.stats.enemiesKilled++;
+  }
+
+  // Сброс счетчика уровня (при переходе на новый уровень)
+  static resetLevelKills() {
+    gameState.stats.levelKills = 0;
+  }
+
+  // Сохранение сессии в историю (при смерти)
+  static saveSessionToHistory() {
+    const session = {
+      date: new Date().toISOString(),
+      hero: gameState.selectedCharacter?.name || 'Unknown',
+      class: gameState.selectedCharacter?.class || 'Unknown',
+      level: gameState.level,
+      kills: gameState.stats.currentSessionKills,
+      time: gameState.stats.currentSessionTime,
+      levelKills: gameState.stats.levelKills
+    };
+    
+    gameState.stats.sessionHistory.push(session);
+    
+    // Ограничиваем историю 50 записями
+    if (gameState.stats.sessionHistory.length > 50) {
+      gameState.stats.sessionHistory = gameState.stats.sessionHistory.slice(-50);
+    }
+    
+    this.saveRecords();
+  }
+
   static saveRecords() {
     const data = {
       bestLevel: gameState.stats.bestLevel,
       enemiesKilled: gameState.stats.enemiesKilled,
       levelsCompleted: gameState.stats.levelsCompleted,
-      totalPlayTime: gameState.stats.totalPlayTime
+      totalPlayTime: gameState.stats.totalPlayTime,
+      sessionHistory: gameState.stats.sessionHistory
     };
     localStorage.setItem('darkfall_records', JSON.stringify(data));
   }
@@ -19,6 +69,36 @@ export class RecordsManager {
       const data = JSON.parse(saved);
       gameState.stats = { ...gameState.stats, ...data };
     }
+  }
+
+  // Показ статистики текущей сессии
+  static showSessionStats() {
+    const sessionStats = document.getElementById('sessionStats');
+    if (!sessionStats) return;
+    
+    this.updateSessionTime();
+    
+    sessionStats.innerHTML = `
+      <div class="session-stats">
+        <h3>Статистика сессии</h3>
+        <div class="stat-item">
+          <span>Убито в сессии:</span>
+          <span class="stat-value">${gameState.stats.currentSessionKills}</span>
+        </div>
+        <div class="stat-item">
+          <span>Убито на уровне:</span>
+          <span class="stat-value">${gameState.stats.levelKills}</span>
+        </div>
+        <div class="stat-item">
+          <span>Время сессии:</span>
+          <span class="stat-value">${Utils.formatTime(gameState.stats.currentSessionTime)}</span>
+        </div>
+        <div class="stat-item">
+          <span>Текущий уровень:</span>
+          <span class="stat-value">${gameState.level}</span>
+        </div>
+      </div>
+    `;
   }
 
   static updateRecordsScreen() {
@@ -35,11 +115,11 @@ export class RecordsManager {
         <span class="record-value">${gameState.stats.levelsCompleted}</span>
       </div>
       <div class="record-item">
-        <span>Убито врагов:</span>
+        <span>Убито врагов (всего):</span>
         <span class="record-value">${gameState.stats.enemiesKilled}</span>
       </div>
       <div class="record-item">
-        <span>Время игры:</span>
+        <span>Время игры (всего):</span>
         <span class="record-value">${Utils.formatTime(gameState.stats.totalPlayTime)}</span>
       </div>
     `;
@@ -51,7 +131,11 @@ export class RecordsManager {
       levelsCompleted: 0,
       totalPlayTime: 0,
       bestLevel: 0,
-      currentSessionKills: 0
+      currentSessionKills: 0,
+      currentSessionTime: 0,
+      currentSessionStartTime: 0,
+      levelKills: 0,
+      sessionHistory: []
     };
     this.saveRecords();
     this.clearTopRecords();
@@ -64,8 +148,9 @@ export class RecordsManager {
       name: hero.name,
       class: hero.class,
       level: stats.level,
-      enemiesKilled: stats.enemiesKilled,
-      playTime: stats.totalPlayTime
+      enemiesKilled: stats.currentSessionKills, // Используем убийства сессии
+      playTime: stats.currentSessionTime, // Используем время сессии
+      date: new Date().toISOString()
     };
     records.push(newRecord);
     // Сортировка: сначала по уровню, потом по убитым, потом по времени
@@ -122,5 +207,99 @@ export class RecordsManager {
     });
     
     recordsData.innerHTML = html;
+  }
+
+  // Показ экрана смерти с сессионной статистикой
+  static showDeathScreen() {
+    this.updateSessionTime();
+    this.saveSessionToHistory();
+    
+    const deathScreen = document.getElementById('deathScreen');
+    if (!deathScreen) return;
+    
+    const sessionStats = `
+      <div class="death-stats">
+        <h2>💀 Игра окончена</h2>
+        <div class="session-summary">
+          <h3>Статистика сессии</h3>
+          <div class="stat-row">
+            <span>Герой:</span>
+            <span class="stat-value">${gameState.selectedCharacter?.name || 'Unknown'}</span>
+          </div>
+          <div class="stat-row">
+            <span>Класс:</span>
+            <span class="stat-value">${gameState.selectedCharacter?.class || 'Unknown'}</span>
+          </div>
+          <div class="stat-row">
+            <span>Достигнутый уровень:</span>
+            <span class="stat-value">${gameState.level}</span>
+          </div>
+          <div class="stat-row">
+            <span>Убито врагов в сессии:</span>
+            <span class="stat-value">${gameState.stats.currentSessionKills}</span>
+          </div>
+          <div class="stat-row">
+            <span>Время сессии:</span>
+            <span class="stat-value">${Utils.formatTime(gameState.stats.currentSessionTime)}</span>
+          </div>
+          <div class="stat-row">
+            <span>Убито на последнем уровне:</span>
+            <span class="stat-value">${gameState.stats.levelKills}</span>
+          </div>
+        </div>
+        
+        <div class="total-stats">
+          <h3>Общая статистика</h3>
+          <div class="stat-row">
+            <span>Всего убито врагов:</span>
+            <span class="stat-value">${gameState.stats.enemiesKilled}</span>
+          </div>
+          <div class="stat-row">
+            <span>Лучший уровень:</span>
+            <span class="stat-value">${gameState.stats.bestLevel}</span>
+          </div>
+          <div class="stat-row">
+            <span>Общее время игры:</span>
+            <span class="stat-value">${Utils.formatTime(gameState.stats.totalPlayTime)}</span>
+          </div>
+        </div>
+        
+        <div class="card__footer">
+          <div class="flex gap-8">
+            <button id="restartBtn" class="btn btn--primary">🔄 Снова</button>
+            <button id="menuBtn" class="btn btn--outline">🏠 Меню</button>
+          </div>
+        </div>
+      </div>
+    `;
+    
+    deathScreen.innerHTML = sessionStats;
+    deathScreen.classList.remove('hidden');
+    
+    // Добавляем обработчики событий для кнопок
+    setTimeout(() => {
+      const restartBtn = document.getElementById('restartBtn');
+      const menuBtn = document.getElementById('menuBtn');
+      
+      if (restartBtn) {
+        restartBtn.addEventListener('click', () => {
+          deathScreen.classList.add('hidden');
+          (async () => {
+            const { GameEngine } = await import('../game/GameEngine.js');
+            GameEngine.startGame();
+          })();
+        });
+      }
+      
+      if (menuBtn) {
+        menuBtn.addEventListener('click', () => {
+          deathScreen.classList.add('hidden');
+          (async () => {
+            const { ScreenManager } = await import('../ui/ScreenManager.js');
+            ScreenManager.switchScreen('menu');
+          })();
+        });
+      }
+    }, 100);
   }
 } 
