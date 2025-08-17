@@ -20,8 +20,27 @@ export class MenuNavigationManager {
         return; // Не обрабатываем навигацию, если инвентарь открыт
       }
       
+      // Проверяем, не открыт ли сундук
+      const chestOverlay = document.getElementById('chestOverlay');
+      if (chestOverlay && !chestOverlay.classList.contains('hidden')) {
+        return; // Не обрабатываем навигацию, если сундук открыт
+      }
+      
       // Не обрабатываем в игре когда НЕ в паузе, НО обрабатываем ESC всегда
       if (gameState.screen === 'game' && !gameState.isPaused && e.code !== 'Escape') return;
+      
+      // Дополнительная проверка - убеждаемся, что мы на правильном экране
+      const currentScreen = document.querySelector('.screen.active');
+      if (!currentScreen) return;
+      
+      // На экране выбора персонажа обрабатываем только определенные клавиши
+      if (gameState.screen === 'select') {
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Enter', 'Space', 'Escape'].includes(e.code)) {
+          e.preventDefault();
+        } else {
+          return; // Игнорируем все остальные клавиши на экране выбора
+        }
+      }
       
       switch (e.code) {
         case 'ArrowUp':
@@ -190,6 +209,11 @@ export class MenuNavigationManager {
         return;
       }
       
+      // На экране выбора персонажа не вызываем клики автоматически
+      if (gameState.screen === 'select' && currentElement.classList.contains('character-card')) {
+        return;
+      }
+      
       // Симулируем клик
       currentElement.click();
     }
@@ -200,6 +224,12 @@ export class MenuNavigationManager {
     const inventoryOverlay = document.getElementById('inventoryOverlay');
     if (inventoryOverlay && !inventoryOverlay.classList.contains('hidden')) {
       return; // Не обрабатываем Escape, если инвентарь открыт
+    }
+    
+    // Проверяем, не открыт ли сундук
+    const chestOverlay = document.getElementById('chestOverlay');
+    if (chestOverlay && !chestOverlay.classList.contains('hidden')) {
+      return; // Не обрабатываем Escape, если сундук открыт
     }
     
     // Если мы в игре - переключаем паузу (открываем/закрываем)

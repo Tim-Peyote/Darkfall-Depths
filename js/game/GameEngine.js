@@ -83,8 +83,8 @@ export class GameEngine {
     // Настройка обработчиков банок здоровья
     this.setupHealthPotionHandlers();
     
-    // Переключение на главное меню
-    ScreenManager.switchScreen('menu');
+    // Убираем автоматическое переключение на главное меню - это вызывает баг
+    // ScreenManager.switchScreen('menu');
     
     // Отложим resizeCanvas до показа игрового экрана
     // this.resizeCanvas();
@@ -760,16 +760,21 @@ export class GameEngine {
     
     // Отрисовка карты только в исследованных областях
     // Источники света НЕ влияют на исследование карты - только игрок может раскрывать туман войны
-    for (let y = 0; y < mapHeight; y++) {
-      for (let x = 0; x < mapWidth; x++) {
-        // Показываем только исследованные области (раскрытые игроком)
-        if (gameState.fogOfWar && gameState.fogOfWar.explored[y][x]) {
-          if (gameState.map[y][x] === 1) {
-            // Стилизованная стена на миникарте
-            this.renderMinimapWallTile(minimapCtx, x * scale, y * scale, scale, x, y);
-          } else {
-            // Стилизованный пол на миникарте
-            this.renderMinimapFloorTile(minimapCtx, x * scale, y * scale, scale, x, y);
+    if (gameState.fogOfWar) {
+      const exploredData = gameState.fogOfWar.getExploredForMinimap();
+      const visibleData = gameState.fogOfWar.getVisibleForMinimap();
+      
+      for (let y = 0; y < mapHeight; y++) {
+        for (let x = 0; x < mapWidth; x++) {
+          // Показываем только исследованные области (раскрытые игроком)
+          if (exploredData[y] && exploredData[y][x]) {
+            if (gameState.map[y][x] === 1) {
+              // Стилизованная стена на миникарте
+              this.renderMinimapWallTile(minimapCtx, x * scale, y * scale, scale, x, y);
+            } else {
+              // Стилизованный пол на миникарте
+              this.renderMinimapFloorTile(minimapCtx, x * scale, y * scale, scale, x, y);
+            }
           }
         }
       }

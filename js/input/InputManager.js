@@ -306,6 +306,10 @@ export class InputManager {
       // Проверяем, что мы в игре и не в паузе
       if (gameState.screen !== 'game' || gameState.isPaused) return;
       
+      // Дополнительная проверка - убеждаемся, что мы действительно в игре
+      const gameScreen = document.getElementById('gameScreen');
+      if (!gameScreen || gameScreen.classList.contains('hidden')) return;
+      
       // Получаем координаты клика относительно канваса
       const rect = canvas.getBoundingClientRect();
       const clickX = e.clientX - rect.left;
@@ -347,7 +351,9 @@ export class InputManager {
       // Проверяем, что мы в игре и не в паузе
       if (gameState.screen !== 'game' || gameState.isPaused) return;
       
-      e.preventDefault();
+      // Дополнительная проверка - убеждаемся, что мы действительно в игре
+      const gameScreen = document.getElementById('gameScreen');
+      if (!gameScreen || gameScreen.classList.contains('hidden')) return;
       
       // Получаем координаты тапа относительно канваса
       const rect = canvas.getBoundingClientRect();

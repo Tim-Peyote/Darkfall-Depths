@@ -293,9 +293,6 @@ export class ChestManager {
     this.isOpen = false;
     this.currentChest = null;
     
-    // Снимаем паузу
-    gameState.isPaused = false;
-    
     // Скрываем UI
     const overlay = document.getElementById('chestOverlay');
     overlay.classList.add('hidden');
@@ -306,6 +303,11 @@ export class ChestManager {
       hint.classList.add('hidden');
       hint.classList.remove('active');
     }
+    
+    // Снимаем паузу с задержкой, чтобы ESC не сработал сразу
+    setTimeout(() => {
+      gameState.isPaused = false;
+    }, 100);
   }
   
   static async updateChestDisplay() {

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест тумана войны - Darkfall Depths</title>
+    <style>
+        body {
+            background: #111;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            margin: 0;
+        }
+        .test-info {
+            background: #222;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success { background: #2d5a2d; }
+        .error { background: #5a2d2d; }
+        .info { background: #2d2d5a; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Тест улучшенного тумана войны</h1>
+    
+    <div class="test-info">
+        <h2>Проверка загрузки конфигурации</h2>
+        <div id="configStatus" class="status info">Проверяем конфигурацию...</div>
+        <div id="fogStatus" class="status info">Проверяем систему тумана войны...</div>
+    </div>
+    
+    <div class="test-info">
+        <h2>Инструкции</h2>
+        <ol>
+            <li>Откройте консоль браузера (F12)</li>
+            <li>Перейдите на <a href="http://localhost:8000" style="color: #4ecdc4;">http://localhost:8000</a></li>
+            <li>Начните игру и проверьте туман войны</li>
+            <li>В консоли должны появиться сообщения о загрузке улучшенной системы</li>
+        </ol>
+    </div>
+    
+    <div class="test-info">
+        <h2>Ожидаемые улучшения</h2>
+        <ul>
+            <li>✅ Устранение черных квадратов</li>
+            <li>✅ Плавные края без острых углов</li>
+            <li>✅ Более реалистичное освещение</li>
+            <li>✅ Градиентные переходы</li>
+        </ul>
+    </div>
+
+    <script type="module">
+        // Тестируем загрузку конфигурации
+        try {
+            const { getFogConfig, getFogResolution, getPlayerVisibilityRadius } = await import('./js/config/fogOfWarConfig.js');
+            
+            const config = getFogConfig();
+            const resolution = getFogResolution();
+            const radius = getPlayerVisibilityRadius();
+            
+            document.getElementById('configStatus').innerHTML = `
+                <div class="success">
+                    ✅ Конфигурация загружена успешно!<br>
+                    📊 Разрешение: ${resolution}x${resolution}<br>
+                    🎯 Радиус видимости: ${radius}<br>
+                    ✨ Проходы сглаживания: ${config.SMOOTHING.PASSES}<br>
+                    💪 Сила сглаживания: ${config.SMOOTHING.STRENGTH}
+                </div>
+            `;
+            
+            console.log('🔧 Тест конфигурации тумана войны:', config);
+            
+        } catch (error) {
+            document.getElementById('configStatus').innerHTML = `
+                <div class="error">
+                    ❌ Ошибка загрузки конфигурации: ${error.message}
+                </div>
+            `;
+            console.error('❌ Ошибка загрузки конфигурации:', error);
+        }
+        
+        // Тестируем загрузку системы тумана войны
+        try {
+            const { WebGLFogOfWar } = await import('./js/map/WebGLFogOfWar.js');
+            
+            document.getElementById('fogStatus').innerHTML = `
+                <div class="success">
+                    ✅ Система тумана войны загружена успешно!<br>
+                    🎮 Готово к тестированию в игре
+                </div>
+            `;
+            
+            console.log('🎮 Система тумана войны готова к тестированию');
+            
+        } catch (error) {
+            document.getElementById('fogStatus').innerHTML = `
+                <div class="error">
+                    ❌ Ошибка загрузки системы тумана войны: ${error.message}
+                </div>
+            `;
+            console.error('❌ Ошибка загрузки системы тумана войны:', error);
+        }
+    </script>
+</body>
+</html>

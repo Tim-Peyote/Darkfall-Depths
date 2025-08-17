@@ -1187,7 +1187,9 @@ export class SettingsManager {
         e.stopPropagation();
         
         // Защита от повторного срабатывания
-        if (gameState.screen === 'game') return;
+        if (gameState.screen === 'game') {
+          return;
+        }
         
         // Проверяем, что персонаж выбран
         if (!gameState.selectedCharacter) {
