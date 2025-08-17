@@ -452,6 +452,9 @@ export function generateRandomItem(level, playerClass) {
       case 'regen_potion':
         description = `Регенерация ${bonus.heal} HP за ${bonus.regenDuration}с`;
         break;
+      case 'purification_potion':
+        description = `Снимает все негативные эффекты, восстанавливает ${bonus.heal} здоровья`;
+        break;
       case 'combo_potion':
         const effects = [];
         if (bonus.heal) effects.push(`HP +${bonus.heal}`);
