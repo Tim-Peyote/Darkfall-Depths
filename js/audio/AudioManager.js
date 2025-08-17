@@ -1,6 +1,7 @@
 /* Darkfall Depths - Аудио система */
 
 import { gameState } from '../core/GameState.js';
+import { Logger } from '../utils/Logger.js';
 
 export class AudioManager {
   constructor() {
@@ -18,7 +19,7 @@ export class AudioManager {
     try {
       // Проверяем поддержку Web Audio API
       if (!window.AudioContext && !window.webkitAudioContext) {
-        console.warn('🎵 Web Audio API not supported in this browser');
+        Logger.warn('Web Audio API not supported in this browser');
         return;
       }
       
@@ -34,7 +35,7 @@ export class AudioManager {
         this.createAudioContextAndPlay();
       }, 1000);
     } catch (e) {
-      console.warn('❌ Audio system initialization failed:', e);
+      Logger.warn('Audio system initialization failed:', e);
       // Не выбрасываем ошибку, чтобы игра продолжала работать без аудио
     }
   }
@@ -200,6 +201,7 @@ export class AudioManager {
 
   playMusic(trackName, loop = true) {
     if (!this.isMusicLoaded || !gameState.audio.enabled) {
+      console.warn(`🎵 Cannot play music ${trackName}: musicLoaded=${this.isMusicLoaded}, audioEnabled=${gameState.audio.enabled}`);
       return;
     }
     
@@ -214,6 +216,8 @@ export class AudioManager {
       console.warn(`❌ Track ${trackName} not found in musicTracks:`, Object.keys(this.musicTracks));
       return;
     }
+    
+    console.log(`🎵 Playing music track: ${trackName}, loop: ${loop}`);
 
     // Проверяем, не играет ли уже нужный трек
     if (this.currentMusic === track && !this.currentMusic.paused) {
@@ -372,6 +376,7 @@ export class AudioManager {
   }
 
   playLevelComplete() {
+    console.log('🎵 playLevelComplete called');
     this.stopMusic();
     this.playMusic('levelComplete', false);
     
@@ -450,12 +455,12 @@ export class AudioManager {
     this.playHeroesHit();
   }
 
-  // Метод для тестирования звуковых эффектов
+  // Метод для тестирования звуковых эффектов (только для разработки)
   testAllSounds() {
-    console.log('🧪 Testing all sound effects...');
-    console.log('📋 Available SFX tracks:', Object.keys(this.sfxTracks));
-    console.log('🔊 SFX loaded:', this.isSfxLoaded);
-    console.log('🎵 Audio enabled:', gameState.audio.enabled);
+    Logger.debug('Testing all sound effects...');
+    Logger.debug('Available SFX tracks:', Object.keys(this.sfxTracks));
+    Logger.debug('SFX loaded:', this.isSfxLoaded);
+    Logger.debug('Audio enabled:', gameState.audio.enabled);
     
     // Тестируем каждый звук
     setTimeout(() => this.playInventoryOpen(), 100);

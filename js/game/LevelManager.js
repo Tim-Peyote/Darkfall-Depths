@@ -202,7 +202,7 @@ export class LevelManager {
           // Принудительно инициализируем туман войны для игрока
           if (gameState.fogOfWar) {
             gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y);
-            console.log('🌫️ Fog of war initialized for player position');
+            // Fog of war initialized for player position
           }
         } else {
           console.error('❌ Player spawn position is in wall:', tileX, tileY, 'Tile value:', gameState.map[tileY]?.[tileX]);
@@ -212,7 +212,7 @@ export class LevelManager {
           // Инициализируем туман войны для fallback позиции
           if (gameState.player && gameState.fogOfWar) {
             gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y);
-            console.log('🌫️ Fog of war initialized for fallback position');
+            // Fog of war initialized for fallback position
           }
         }
       } else {
@@ -574,8 +574,11 @@ export class LevelManager {
     
     // Временные баффы сохраняются между уровнями - они сами истекают по времени
     
-    // Музыка stage1 продолжает играть при переходе на следующий уровень
-    // (не прерываем и не перезапускаем)
+    // Перезапускаем музыку stage1 для нового уровня
+    (async () => {
+      const { audioManager } = await import('../audio/AudioManager.js');
+      audioManager.playMusic('stage1', true);
+    })();
     
     // Останавливаем текущий игровой цикл перед генерацией нового уровня
     if (gameState.gameRunning) {

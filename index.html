@@ -116,11 +116,30 @@
         <div class="select-background"></div>
         <div class="select-content">
             <h2 class="select-title">Выберите героя</h2>
-                <div id="charList" class="character-grid"></div>
-    <div class="select-buttons">
-      <button id="backToMenuFromSelect" class="btn btn--outline">← Назад в меню</button>
-      <button id="startGameBtn" class="btn btn--primary" style="display: none;">🎮 Начать игру</button>
-    </div>
+            
+            <!-- Мобильные аватары персонажей -->
+            <div id="characterAvatars" class="character-avatars"></div>
+            
+            <!-- Детальная информация о выбранном персонаже -->
+            <div id="characterDetails" class="character-details" style="display: none;">
+                <div class="character-details-header">
+                    <div class="character-details-sprite" id="detailsSprite"></div>
+                    <div class="character-details-info">
+                        <div class="character-details-name" id="detailsName"></div>
+                        <div class="character-details-class" id="detailsClass"></div>
+                    </div>
+                </div>
+                <div class="character-details-description" id="detailsDescription"></div>
+                <div class="character-details-stats" id="detailsStats"></div>
+            </div>
+            
+            <!-- Старая сетка для десктопа -->
+            <div id="charList" class="character-grid"></div>
+            
+            <div class="select-buttons">
+                <button id="backToMenuFromSelect" class="btn btn--outline">← Назад в меню</button>
+                <button id="startGameBtn" class="btn btn--primary" style="display: none;">🎮 Начать игру</button>
+            </div>
         </div>
     </div>
 

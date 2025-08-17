@@ -327,6 +327,14 @@ export class SettingsManager {
       
     } else {
       console.error('❌ Pause button not found!');
+      // Попробуем найти кнопку через некоторое время
+      setTimeout(() => {
+        const retryPauseBtn = document.getElementById('pauseBtn');
+        if (retryPauseBtn) {
+          console.log('✅ Pause button found on retry');
+          this.setupGameButtonEventListeners();
+        }
+      }, 500);
     }
     
     // Кнопка открытия инвентаря на экране (только в игре)
@@ -365,6 +373,14 @@ export class SettingsManager {
       
     } else {
       console.error('❌ Inventory button not found!');
+      // Попробуем найти кнопку через некоторое время
+      setTimeout(() => {
+        const retryInventoryBtn = document.getElementById('inventoryToggle');
+        if (retryInventoryBtn) {
+          console.log('✅ Inventory button found on retry');
+          this.setupGameButtonEventListeners();
+        }
+      }, 500);
     }
     
     // Кнопка закрытия паузы (крестик)

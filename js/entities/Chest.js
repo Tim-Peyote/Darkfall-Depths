@@ -86,7 +86,7 @@ export class Chest extends Entity {
         // Определяем тип устройства
         if (IS_MOBILE) {
           // Мобильная подсказка
-          hint.innerHTML = '<div class="hint-content"><span class="hint-text">Нажмите чтобы открыть сундук</span></div>';
+          hint.innerHTML = '<div class="hint-content"><span class="hint-text">Тапните чтобы открыть сундук</span></div>';
         } else {
           // Десктопная подсказка
           hint.innerHTML = '<div class="hint-content"><span class="hint-key">E</span><span class="hint-text">Открыть сундук</span></div>';
@@ -179,6 +179,9 @@ export class Chest extends Entity {
   async open() {
     // Скрываем подсказку при открытии сундука
     this.hideInteractionHint();
+    
+    // Скрываем все подсказки взаимодействия
+    Chest.hideAllInteractionHints();
     
     // Открываем UI сундука (можно открывать даже если уже открыт)
     try {

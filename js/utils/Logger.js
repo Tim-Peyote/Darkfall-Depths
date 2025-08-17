@@ -8,8 +8,8 @@ const LOG_LEVEL = {
   DEBUG: 3
 };
 
-// Текущий уровень логирования (можно изменить на 0 для продакшена)
-let currentLogLevel = LOG_LEVEL.INFO;
+// Текущий уровень логирования (ERROR для продакшена)
+let currentLogLevel = LOG_LEVEL.ERROR;
 
 export class Logger {
   static setLogLevel(level) {
@@ -40,28 +40,28 @@ export class Logger {
     }
   }
   
-  // Специальные методы для игровых событий
+  // Специальные методы для игровых событий (только для критических ошибок в продакшене)
   static game(...args) {
-    if (currentLogLevel >= LOG_LEVEL.INFO) {
-      console.log('🎮', ...args);
+    if (currentLogLevel >= LOG_LEVEL.ERROR) {
+      console.error('🎮', ...args);
     }
   }
   
   static audio(...args) {
-    if (currentLogLevel >= LOG_LEVEL.INFO) {
-      console.log('🎵', ...args);
+    if (currentLogLevel >= LOG_LEVEL.WARN) {
+      console.warn('🎵', ...args);
     }
   }
   
   static map(...args) {
-    if (currentLogLevel >= LOG_LEVEL.INFO) {
-      console.log('🗺️', ...args);
+    if (currentLogLevel >= LOG_LEVEL.ERROR) {
+      console.error('🗺️', ...args);
     }
   }
   
   static ui(...args) {
-    if (currentLogLevel >= LOG_LEVEL.INFO) {
-      console.log('🖥️', ...args);
+    if (currentLogLevel >= LOG_LEVEL.ERROR) {
+      console.error('🖥️', ...args);
     }
   }
   
@@ -73,5 +73,10 @@ export class Logger {
   // Метод для включения всех логов (разработка)
   static enableAll() {
     currentLogLevel = LOG_LEVEL.DEBUG;
+  }
+  
+  // Метод для включения только критических логов (продакшен)
+  static enableProduction() {
+    currentLogLevel = LOG_LEVEL.ERROR;
   }
 }

@@ -206,7 +206,6 @@ export class InputManager {
         
         // Проверяем, что игра не в паузе
         if (gameState.isPaused) {
-          console.log('Ability button clicked during pause - ignoring');
           return;
         }
         
@@ -227,7 +226,6 @@ export class InputManager {
         
         // Проверяем, что игра не в паузе
         if (gameState.isPaused) {
-          console.log('Ability button clicked during pause - ignoring');
           return;
         }
         
@@ -302,6 +300,18 @@ export class InputManager {
     const canvas = document.getElementById('gameCanvas');
     if (!canvas) return;
     
+    // Проверяем, что обработчики еще не добавлены
+    if (canvas.hasAttribute('data-chest-interaction-initialized')) {
+      return;
+    }
+    
+    canvas.setAttribute('data-chest-interaction-initialized', 'true');
+    
+    // Touch start для предотвращения скролла
+    canvas.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+    }, { passive: false });
+    
     canvas.addEventListener('click', async (e) => {
       // Проверяем, что мы в игре и не в паузе
       if (gameState.screen !== 'game' || gameState.isPaused) return;
@@ -336,8 +346,8 @@ export class InputManager {
             );
             
             // Если клик был достаточно близко к сундуку И игрок в зоне досягаемости
-            if (clickDistance < entity.radius + 20 && 
-                playerDistance < entity.radius + gameState.player.radius + 20) {
+            if (clickDistance < entity.radius + 50 && 
+                playerDistance < entity.radius + gameState.player.radius + 50) {
               await entity.open();
               return; // Прерываем поиск после первого найденного сундука
             }
@@ -348,6 +358,9 @@ export class InputManager {
     
     // Обработчик тапов для мобильных устройств
     canvas.addEventListener('touchend', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
       // Проверяем, что мы в игре и не в паузе
       if (gameState.screen !== 'game' || gameState.isPaused) return;
       
@@ -382,8 +395,8 @@ export class InputManager {
             );
             
             // Если тап был достаточно близко к сундуку И игрок в зоне досягаемости
-            if (tapDistance < entity.radius + 20 && 
-                playerDistance < entity.radius + gameState.player.radius + 20) {
+            if (tapDistance < entity.radius + 50 && 
+                playerDistance < entity.radius + gameState.player.radius + 50) {
               await entity.open();
               return; // Прерываем поиск после первого найденного сундука
             }

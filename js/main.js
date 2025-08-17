@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Проверяем, запущена ли игра через HTTP сервер
   const isLocalFile = window.location.protocol === 'file:';
   if (isLocalFile) {
-    console.warn('⚠️ Игра запущена через file:// протокол. Некоторые функции могут не работать.');
+    Logger.warn('Игра запущена через file:// протокол. Некоторые функции могут не работать.');
   }
   
   // Инициализация экранов теперь происходит в ScreenManager.init()
@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
         await audioManager.init();
       } catch (audioError) {
-        console.warn('⚠️ Аудио не удалось инициализировать:', audioError);
+        Logger.warn('Аудио не удалось инициализировать:', audioError);
         // Продолжаем инициализацию даже при ошибке аудио
       }
       
@@ -182,8 +182,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         
         // Инициализируем менеджер инвентаря
         InventoryManager.init();
+        
+        // Дополнительная инициализация мобильных элементов управления
+        setTimeout(() => {
+          const mobileControls = document.getElementById('mobileControls');
+          const joystick = document.getElementById('joystickContainer');
+          const abilityBtn = document.getElementById('abilityBtn');
+          const mobileInventoryBtn = document.getElementById('mobileInventoryBtn');
+          
+          if (window.innerWidth <= 768) {
+            // Мобильная версия
+            if (mobileControls) {
+              mobileControls.classList.remove('hidden');
+            }
+            if (joystick) {
+              joystick.style.display = 'flex';
+            }
+            if (abilityBtn) {
+              abilityBtn.style.display = 'flex';
+            }
+            if (mobileInventoryBtn) {
+              mobileInventoryBtn.style.display = 'flex';
+            }
+          } else {
+            // Десктопная версия
+            if (mobileControls) {
+              mobileControls.classList.add('hidden');
+            }
+          }
+        }, 1000);
       } catch (gameError) {
-        console.warn('⚠️ Ошибка инициализации игры:', gameError);
+        Logger.warn('Ошибка инициализации игры:', gameError);
         // Продолжаем инициализацию даже при ошибке
       }
       
@@ -196,6 +225,35 @@ document.addEventListener('DOMContentLoaded', async () => {
       await new Promise(resolve => setTimeout(resolve, 600));
       
       updateProgress(5, 5, 'Погружение завершено');
+      
+      // Добавляем обработчик изменения размера окна для мобильных элементов управления
+      window.addEventListener('resize', () => {
+        const mobileControls = document.getElementById('mobileControls');
+        const joystick = document.getElementById('joystickContainer');
+        const abilityBtn = document.getElementById('abilityBtn');
+        const mobileInventoryBtn = document.getElementById('mobileInventoryBtn');
+        
+        if (window.innerWidth <= 768) {
+          // Мобильная версия
+          if (mobileControls) {
+            mobileControls.classList.remove('hidden');
+          }
+          if (joystick) {
+            joystick.style.display = 'flex';
+          }
+          if (abilityBtn) {
+            abilityBtn.style.display = 'flex';
+          }
+          if (mobileInventoryBtn) {
+            mobileInventoryBtn.style.display = 'flex';
+          }
+        } else {
+          // Десктопная версия
+          if (mobileControls) {
+            mobileControls.classList.add('hidden');
+          }
+        }
+      });
     
       // Переключаемся на главное меню после полной инициализации
       try {
@@ -205,10 +263,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         try {
           audioManager.forceStartMusic();
         } catch (audioError) {
-          console.warn('⚠️ Не удалось запустить музыку:', audioError);
+          Logger.warn('Не удалось запустить музыку:', audioError);
         }
       } catch (switchError) {
-        console.error('❌ Ошибка переключения на главное меню:', switchError);
+        Logger.error('Ошибка переключения на главное меню:', switchError);
         // Принудительно показываем главное меню
         const loadingScreen = document.getElementById('loadingScreen');
         const menuScreen = document.getElementById('menuScreen');
@@ -236,8 +294,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       }, 3000);
     
   } catch (error) {
-    console.error('❌ Ошибка инициализации игры:', error);
-    console.error('❌ Stack:', error.stack);
+    Logger.error('Ошибка инициализации игры:', error);
+    Logger.error('❌ Stack:', error.stack);
     
     if (loadingText) {
       loadingText.textContent = 'Ошибка загрузки игры';

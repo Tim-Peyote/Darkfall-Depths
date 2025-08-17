@@ -273,6 +273,13 @@ export class ChestManager {
     // Ставим игру на паузу
     gameState.isPaused = true;
     
+    // Скрываем подсказку взаимодействия
+    const hint = document.getElementById('interactionHint');
+    if (hint && hint.classList.contains('active')) {
+      hint.classList.add('hidden');
+      hint.classList.remove('active');
+    }
+    
     // Показываем UI
     const overlay = document.getElementById('chestOverlay');
     overlay.classList.remove('hidden');
@@ -364,6 +371,86 @@ export class ChestManager {
           e.stopPropagation();
           this.showContextMenu(e, i);
         });
+        
+        // Обработчик одинарного клика для тултипа (десктоп)
+        slot.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.showTooltip(e, item);
+        });
+        
+        // Мобильные touch обработчики
+        let touchStartTime = 0;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchMoved = false;
+        let longPressTimer = null;
+        let lastClickTime = 0;
+        
+        // Touch start
+        slot.addEventListener('touchstart', (e) => {
+          e.preventDefault();
+          touchStartTime = Date.now();
+          touchStartX = e.touches[0].clientX;
+          touchStartY = e.touches[0].clientY;
+          touchMoved = false;
+          
+          // Таймер для длительного нажатия
+          longPressTimer = setTimeout(() => {
+            if (!touchMoved) {
+              this.showContextMenu(e, i);
+            }
+          }, 500);
+        }, { passive: false });
+        
+        // Touch move
+        slot.addEventListener('touchmove', (e) => {
+          const touch = e.touches[0];
+          const deltaX = Math.abs(touch.clientX - touchStartX);
+          const deltaY = Math.abs(touch.clientY - touchStartY);
+          
+          if (deltaX > 10 || deltaY > 10) {
+            touchMoved = true;
+            if (longPressTimer) {
+              clearTimeout(longPressTimer);
+              longPressTimer = null;
+            }
+          }
+        }, { passive: false });
+        
+        // Touch end
+        slot.addEventListener('touchend', async (e) => {
+          e.preventDefault();
+          
+          if (longPressTimer) {
+            clearTimeout(longPressTimer);
+            longPressTimer = null;
+          }
+          
+          if (touchMoved) return;
+          
+          const touchEndTime = Date.now();
+          const touchDuration = touchEndTime - touchStartTime;
+          
+          // Проверяем двойное нажатие
+          if (touchEndTime - lastClickTime < 300) {
+            // Двойное нажатие - берем предмет
+            await this.takeItem(i);
+            lastClickTime = 0; // Сбрасываем для следующего двойного нажатия
+          } else {
+            // Одинарное нажатие - показываем тултип
+            if (touchDuration < 200) {
+              // Передаем координаты из touchstart
+              const tooltipEvent = {
+                touches: [{ clientX: touchStartX, clientY: touchStartY }],
+                clientX: touchStartX,
+                clientY: touchStartY
+              };
+              this.showTooltip(tooltipEvent, item);
+            }
+            lastClickTime = touchEndTime;
+          }
+        }, { passive: false });
       } else {
         slot.classList.add('empty');
       }
@@ -394,6 +481,69 @@ export class ChestManager {
         console.error('Ошибка при добавлении предмета в инвентарь:', e);
       }
     }
+  }
+  
+  static showTooltip(e, item) {
+    // Создаем тултип если его нет
+    let tooltip = document.getElementById('chest-tooltip');
+    if (!tooltip) {
+      tooltip = document.createElement('div');
+      tooltip.id = 'chest-tooltip';
+      tooltip.style.cssText = `
+        position: fixed;
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 14px;
+        z-index: 10000;
+        pointer-events: none;
+        max-width: 250px;
+        white-space: pre-wrap;
+        border: 1px solid #666;
+        word-wrap: break-word;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      `;
+      document.body.appendChild(tooltip);
+    }
+    
+    // Получаем координаты
+    let clientX, clientY;
+    if (e.touches && e.touches[0]) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    
+    // Показываем информацию о предмете
+    tooltip.textContent = `${item.name || 'Предмет'}\n${item.description || ''}`;
+    
+    // Позиционируем тултип с учетом границ экрана
+    let left = clientX + 10;
+    let top = clientY - 10;
+    
+    // Проверяем, не выходит ли тултип за правую границу
+    if (left + 250 > window.innerWidth) {
+      left = clientX - 260; // Показываем слева от курсора
+    }
+    
+    // Проверяем, не выходит ли тултип за верхнюю границу
+    if (top < 10) {
+      top = clientY + 10; // Показываем под курсором
+    }
+    
+    tooltip.style.left = left + 'px';
+    tooltip.style.top = top + 'px';
+    tooltip.style.display = 'block';
+    
+    // Скрываем через 3 секунды
+    setTimeout(() => {
+      if (tooltip) {
+        tooltip.style.display = 'none';
+      }
+    }, 3000);
   }
   
   static showContextMenu(e, itemIndex) {

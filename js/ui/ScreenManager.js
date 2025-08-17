@@ -137,6 +137,51 @@ export class ScreenManager {
             
             const { SettingsManager } = await import('./SettingsManager.js');
             SettingsManager.setupGameButtonEventListeners();
+            
+            // Дополнительная проверка кнопок через 500мс
+            setTimeout(() => {
+              const pauseBtn = document.getElementById('pauseBtn');
+              const inventoryBtn = document.getElementById('inventoryToggle');
+              const mobileControls = document.getElementById('mobileControls');
+              const joystick = document.getElementById('joystickContainer');
+              const abilityBtn = document.getElementById('abilityBtn');
+              const mobileInventoryBtn = document.getElementById('mobileInventoryBtn');
+              
+              if (pauseBtn && inventoryBtn) {
+                console.log('✅ Game buttons found and initialized');
+                // Принудительно показываем кнопки
+                pauseBtn.style.display = 'flex';
+                inventoryBtn.style.display = 'flex';
+              } else {
+                console.warn('⚠️ Some game buttons not found, retrying...');
+                SettingsManager.setupGameButtonEventListeners();
+              }
+              
+              // Проверяем мобильные элементы управления
+              if (window.innerWidth <= 768) {
+                if (mobileControls) {
+                  mobileControls.classList.remove('hidden');
+                  console.log('✅ Mobile controls enabled');
+                }
+                if (joystick) {
+                  joystick.style.display = 'flex';
+                  console.log('✅ Joystick enabled');
+                }
+                if (abilityBtn) {
+                  abilityBtn.style.display = 'flex';
+                  console.log('✅ Mobile ability button enabled');
+                }
+                if (mobileInventoryBtn) {
+                  mobileInventoryBtn.style.display = 'flex';
+                  console.log('✅ Mobile inventory button enabled');
+                }
+              } else {
+                if (mobileControls) {
+                  mobileControls.classList.add('hidden');
+                  console.log('✅ Mobile controls disabled on desktop');
+                }
+              }
+            }, 500);
           })();
         }, 100);
       }
@@ -152,14 +197,24 @@ export class ScreenManager {
 
   static buildCharacterSelect() {
     const charList = document.getElementById('charList');
-    if (!charList) return;
+    const characterAvatars = document.getElementById('characterAvatars');
+    const characterDetails = document.getElementById('characterDetails');
     
+    if (!charList || !characterAvatars) return;
+    
+    // Очищаем контейнеры
     charList.innerHTML = '';
+    characterAvatars.innerHTML = '';
     
     // Скрываем кнопку "Старт" при загрузке экрана
     const startGameBtn = document.getElementById('startGameBtn');
     if (startGameBtn) {
       startGameBtn.style.display = 'none';
+    }
+    
+    // Скрываем детали персонажа
+    if (characterDetails) {
+      characterDetails.style.display = 'none';
     }
     
     // Убираем автоматический фокус на всех устройствах
@@ -171,10 +226,200 @@ export class ScreenManager {
       });
     }, 50);
     
-    // Принудительно обновление кеша
-    CHARACTERS.forEach(char => {
+    // Добавляем обработчик изменения размера окна для перестройки карточек
+    const handleResize = () => {
+      if (gameState.screen === 'select') {
+        this.buildCharacterSelect();
+      }
+    };
+    
+    // Удаляем старый обработчик, если он есть
+    window.removeEventListener('resize', handleResize);
+    window.addEventListener('resize', handleResize);
+    
+    // Проверяем, является ли устройство мобильным
+    const isMobile = window.innerWidth <= 768;
+    
+    if (isMobile) {
+      // Мобильная версия с аватарами и деталями
+      console.log('📱 Building mobile version...');
+      this.buildMobileCharacterSelect();
+      
+      // Скрываем десктопный контейнер
+      const charList = document.getElementById('charList');
+      if (charList) {
+        charList.style.display = 'none';
+        console.log('🔧 Hidden charList (desktop container)');
+      }
+    } else {
+      // Десктопная версия с карточками
+      console.log('🖥️ Building desktop version...');
+      this.buildDesktopCharacterSelect();
+      
+      // Скрываем мобильный контейнер
+      const characterAvatars = document.getElementById('characterAvatars');
+      if (characterAvatars) {
+        characterAvatars.style.display = 'none';
+        console.log('🔧 Hidden characterAvatars (mobile container)');
+      }
+    }
+  }
+  
+  static buildMobileCharacterSelect() {
+    const characterAvatars = document.getElementById('characterAvatars');
+    const characterDetails = document.getElementById('characterDetails');
+    
+    console.log('🔍 Building mobile character select...');
+    console.log('characterAvatars element:', characterAvatars);
+    console.log('characterDetails element:', characterDetails);
+    
+    // Принудительно показываем контейнер аватаров
+    if (characterAvatars) {
+      characterAvatars.style.display = 'flex';
+      characterAvatars.style.visibility = 'visible';
+      characterAvatars.style.opacity = '1';
+      console.log('🔧 Forced characterAvatars to display: flex');
+    }
+    
+    // Скрываем детали персонажа по умолчанию
+    if (characterDetails) {
+      characterDetails.style.display = 'none';
+      characterDetails.style.opacity = '0';
+      characterDetails.style.transform = 'translateY(20px)';
+      characterDetails.style.visibility = 'hidden';
+      console.log('🔧 Hidden characterDetails by default');
+    }
+    
+    CHARACTERS.forEach((char, index) => {
+      // Определяем иконку способности
+      let abilityIcon = '';
+      if (char.hasDash) {
+        abilityIcon = '💨';
+      } else if (char.hasShield) {
+        abilityIcon = '🛡️';
+      } else if (char.hasBlast) {
+        abilityIcon = '💥';
+      }
+      
+      // Создаем контейнер аватара
+      const avatarContainer = document.createElement('div');
+      avatarContainer.className = 'character-avatar-container';
+      avatarContainer.style.animationDelay = `${index * 0.1}s`;
+      avatarContainer.dataset.characterId = char.id;
+      
+      avatarContainer.innerHTML = `
+        <div class="character-avatar-small">
+          <div class="character-sprite-small">${char.sprite}</div>
+          <div class="character-ability-icon-small">${abilityIcon}</div>
+        </div>
+        <div class="character-avatar-info">
+          <div class="character-avatar-name">${char.name}</div>
+          <div class="character-avatar-class">${char.class}</div>
+        </div>
+      `;
+      
+      avatarContainer.addEventListener('click', () => {
+        console.log('🎯 Avatar clicked:', char.name);
+        
+        // Убираем выделение со всех аватаров
+        document.querySelectorAll('.character-avatar-container').forEach(a => a.classList.remove('selected'));
+        avatarContainer.classList.add('selected');
+        
+        // Устанавливаем выбранного персонажа
+        gameState.selectedCharacter = char;
+        
+        // Показываем детали персонажа сразу
+        this.showCharacterDetails(char);
+        
+        // Показываем кнопку "Старт"
+        const startGameBtn = document.getElementById('startGameBtn');
+        if (startGameBtn) {
+          startGameBtn.style.display = 'block';
+        }
+      });
+      
+      // Добавляем также обработчик для touch событий
+      avatarContainer.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        console.log('🎯 Avatar touched:', char.name);
+        
+        // Убираем выделение со всех аватаров
+        document.querySelectorAll('.character-avatar-container').forEach(a => a.classList.remove('selected'));
+        avatarContainer.classList.add('selected');
+        
+        // Устанавливаем выбранного персонажа
+        gameState.selectedCharacter = char;
+        
+        // Показываем детали персонажа сразу
+        this.showCharacterDetails(char);
+        
+        // Показываем кнопку "Старт"
+        const startGameBtn = document.getElementById('startGameBtn');
+        if (startGameBtn) {
+          startGameBtn.style.display = 'block';
+        }
+      });
+      
+      characterAvatars.appendChild(avatarContainer);
+    });
+    
+    console.log('✅ Mobile character select built. Total avatars:', characterAvatars.children.length);
+    console.log('characterAvatars display style:', characterAvatars.style.display);
+    console.log('characterAvatars computed style:', window.getComputedStyle(characterAvatars).display);
+    
+    // Принудительно показываем все аватары
+    const avatarContainers = characterAvatars.querySelectorAll('.character-avatar-container');
+    avatarContainers.forEach((container, index) => {
+      container.style.display = 'flex';
+      container.style.visibility = 'visible';
+      container.style.opacity = '1';
+      console.log(`🔧 Forced avatar ${index + 1} to display: flex`);
+      
+      // Принудительно показываем элементы внутри аватара
+      const avatarSmall = container.querySelector('.character-avatar-small');
+      const avatarInfo = container.querySelector('.character-avatar-info');
+      const spriteSmall = container.querySelector('.character-sprite-small');
+      const abilityIcon = container.querySelector('.character-ability-icon-small');
+      const avatarName = container.querySelector('.character-avatar-name');
+      const avatarClass = container.querySelector('.character-avatar-class');
+      
+      if (avatarSmall) {
+        avatarSmall.style.display = 'flex';
+        avatarSmall.style.visibility = 'visible';
+        avatarSmall.style.opacity = '1';
+      }
+      if (avatarInfo) {
+        avatarInfo.style.display = 'flex';
+        avatarInfo.style.visibility = 'visible';
+        avatarInfo.style.opacity = '1';
+      }
+      if (spriteSmall) {
+        spriteSmall.style.visibility = 'visible';
+        spriteSmall.style.opacity = '1';
+      }
+      if (abilityIcon) {
+        abilityIcon.style.display = 'flex';
+        abilityIcon.style.visibility = 'visible';
+        abilityIcon.style.opacity = '1';
+      }
+      if (avatarName) {
+        avatarName.style.visibility = 'visible';
+        avatarName.style.opacity = '1';
+      }
+      if (avatarClass) {
+        avatarClass.style.visibility = 'visible';
+        avatarClass.style.opacity = '1';
+      }
+    });
+  }
+  
+  static buildDesktopCharacterSelect() {
+    const charList = document.getElementById('charList');
+    
+    CHARACTERS.forEach((char, index) => {
       const card = document.createElement('div');
       card.className = 'character-card';
+      card.style.animationDelay = `${index * 0.1}s`;
       
       // Определяем иконку способности
       let abilityIcon = '';
@@ -190,6 +435,7 @@ export class ScreenManager {
         abilityName = 'Взрыв';
       }
       
+      // Полная версия для десктопа
       card.innerHTML = `
         <div class="character-avatar">
           <div class="character-sprite">${char.sprite}</div>
@@ -244,6 +490,110 @@ export class ScreenManager {
       
       charList.appendChild(card);
     });
+  }
+  
+  static showCharacterDetails(char) {
+    const characterDetails = document.getElementById('characterDetails');
+    const detailsSprite = document.getElementById('detailsSprite');
+    const detailsName = document.getElementById('detailsName');
+    const detailsClass = document.getElementById('detailsClass');
+    const detailsDescription = document.getElementById('detailsDescription');
+    const detailsStats = document.getElementById('detailsStats');
+    
+    if (!characterDetails) return;
+    
+    console.log('🎯 Showing character details for:', char.name);
+    console.log('Character data:', char);
+    console.log('detailsSprite element:', detailsSprite);
+    console.log('detailsName element:', detailsName);
+    console.log('detailsClass element:', detailsClass);
+    console.log('detailsDescription element:', detailsDescription);
+    console.log('detailsStats element:', detailsStats);
+    
+    // Определяем иконку способности
+    let abilityIcon = '';
+    let abilityName = '';
+    if (char.hasDash) {
+      abilityIcon = '💨';
+      abilityName = 'Dash';
+    } else if (char.hasShield) {
+      abilityIcon = '🛡️';
+      abilityName = 'Щит';
+    } else if (char.hasBlast) {
+      abilityIcon = '💥';
+      abilityName = 'Взрыв';
+    }
+    
+    // Обновляем детали персонажа
+    if (detailsSprite) {
+      detailsSprite.textContent = char.sprite;
+      console.log('✅ Updated detailsSprite with:', char.sprite);
+    }
+    if (detailsName) {
+      detailsName.textContent = char.name;
+      console.log('✅ Updated detailsName with:', char.name);
+    }
+    if (detailsClass) {
+      detailsClass.textContent = char.class;
+      console.log('✅ Updated detailsClass with:', char.class);
+    }
+    if (detailsDescription) {
+      detailsDescription.textContent = char.description;
+      console.log('✅ Updated detailsDescription with:', char.description);
+    }
+    
+    // Обновляем статистику
+    if (detailsStats) {
+      console.log('✅ Updating detailsStats with character stats');
+      detailsStats.innerHTML = `
+        <div class="character-details-stat">
+          <div class="character-details-stat-label">HP</div>
+          <div class="character-details-stat-value">${char.hp}</div>
+        </div>
+        <div class="character-details-stat">
+          <div class="character-details-stat-label">Урон</div>
+          <div class="character-details-stat-value">${char.damage}</div>
+        </div>
+        <div class="character-details-stat">
+          <div class="character-details-stat-label">Скорость</div>
+          <div class="character-details-stat-value">${char.moveSpeed}</div>
+        </div>
+        <div class="character-details-stat">
+          <div class="character-details-stat-label">Дальность</div>
+          <div class="character-details-stat-value">${char.attackRadius}</div>
+        </div>
+        <div class="character-details-stat">
+          <div class="character-details-stat-label">Атака</div>
+          <div class="character-details-stat-value">${char.attackSpeed}с</div>
+        </div>
+        <div class="character-details-stat">
+          <div class="character-details-stat-label">Тип</div>
+          <div class="character-details-stat-value">${char.type === 'melee' ? 'Ближний' : 'Дальний'}</div>
+        </div>
+        <div class="character-details-stat">
+          <div class="character-details-stat-label">Способность</div>
+          <div class="character-details-stat-value">${abilityName}</div>
+        </div>
+      `;
+    }
+    
+    // Показываем детали с плавной анимацией
+    characterDetails.style.display = 'flex';
+    characterDetails.style.visibility = 'visible';
+    characterDetails.style.opacity = '0';
+    characterDetails.style.transform = 'translateY(20px) scale(0.98)';
+    characterDetails.style.zIndex = '1000';
+    characterDetails.style.position = 'relative';
+    characterDetails.style.transition = 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+    
+    console.log('🎯 Showing character details for:', char.name);
+    
+    // Запускаем плавную анимацию с задержкой
+    setTimeout(() => {
+      characterDetails.style.opacity = '1';
+      characterDetails.style.transform = 'translateY(0) scale(1)';
+      console.log('🎯 Smooth animation started');
+    }, 50);
   }
 
   static async toggleInventory() {

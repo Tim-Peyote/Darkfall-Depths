@@ -258,6 +258,31 @@ export class InventorySpriteRenderer {
         ctx.fillStyle = '#8b4513';
         ctx.fillRect(x - size * 0.1, y - size * 0.2, size * 0.2, size * 0.1);
         break;
+        
+      case 'plate':
+        // Латная броня
+        ctx.fillStyle = '#7f8c8d';
+        ctx.beginPath();
+        ctx.arc(x, y, size * 0.4, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Металлические пластины
+        ctx.strokeStyle = '#95a5a6';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        
+        // Детали лат
+        ctx.fillStyle = '#95a5a6';
+        // Горизонтальные пластины
+        for (let i = 0; i < 3; i++) {
+          const yPos = y - size * 0.2 + i * size * 0.2;
+          ctx.fillRect(x - size * 0.3, yPos - size * 0.05, size * 0.6, size * 0.1);
+        }
+        
+        // Вертикальные застежки
+        ctx.fillStyle = '#8b4513';
+        ctx.fillRect(x - size * 0.05, y - size * 0.3, size * 0.1, size * 0.6);
+        break;
     }
     
     ctx.restore();
