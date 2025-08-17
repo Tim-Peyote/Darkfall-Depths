@@ -118,19 +118,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const isLocalFile = window.location.protocol === 'file:';
   if (isLocalFile) {
     console.warn('⚠️ Игра запущена через file:// протокол. Некоторые функции могут не работать.');
-    console.log('💡 Рекомендуется запустить через HTTP сервер: python3 -m http.server 8000');
   }
   
-  // Принудительно показываем экран загрузки и скрываем главное меню
-  const loadingScreen = document.getElementById('loadingScreen');
-  const menuScreen = document.getElementById('menuScreen');
-  
-  if (loadingScreen && menuScreen) {
-    loadingScreen.classList.remove('hidden');
-    loadingScreen.classList.add('active');
-    menuScreen.classList.remove('active');
-    menuScreen.classList.add('hidden');
-  }
+  // Инициализация экранов теперь происходит в ScreenManager.init()
   
   const loadingProgress = document.getElementById('loadingProgress');
   const loadingText = document.querySelector('.loading-text');
@@ -156,6 +146,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       try {
       updateProgress(1, 5, 'Пробуждение древних руин');
       setCanvasElements();
+      
+      // Инициализируем систему экранов
+      ScreenManager.init();
       
       // Задержка для визуального эффекта
       await new Promise(resolve => setTimeout(resolve, 600));
@@ -198,39 +191,49 @@ document.addEventListener('DOMContentLoaded', async () => {
       await new Promise(resolve => setTimeout(resolve, 600));
       
                  updateProgress(4, 5, 'Настройка аудио');
-           console.log('🎵 Аудио настроено');
-           console.log('✅ Аудио готово');
       
       // Задержка для визуального эффекта
       await new Promise(resolve => setTimeout(resolve, 600));
       
       updateProgress(5, 5, 'Погружение завершено');
-      console.log('🎉 Игра успешно запущена!');
     
-               // Переключаемся на главное меню после полной инициализации
-           setTimeout(() => {
-             const loadingScreen = document.getElementById('loadingScreen');
-             const menuScreen = document.getElementById('menuScreen');
-             
-             if (loadingScreen && menuScreen) {
-               console.log('🔄 Переключаемся с экрана загрузки на главное меню...');
-               loadingScreen.classList.remove('active');
-               loadingScreen.classList.add('hidden');
-               menuScreen.classList.remove('hidden');
-               menuScreen.classList.add('active');
-               console.log('✅ Переключение завершено');
-               
-               // Принудительно запускаем музыку на главном экране
-               try {
-                 console.log('🎵 Запускаем музыку на главном экране...');
-                 audioManager.forceStartMusic();
-               } catch (audioError) {
-                 console.warn('⚠️ Не удалось запустить музыку:', audioError);
-               }
-             } else {
-               console.error('❌ Не удалось найти экраны загрузки или меню');
-             }
-           }, 500); // Небольшая задержка для плавного перехода
+      // Переключаемся на главное меню после полной инициализации
+      try {
+        ScreenManager.switchScreen('menu');
+        
+        // Принудительно запускаем музыку на главном экране
+        try {
+          audioManager.forceStartMusic();
+        } catch (audioError) {
+          console.warn('⚠️ Не удалось запустить музыку:', audioError);
+        }
+      } catch (switchError) {
+        console.error('❌ Ошибка переключения на главное меню:', switchError);
+        // Принудительно показываем главное меню
+        const loadingScreen = document.getElementById('loadingScreen');
+        const menuScreen = document.getElementById('menuScreen');
+        if (loadingScreen && menuScreen) {
+          loadingScreen.classList.add('hidden');
+          loadingScreen.classList.remove('active');
+          menuScreen.classList.remove('hidden');
+          menuScreen.classList.add('active');
+        }
+      }
+      
+      // Принудительное переключение через 3 секунды, если что-то пошло не так
+      setTimeout(() => {
+        if (gameState.screen === 'loading') {
+          const loadingScreen = document.getElementById('loadingScreen');
+          const menuScreen = document.getElementById('menuScreen');
+          if (loadingScreen && menuScreen) {
+            loadingScreen.classList.add('hidden');
+            loadingScreen.classList.remove('active');
+            menuScreen.classList.remove('hidden');
+            menuScreen.classList.add('active');
+            gameState.screen = 'menu';
+          }
+        }
+      }, 3000);
     
   } catch (error) {
     console.error('❌ Ошибка инициализации игры:', error);

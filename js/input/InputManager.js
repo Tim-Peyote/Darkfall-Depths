@@ -36,8 +36,17 @@ export class InputManager {
         }
       }
       
-      // Блокируем скролл только в игровом экране
-      if (gameState.screen === 'game') {
+      // Разрешаем прокрутку в паузе
+      const pauseOverlay = document.getElementById('pauseOverlay');
+      if (pauseOverlay && !pauseOverlay.classList.contains('hidden')) {
+        // Проверяем, что touch событие происходит внутри паузы
+        if (pauseOverlay.contains(e.target)) {
+          return; // Разрешаем прокрутку в паузе
+        }
+      }
+      
+      // Блокируем скролл только в игровом экране и только когда не в паузе
+      if (gameState.screen === 'game' && !gameState.isPaused) {
         e.preventDefault();
       }
     }, { passive: false });

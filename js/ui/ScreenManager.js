@@ -6,30 +6,77 @@ import { CHARACTERS } from '../config/constants.js';
 import { MenuNavigationManager } from './MenuNavigationManager.js';
 
 export class ScreenManager {
-  static switchScreen(screenName) {
+  static lastSwitchTime = 0;
+  static switchDebounceMs = 300; // Защита от быстрых переключений
+
+  static init() {
+    // Принудительно очищаем все экраны при запуске
+    this.forceClearAllScreens();
+    
+    // Устанавливаем экран загрузки как активный
+    const loadingScreen = document.getElementById('loadingScreen');
+    if (loadingScreen) {
+      loadingScreen.classList.remove('hidden');
+      loadingScreen.classList.add('active');
+      loadingScreen.style.display = 'flex';
+    }
+  }
+
+  static forceClearAllScreens() {
     document.querySelectorAll('.screen').forEach(screen => {
       screen.classList.add('hidden');
       screen.classList.remove('active');
+      screen.style.display = 'none';
+    });
+  }
+
+  static switchScreen(screenName) {
+    // Защита от быстрых переключений
+    const now = Date.now();
+    if (now - this.lastSwitchTime < this.switchDebounceMs) {
+      return;
+    }
+    this.lastSwitchTime = now;
+    
+    // Защита от повторного переключения на тот же экран
+    if (gameState.screen === screenName) {
+      return;
+    }
+    
+    // Скрываем ВСЕ экраны принудительно
+    document.querySelectorAll('.screen').forEach(screen => {
+      screen.classList.add('hidden');
+      screen.classList.remove('active');
+      screen.style.display = 'none';
     });
     
+    // Показываем только целевой экран
     const targetScreen = document.getElementById(screenName + 'Screen');
     if (targetScreen) {
       targetScreen.classList.remove('hidden');
       targetScreen.classList.add('active');
+      targetScreen.style.display = 'flex';
       gameState.screen = screenName;
+      
+      // Дополнительная проверка - убеждаемся, что только один экран активен
+      setTimeout(() => {
+        document.querySelectorAll('.screen').forEach(screen => {
+          if (screen !== targetScreen) {
+            screen.classList.add('hidden');
+            screen.classList.remove('active');
+            screen.style.display = 'none';
+          }
+        });
+      }, 50);
       
       // Управление музыкой при переключении экранов
       if (screenName === 'game') {
-        // На игровом экране играет stage1
         audioManager.playMusic('stage1');
       } else if (screenName === 'menu' || screenName === 'select') {
-        // На главном экране и экране выбора персонажей продолжаем играть Main
-        // (не перезапускаем, если уже играет)
         if (!audioManager.currentMusic || audioManager.currentMusic.src !== audioManager.musicTracks.main.src) {
           audioManager.playMusic('main');
         }
       } else {
-        // На других экранах (records, settings) продолжаем играть Main
         if (!audioManager.currentMusic || audioManager.currentMusic.src !== audioManager.musicTracks.main.src) {
           audioManager.playMusic('main');
         }
@@ -88,7 +135,6 @@ export class ScreenManager {
             const { GameEngine } = await import('../game/GameEngine.js');
             GameEngine.updateQuickPotions();
             
-            // Переинициализируем обработчики событий для игровых кнопок
             const { SettingsManager } = await import('./SettingsManager.js');
             SettingsManager.setupGameButtonEventListeners();
           })();
@@ -98,7 +144,7 @@ export class ScreenManager {
       // Обновляем навигацию по клавиатуре при переключении экранов
       setTimeout(() => {
         MenuNavigationManager.refreshNavigation();
-      }, 200); // Небольшая задержка для полной загрузки DOM
+      }, 200);
     } else {
       console.error('Screen not found:', screenName + 'Screen');
     }
@@ -125,7 +171,7 @@ export class ScreenManager {
       });
     }, 50);
     
-    // Принудительное обновление кеша
+    // Принудительно обновление кеша
     CHARACTERS.forEach(char => {
       const card = document.createElement('div');
       card.className = 'character-card';
@@ -207,7 +253,6 @@ export class ScreenManager {
     if (overlay.classList.contains('hidden')) {
       // Проверяем, что игра не в паузе перед открытием инвентаря
       if (gameState.isPaused) {
-        console.log('Inventory toggle attempted during pause - ignoring');
         return;
       }
       
@@ -242,10 +287,7 @@ export class ScreenManager {
   }
   
   static async togglePause() {
-    console.log('🔴 ScreenManager.togglePause() called!');
-    console.log('🔴 Current screen:', gameState.screen, 'isPaused:', gameState.isPaused);
     if (gameState.screen !== 'game') {
-      console.log('🔴 Not in game screen, ignoring pause toggle');
       return;
     }
     
@@ -257,11 +299,8 @@ export class ScreenManager {
       return;
     }
     
-    console.log('Pause overlay found, setting isPaused to:', gameState.isPaused);
-    
     if (gameState.isPaused) {
       overlay.classList.remove('hidden');
-      console.log('Pause overlay shown');
       
       // Закрываем инвентарь при открытии паузы
       const inventoryOverlay = document.getElementById('inventoryOverlay');
@@ -305,7 +344,6 @@ export class ScreenManager {
       this.dimMusicOnPause();
     } else {
       overlay.classList.add('hidden');
-      console.log('Pause overlay hidden');
       
       // Показываем игровые кнопки при возобновлении
       const inventoryToggleBtn = document.getElementById('inventoryToggle');

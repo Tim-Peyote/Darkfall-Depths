@@ -1901,6 +1901,8 @@ select.form-control {
   height: 100%;
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(4px);
+  /* Не блокируем скролл */
+  pointer-events: none;
 }
 
 .pause-content {
@@ -1909,6 +1911,10 @@ select.form-control {
   max-height: 90vh;
   overflow-y: auto;
   animation: pauseModalSlideIn 0.3s ease-out;
+  /* Улучшаем прокрутку на мобильных устройствах */
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  touch-action: pan-y;
 }
 
 @keyframes pauseModalSlideIn {
@@ -2247,6 +2253,79 @@ select.form-control {
   .settings-panel .form-label {
     font-size: var(--font-size-base);
     margin-bottom: var(--space-8);
+  }
+  
+  /* Мобильные стили для паузы */
+  .pause-content {
+    width: calc(100% - var(--space-32));
+    max-height: 85vh;
+    padding: var(--space-16);
+  }
+  
+  .pause-panel {
+    margin: 0;
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .pause-panel .card__header h3 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .audio-settings {
+    padding: var(--space-16);
+    margin: var(--space-12) 0;
+  }
+  
+  .audio-settings-title {
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--space-12);
+  }
+  
+  .volume-controls {
+    gap: var(--space-12);
+  }
+  
+  .volume-slider {
+    height: 8px;
+    touch-action: manipulation;
+  }
+  
+  .volume-slider::-webkit-slider-thumb {
+    width: 20px;
+    height: 20px;
+    touch-action: manipulation;
+  }
+  
+  .volume-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .audio-actions .btn {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+  
+  .pause-panel .card__footer .btn {
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+  
+  /* Дополнительные стили для паузы на мобильных */
+  .pause-overlay {
+    touch-action: pan-y !important;
+    overscroll-behavior: auto !important;
+  }
+  
+  .pause-overlay .pause-content {
+    touch-action: pan-y !important;
+    overscroll-behavior: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  
+  .pause-overlay .pause-panel {
+    touch-action: pan-y !important;
   }
   
   .settings-panel .volume-text {
@@ -3263,6 +3342,15 @@ body, canvas {
 
 /* Улучшения для мобильного взаимодействия */
 @media (max-width: 768px) {
+  /* Дополнительная защита от "простреливания" экранов на мобильных */
+  .screen:not(.active) {
+    display: none !important;
+  }
+  
+  .screen.active {
+    display: flex !important;
+  }
+  
   /* Увеличиваем минимальную область касания для всех кнопок */
   .btn {
     min-height: 44px;
@@ -3310,6 +3398,40 @@ html, body {
   height: 100%;
   touch-action: none;
   overscroll-behavior: none;
+}
+
+/* Разрешаем скролл в паузе */
+.pause-overlay {
+  touch-action: pan-y !important;
+  overscroll-behavior: auto !important;
+  /* Принудительно разрешаем скролл */
+  overflow: visible !important;
+}
+
+.pause-overlay .pause-content {
+  touch-action: pan-y !important;
+  overscroll-behavior: auto !important;
+  /* Принудительно разрешаем скролл */
+  overflow-y: auto !important;
+}
+
+.pause-overlay .pause-panel {
+  touch-action: pan-y !important;
+}
+
+.pause-overlay .card__body {
+  touch-action: pan-y !important;
+}
+
+/* Дополнительная защита для всех элементов внутри паузы */
+.pause-overlay * {
+  touch-action: pan-y !important;
+}
+
+/* Исключение для кнопок и слайдеров */
+.pause-overlay .btn,
+.pause-overlay input[type="range"] {
+  touch-action: manipulation !important;
 }
 
 .custom-tooltip {

@@ -11,7 +11,6 @@ export class MenuNavigationManager {
   }
   
   static init() {
-    console.log('🎯 Initializing menu navigation...');
     
     // Добавляем обработчики клавиатуры для навигации по меню
     window.addEventListener('keydown', (e) => {
@@ -215,18 +214,22 @@ export class MenuNavigationManager {
     switch (gameState.screen) {
       case 'select':
         // Возврат в главное меню
-        (async () => {
-          const { ScreenManager } = await import('./ScreenManager.js');
-          ScreenManager.switchScreen('menu');
-        })();
+        if (gameState.screen !== 'menu') {
+          (async () => {
+            const { ScreenManager } = await import('./ScreenManager.js');
+            ScreenManager.switchScreen('menu');
+          })();
+        }
         break;
       case 'records':
       case 'settings':
         // Возврат в главное меню
-        (async () => {
-          const { ScreenManager } = await import('./ScreenManager.js');
-          ScreenManager.switchScreen('menu');
-        })();
+        if (gameState.screen !== 'menu') {
+          (async () => {
+            const { ScreenManager } = await import('./ScreenManager.js');
+            ScreenManager.switchScreen('menu');
+          })();
+        }
         break;
       case 'menu':
         // На главном меню Escape ничего не делает

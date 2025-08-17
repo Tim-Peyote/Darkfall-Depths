@@ -2,7 +2,7 @@
 
 // ==================== ГЛОБАЛЬНОЕ СОСТОЯНИЕ ====================
 export const gameState = {
-  screen: 'menu',
+  screen: 'loading',
   level: 1,
   gameTime: 0,
   player: null,

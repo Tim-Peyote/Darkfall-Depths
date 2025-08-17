@@ -325,7 +325,6 @@ export class SettingsManager {
         e.preventDefault();
       });
       
-      console.log('🔴 Pause button event listeners set up successfully');
     } else {
       console.error('❌ Pause button not found!');
     }
@@ -343,22 +342,14 @@ export class SettingsManager {
         e.preventDefault();
         e.stopPropagation();
         
-        console.log('🎒 INVENTORY BUTTON CLICKED! Event type:', e.type);
-        console.log('🎒 Current gameState.screen:', gameState.screen);
-        console.log('🎒 Current gameState.isPaused:', gameState.isPaused);
-        
-        // Проверяем, что мы в игре и не в паузе
         if (gameState.screen !== 'game') {
-          console.log('🎒 Inventory button clicked outside game - ignoring');
           return;
         }
         
         if (gameState.isPaused) {
-          console.log('🎒 Inventory button clicked during pause - ignoring');
           return;
         }
         
-        console.log('🎒 Opening inventory...');
         const { InventoryManager } = await import('../ui/InventoryManager.js');
         InventoryManager.toggleInventory();
       };
@@ -372,14 +363,12 @@ export class SettingsManager {
         e.preventDefault();
       });
       
-      console.log('🎒 Inventory button event listeners set up successfully');
     } else {
       console.error('❌ Inventory button not found!');
     }
     
     // Кнопка закрытия паузы (крестик)
     const closePauseBtn = document.getElementById('closePause');
-    console.log('❌ Close pause button found:', !!closePauseBtn);
     if (closePauseBtn) {
       // Удаляем старые обработчики
       const newClosePauseBtn = closePauseBtn.cloneNode(true);
@@ -389,7 +378,6 @@ export class SettingsManager {
       const handleClosePauseClick = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('❌ CLOSE PAUSE BUTTON CLICKED! Event type:', e.type);
         
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         await ScreenManager.togglePause();
@@ -404,12 +392,10 @@ export class SettingsManager {
         e.preventDefault();
       });
       
-      console.log('❌ Close pause button event listeners set up successfully');
     }
     
     // Мобильная кнопка инвентаря (в нижней части экрана)
     const mobileInventoryBtn = document.getElementById('mobileInventoryBtn');
-    console.log('📱 Mobile inventory button found:', !!mobileInventoryBtn);
     if (mobileInventoryBtn) {
       // Удаляем старые обработчики
       const newMobileInventoryBtn = mobileInventoryBtn.cloneNode(true);
@@ -420,22 +406,14 @@ export class SettingsManager {
         e.preventDefault();
         e.stopPropagation();
         
-        console.log('📱 MOBILE INVENTORY BUTTON CLICKED! Event type:', e.type);
-        console.log('📱 Current gameState.screen:', gameState.screen);
-        console.log('📱 Current gameState.isPaused:', gameState.isPaused);
-        
-        // Проверяем, что мы в игре и не в паузе
         if (gameState.screen !== 'game') {
-          console.log('📱 Mobile inventory button clicked outside game - ignoring');
           return;
         }
         
         if (gameState.isPaused) {
-          console.log('📱 Mobile inventory button clicked during pause - ignoring');
           return;
         }
         
-        console.log('📱 Opening inventory from mobile button...');
         const { InventoryManager } = await import('../ui/InventoryManager.js');
         InventoryManager.toggleInventory();
       };
@@ -449,80 +427,88 @@ export class SettingsManager {
         e.preventDefault();
       });
       
-      console.log('📱 Mobile inventory button event listeners set up successfully');
     }
   }
 
   static setupPauseEventListeners() {
-    console.log('⏸️ Setting up pause screen event listeners...');
-    
-    // Убираем фокус со всех ползунков при открытии паузы
-    setTimeout(() => {
-      const sliders = document.querySelectorAll('.pause-panel input[type="range"]');
-      sliders.forEach(slider => {
-        slider.blur();
-      });
-    }, 50);
-    
-    // Кнопка закрытия паузы (крестик)
-    const closePauseBtn = document.getElementById('closePause');
-    console.log('❌ Close pause button found:', !!closePauseBtn);
-    if (closePauseBtn) {
-      // Удаляем старые обработчики
-      const newClosePauseBtn = closePauseBtn.cloneNode(true);
-      closePauseBtn.parentNode.replaceChild(newClosePauseBtn, closePauseBtn);
-      
-      const handleClosePauseClick = async (e) => {
+    // Кнопка паузы
+    const pauseBtn = document.getElementById('pauseBtn');
+    if (pauseBtn) {
+      const handlePauseClick = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('❌ CLOSE PAUSE BUTTON CLICKED! Event type:', e.type);
         
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         await ScreenManager.togglePause();
       };
       
-      // Добавляем обработчики для мыши и touch
-      newClosePauseBtn.addEventListener('click', handleClosePauseClick);
-      newClosePauseBtn.addEventListener('touchend', handleClosePauseClick);
-      newClosePauseBtn.addEventListener('touchstart', (e) => e.preventDefault());
-      
-      console.log('❌ Close pause button event listeners set up successfully');
+      pauseBtn.addEventListener('click', handlePauseClick);
+      pauseBtn.addEventListener('touchend', handlePauseClick);
+      pauseBtn.addEventListener('touchstart', (e) => e.preventDefault());
     }
     
-    // Кнопка "В главное меню" в паузе
-    const quitBtn = document.getElementById('quitBtn');
-    console.log('🏠 Quit button found:', !!quitBtn);
-    if (quitBtn) {
-      // Удаляем старые обработчики
-      const newQuitBtn = quitBtn.cloneNode(true);
-      quitBtn.parentNode.replaceChild(newQuitBtn, quitBtn);
-      
-      const handleQuitClick = async (e) => {
+    // Кнопка инвентаря
+    const inventoryToggleBtn = document.getElementById('inventoryToggle');
+    if (inventoryToggleBtn) {
+      const handleInventoryClick = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🏠 QUIT BUTTON CLICKED! Event type:', e.type);
+        
+        if (gameState.screen !== 'game') {
+          return;
+        }
+        
+        if (gameState.isPaused) {
+          return;
+        }
         
         const { ScreenManager } = await import('../ui/ScreenManager.js');
-        const { GameEngine } = await import('../game/GameEngine.js');
-        
-        // Остановить игру
-        GameEngine.stopGame();
-        
-        // Сбросить состояние паузы
-        gameState.isPaused = false;
-        const pauseOverlay = document.getElementById('pauseOverlay');
-        if (pauseOverlay) pauseOverlay.classList.add('hidden');
-        
-        // Переключиться в главное меню
-        ScreenManager.switchScreen('menu');
+        await ScreenManager.toggleInventory();
       };
       
-      // Добавляем обработчики для мыши и touch
-      newQuitBtn.addEventListener('click', handleQuitClick);
-      newQuitBtn.addEventListener('touchend', handleQuitClick);
-      newQuitBtn.addEventListener('touchstart', (e) => e.preventDefault());
+      inventoryToggleBtn.addEventListener('click', handleInventoryClick);
+      inventoryToggleBtn.addEventListener('touchend', handleInventoryClick);
+      inventoryToggleBtn.addEventListener('touchstart', (e) => e.preventDefault());
+    }
+    
+    // Кнопка закрытия паузы (крестик)
+    const closePauseBtn = document.getElementById('closePause');
+    if (closePauseBtn) {
+      const handleClosePauseClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const { ScreenManager } = await import('../ui/ScreenManager.js');
+        await ScreenManager.togglePause();
+      };
       
-      console.log('🏠 Quit button event listeners set up successfully');
+      closePauseBtn.addEventListener('click', handleClosePauseClick);
+      closePauseBtn.addEventListener('touchend', handleClosePauseClick);
+      closePauseBtn.addEventListener('touchstart', (e) => e.preventDefault());
+    }
+    
+    // Мобильная кнопка инвентаря
+    const mobileInventoryBtn = document.getElementById('mobileInventoryBtn');
+    if (mobileInventoryBtn) {
+      const handleMobileInventoryClick = async (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        if (gameState.screen !== 'game') {
+          return;
+        }
+        
+        if (gameState.isPaused) {
+          return;
+        }
+        
+        const { ScreenManager } = await import('../ui/ScreenManager.js');
+        await ScreenManager.toggleInventory();
+      };
+      
+      mobileInventoryBtn.addEventListener('click', handleMobileInventoryClick);
+      mobileInventoryBtn.addEventListener('touchend', handleMobileInventoryClick);
+      mobileInventoryBtn.addEventListener('touchstart', (e) => e.preventDefault());
     }
   }
 
@@ -657,26 +643,19 @@ export class SettingsManager {
   }
 
   static setupEventListeners() {
-    console.log('🔧 Setting up event listeners...');
-    
-    try {
-    
     // Главное меню
     const startBtn = document.getElementById('startBtn');
     const recordsBtn = document.getElementById('recordsBtn');
     const settingsBtn = document.getElementById('settingsBtn');
     
-    console.log('🔍 Найденные кнопки:', {
-      startBtn: !!startBtn,
-      recordsBtn: !!recordsBtn,
-      settingsBtn: !!settingsBtn
-    });
-    
     if (startBtn) {
       const handleStartClick = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Start button clicked');
+        
+        // Защита от повторного срабатывания
+        if (gameState.screen === 'select') return;
+        
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         ScreenManager.switchScreen('select');
         ScreenManager.buildCharacterSelect();
@@ -691,7 +670,6 @@ export class SettingsManager {
       const handleRecordsClick = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Records button clicked');
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         const { RecordsManager } = await import('../ui/RecordsManager.js');
         
@@ -710,7 +688,6 @@ export class SettingsManager {
       const handleSettingsClick = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Settings button clicked');
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         ScreenManager.switchScreen('settings');
         
@@ -915,22 +892,14 @@ export class SettingsManager {
         e.preventDefault();
         e.stopPropagation();
         
-        console.log('🎒 INVENTORY BUTTON CLICKED! Event type:', e.type);
-        console.log('🎒 Current gameState.screen:', gameState.screen);
-        console.log('🎒 Current gameState.isPaused:', gameState.isPaused);
-        
-        // Проверяем, что мы в игре и не в паузе
         if (gameState.screen !== 'game') {
-          console.log('🎒 Inventory button clicked outside game - ignoring');
           return;
         }
         
         if (gameState.isPaused) {
-          console.log('🎒 Inventory button clicked during pause - ignoring');
           return;
         }
         
-        console.log('🎒 Opening inventory...');
         const { InventoryManager } = await import('../ui/InventoryManager.js');
         InventoryManager.toggleInventory();
       };
@@ -1107,9 +1076,6 @@ export class SettingsManager {
       });
     }
     }
-    } catch (error) {
-      console.error('❌ Error in setupEventListeners:', error);
-    }
   }
 
   static initializePauseAudioSettings() {
@@ -1192,7 +1158,10 @@ export class SettingsManager {
       const handleBackToMenu = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('⬅️ Back from select button clicked! Event type:', e.type);
+        
+        // Защита от повторного срабатывания
+        if (gameState.screen === 'menu') return;
+        
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         ScreenManager.switchScreen('menu');
       };
@@ -1216,11 +1185,12 @@ export class SettingsManager {
       const handleStartGame = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🎮 Start game button clicked! Event type:', e.type);
+        
+        // Защита от повторного срабатывания
+        if (gameState.screen === 'game') return;
         
         // Проверяем, что персонаж выбран
         if (!gameState.selectedCharacter) {
-          console.log('❌ No character selected!');
           return;
         }
         
