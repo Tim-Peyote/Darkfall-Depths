@@ -120,6 +120,15 @@ export class ContextMenuManager {
         this.removeFromQuickSlot();
       });
       contextMenu.appendChild(removeFromQuickSlot);
+      
+      // Добавляем команды для использования зелья
+      if (isConsumable) {
+        const useItem = this.createMenuItem('Использовать', () => {
+          this.useItem();
+        });
+        contextMenu.appendChild(useItem);
+      }
+      
       return;
     }
 
@@ -129,6 +138,22 @@ export class ContextMenuManager {
         this.useItem();
       });
       contextMenu.appendChild(applyItem);
+      
+      // Добавляем команды для быстрых слотов
+      const quickSlot1 = this.createMenuItem('➕ Быстрое действие 1', () => {
+        this.addToQuickSlot(0);
+      });
+      contextMenu.appendChild(quickSlot1);
+      
+      const quickSlot2 = this.createMenuItem('➕ Быстрое действие 2', () => {
+        this.addToQuickSlot(1);
+      });
+      contextMenu.appendChild(quickSlot2);
+      
+      const quickSlot3 = this.createMenuItem('➕ Быстрое действие 3', () => {
+        this.addToQuickSlot(2);
+      });
+      contextMenu.appendChild(quickSlot3);
     }
 
     // Пункт "Надеть" для предметов в рюкзаке (не расходников)
@@ -148,7 +173,7 @@ export class ContextMenuManager {
     }
 
     // Разделитель
-    if ((isConsumable && isBackpack) || (!isConsumable && isBackpack) || isEquipped) {
+    if ((isConsumable && isBackpack) || (!isConsumable && isBackpack) || isEquipped || isQuickSlot) {
       const separator = document.createElement('div');
       separator.style.cssText = `
         height: 1px;
@@ -302,6 +327,63 @@ export class ContextMenuManager {
     
     // Сбрасываем переменные после выполнения
     this.resetContextMenu();
+  }
+
+  static addToQuickSlot(quickSlotIndex) {
+    if (!currentItem || !currentSlot) return;
+    
+    // Проверяем, что предмет является зельем
+    if (currentItem.type !== 'consumable') {
+      console.warn('Только зелья можно добавлять в быстрые слоты');
+      return;
+    }
+    
+    // Проверяем, что предмет находится в рюкзаке
+    if (currentSlot.type !== 'backpack') {
+      console.warn('Только предметы из рюкзака можно добавлять в быстрые слоты');
+      return;
+    }
+    
+    // Используем InventoryManager для добавления в быстрый слот
+    import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
+      InventoryManager.addToQuickSlot(currentSlot.index, quickSlotIndex);
+    });
+  }
+
+  static useItem() {
+    if (!currentItem || !currentSlot) return;
+    
+    // Используем InventoryManager для использования предмета
+    import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
+      InventoryManager.useItem(currentSlot.type, currentSlot.index);
+    });
+  }
+
+  static equipItem() {
+    if (!currentItem || !currentSlot) return;
+    
+    // Используем InventoryManager для экипировки предмета
+    import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
+      InventoryManager.equipItem(currentSlot.index);
+    });
+  }
+
+  static unequipItem() {
+    if (!currentItem || !currentSlot) return;
+    
+    // Используем InventoryManager для снятия предмета
+    import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
+      InventoryManager.unequipItem(currentSlot.index);
+    });
+  }
+
+  static removeFromQuickSlot() {
+    if (!currentItem || !currentSlot) return;
+    
+    // Используем InventoryManager для удаления из быстрого слота
+    import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
+      InventoryManager.removeFromQuickSlot(currentSlot.index);
+    });
   }
 
   // Методы для определения платформы

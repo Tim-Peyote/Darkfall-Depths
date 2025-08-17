@@ -26,7 +26,13 @@ export class InputManager {
       if (inventoryOverlay && !inventoryOverlay.classList.contains('hidden')) {
         // Проверяем, что touch событие происходит внутри инвентаря или его элементов
         if (inventoryOverlay.contains(e.target)) {
-          return; // Разрешаем прокрутку в инвентаре
+          // Проверяем, не является ли это перетаскиванием предмета
+          const isDragging = document.querySelector('.mobile-drag-element') || 
+                           document.querySelector('.inventory-slot.dragging');
+          
+          if (!isDragging) {
+            return; // Разрешаем прокрутку в инвентаре только если не перетаскиваем
+          }
         }
       }
       

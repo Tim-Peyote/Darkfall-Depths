@@ -2557,7 +2557,7 @@ select.form-control {
   /* Кнопка паузы - всегда в правом верхнем углу */
   #pauseBtn {
     position: absolute !important;
-    top: var(--space-8) !important;
+    top: calc(180px + var(--space-8) + var(--space-4)) !important; /* Под мини-картой */
     right: var(--space-8) !important;
     min-width: 56px !important;
     min-height: 56px !important;
@@ -2596,10 +2596,20 @@ select.form-control {
     margin: 0 !important; /* Убираем внешние отступы */
   }
   
-  /* Бафы - под миникартой в мобильном адаптиве */
+  /* Миникарта - в правом верхнем углу */
+  #minimap {
+    position: absolute !important;
+    top: var(--space-8) !important;
+    right: var(--space-8) !important;
+    width: 180px !important;
+    height: 180px !important;
+    z-index: 1000 !important;
+  }
+  
+  /* Бафы - под кнопкой паузы в мобильном адаптиве */
   .active-buffs-container {
     position: absolute !important;
-    top: 140px !important; /* Под миникартой */
+    top: calc(236px + var(--space-8) + var(--space-4)) !important; /* Под кнопкой паузы */
     left: var(--space-4) !important;
     z-index: 1000 !important;
     max-width: 180px !important;
@@ -2792,8 +2802,20 @@ select.form-control {
     right: calc(var(--space-8) + 70px) !important; /* Ближе к паузе на маленьких экранах */
   }
   
+  /* Миникарта на очень маленьких экранах */
+  #minimap {
+    width: 140px !important;
+    height: 140px !important;
+  }
+  
+  /* Кнопка паузы на очень маленьких экранах */
+  #pauseBtn {
+    top: calc(140px + var(--space-8) + var(--space-4)) !important; /* Под мини-картой */
+  }
+  
   .active-buffs-container {
     max-width: 160px !important; /* Уменьшаем ширину бафов */
+    top: calc(196px + var(--space-8) + var(--space-4)) !important; /* Под кнопкой паузы */
   }
   
   /* Дополнительные стили для зелий на очень маленьких экранах */
@@ -3070,6 +3092,24 @@ select.form-control {
     outline: 2px solid var(--color-primary) !important;
     box-shadow: 0 0 8px rgba(var(--color-teal-500-rgb), 0.5) !important;
     background: rgba(243, 156, 18, 0.1) !important;
+    transform: scale(1.05) !important;
+    transition: all 0.1s ease !important;
+  }
+
+  .inventory-slot.dragging {
+    opacity: 0.5 !important;
+    transform: scale(0.95) !important;
+    transition: all 0.1s ease !important;
+  }
+
+  /* Стили для мобильного элемента перетаскивания */
+  .mobile-drag-element {
+    position: fixed !important;
+    z-index: 10000 !important;
+    pointer-events: none !important;
+    border-radius: 8px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
+    transition: none !important;
   }
   
   .health-potions-bottom {

@@ -1439,6 +1439,10 @@ export class InventoryManager {
       return;
     }
     
+    // Добавляем data-атрибуты для идентификации слота
+    slot.setAttribute('data-type', type);
+    slot.setAttribute('data-index', index.toString());
+    
     // Touch события для мобильного управления
     slot.addEventListener('touchstart', (e) => {
       const touch = e.touches[0];
@@ -1453,42 +1457,44 @@ export class InventoryManager {
           this.handleLongPress(slot, type, index);
         }
       }, 500); // 500ms для долгого нажатия
-    });
+    }, { passive: true });
 
     slot.addEventListener('touchmove', (e) => {
       const touch = e.touches[0];
       const deltaX = Math.abs(touch.clientX - touchStartX);
       const deltaY = Math.abs(touch.clientY - touchStartY);
       
-      // Проверяем, является ли это вертикальным свайпом для прокрутки
-      const isVerticalScroll = deltaY > deltaX && deltaY > 15;
+      // Улучшенная логика определения типа жеста
+      const isDragGesture = deltaX > 8 || (deltaY > 8 && deltaX > 3);
+      const isVerticalScroll = deltaY > deltaX && deltaY > 20;
       
       if (isVerticalScroll) {
-        // Это вертикальный свайп для прокрутки - не обрабатываем
+        // Это вертикальный свайп для прокрутки - разрешаем прокрутку
         if (longPressTimer) {
           clearTimeout(longPressTimer);
           longPressTimer = null;
         }
-        touchMoved = false; // Сбрасываем флаг движения
-        return;
+        touchMoved = false;
+        return; // Не обрабатываем как drag
       }
       
-      // Если палец сдвинулся больше чем на 10px по горизонтали или диагонали, считаем что это перетаскивание
-      if (deltaX > 10 || (deltaY > 10 && deltaX > 5)) {
+      if (isDragGesture) {
         touchMoved = true;
         if (longPressTimer) {
           clearTimeout(longPressTimer);
           longPressTimer = null;
         }
         
-        // Предотвращаем прокрутку только при перетаскивании предметов
-        e.preventDefault();
-        e.stopPropagation();
+        // Проверяем, можно ли отменить событие
+        if (e.cancelable) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
         
         // Начинаем перетаскивание
         this.startMobileDrag(slot, type, index, e);
       }
-    });
+    }, { passive: false });
 
     slot.addEventListener('touchend', (e) => {
       if (longPressTimer) {
@@ -1502,7 +1508,7 @@ export class InventoryManager {
         // Завершаем перетаскивание
         this.endMobileDrag(e);
       }
-    });
+    }, { passive: true });
     
     // Отмечаем, что обработчики добавлены
     slot.setAttribute('data-mobile-events-added', 'true');
@@ -1616,6 +1622,9 @@ export class InventoryManager {
       
       // Создаем визуальный элемент для перетаскивания
       this.createMobileDragElement(item, e);
+      
+      // Добавляем обработчик для отслеживания движения пальца
+      this.setupMobileDragTracking(e);
     }
   }
 
@@ -1623,7 +1632,7 @@ export class InventoryManager {
     // Завершаем перетаскивание на мобильном
     this.removeAllDragElements();
     
-    // Находим слот под пальцем
+    // Находим слот под пальцем с улучшенной логикой
     const touch = e.changedTouches[0];
     const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
     const targetSlot = elementUnderTouch?.closest('.inventory-slot');
@@ -1679,15 +1688,27 @@ export class InventoryManager {
       align-items: center;
       justify-content: center;
       box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transform: scale(1.1);
     `;
     
-    // Используем только спрайты, никаких эмоджи
+    // Создаем содержимое элемента
     if (item.sprite) {
-      dragElement.innerHTML = `<img src="${item.sprite}" style="width: 100%; height: 100%; object-fit: contain;">`;
+      // Используем спрайт если есть
+      const img = document.createElement('img');
+      img.src = item.sprite;
+      img.style.cssText = 'width: 100%; height: 100%; object-fit: contain;';
+      dragElement.appendChild(img);
     } else {
-      // Создаем простой цветной квадрат вместо эмоджи
-      dragElement.style.background = item.color || '#666';
-      dragElement.style.border = '2px solid #fff';
+      // Создаем текстовое представление предмета
+      const text = document.createElement('div');
+      text.textContent = item.icon || item.name?.charAt(0) || '?';
+      text.style.cssText = `
+        color: white;
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+      `;
+      dragElement.appendChild(text);
     }
     
     document.body.appendChild(dragElement);
@@ -1723,6 +1744,82 @@ export class InventoryManager {
         element.remove();
       }
     });
+  }
+
+  static setupMobileDragTracking(e) {
+    // Отслеживаем движение пальца для визуальной обратной связи
+    const updateDragFeedback = (e) => {
+      const touch = e.touches[0];
+      
+      // Убираем подсветку со всех слотов
+      document.querySelectorAll('.inventory-slot').forEach(slot => {
+        slot.classList.remove('drag-over');
+      });
+      
+      // Находим слот под пальцем
+      const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+      const targetSlot = elementUnderTouch?.closest('.inventory-slot');
+      
+      if (targetSlot && draggedItem && draggedSlot) {
+        const targetType = targetSlot.getAttribute('data-type');
+        const targetIndex = parseInt(targetSlot.getAttribute('data-index'));
+        
+        if (targetType && targetIndex !== undefined) {
+          // Проверяем совместимость предмета со слотом
+          const isCompatible = this.checkItemSlotCompatibility(draggedItem, targetType, targetIndex);
+          
+          if (isCompatible) {
+            targetSlot.classList.add('drag-over');
+          }
+        }
+      }
+    };
+    
+    const cleanup = () => {
+      document.removeEventListener('touchmove', updateDragFeedback);
+      document.removeEventListener('touchend', cleanup);
+      document.removeEventListener('touchcancel', cleanup);
+    };
+    
+    document.addEventListener('touchmove', updateDragFeedback, { passive: true });
+    document.addEventListener('touchend', cleanup, { once: true });
+    document.addEventListener('touchcancel', cleanup, { once: true });
+  }
+
+  static checkItemSlotCompatibility(item, targetType, targetIndex) {
+    if (!item) return false;
+    
+    // Быстрые слоты принимают только зелья
+    if (targetType === 'quickslot') {
+      return item.type === 'consumable';
+    }
+    
+    // Экипировка проверяется по типу слота
+    if (targetType === 'equipment') {
+      const equipmentStructure = [
+        { type: 'head', allowedTypes: ['head'] },
+        { type: 'weapon1', allowedTypes: ['weapon'] },
+        { type: 'chest', allowedTypes: ['armor'] },
+        { type: 'weapon2', allowedTypes: ['weapon', 'shield'] },
+        { type: 'ring1', allowedTypes: ['ring', 'amulet'] },
+        { type: 'gloves', allowedTypes: ['gloves'] },
+        { type: 'ring2', allowedTypes: ['ring', 'amulet'] },
+        { type: 'belt', allowedTypes: ['belt'] },
+        { type: 'boots', allowedTypes: ['boots'] }
+      ];
+      
+      const slotConfig = equipmentStructure[targetIndex];
+      if (slotConfig) {
+        return this.isItemCompatibleWithSlot(item, slotConfig.allowedTypes);
+      }
+    }
+    
+    // Рюкзак принимает все предметы
+    if (targetType === 'backpack') {
+      return true;
+    }
+    
+    return false;
   }
 
   static clearNewItemFlags() {
@@ -1879,5 +1976,48 @@ export class InventoryManager {
         }
       };
     }
+  }
+
+  // Методы для работы с быстрыми слотами
+  static addToQuickSlot(backpackIndex, quickSlotIndex) {
+    if (quickSlotIndex < 0 || quickSlotIndex >= 3) return false;
+    
+    const item = gameState.inventory.backpack[backpackIndex];
+    if (!item || item.type !== 'consumable') return false;
+    
+    // Сохраняем тип зелья, а не конкретный предмет (как в handleDrop)
+    gameState.inventory.quickSlots[quickSlotIndex] = item.base;
+    
+    // Перерисовываем инвентарь
+    this.renderInventory();
+    
+    // Обновляем быстрые слоты в UI
+    (async () => {
+      const { GameEngine } = await import('../game/GameEngine.js');
+      GameEngine.updateQuickPotions();
+    })();
+    
+    return true;
+  }
+
+  static removeFromQuickSlot(quickSlotIndex) {
+    if (quickSlotIndex < 0 || quickSlotIndex >= 3) return false;
+    
+    const item = gameState.inventory.quickSlots[quickSlotIndex];
+    if (!item) return false;
+    
+    // Просто очищаем быстрый слот (тип зелья не возвращается в рюкзак)
+    gameState.inventory.quickSlots[quickSlotIndex] = null;
+    
+    // Перерисовываем инвентарь
+    this.renderInventory();
+    
+    // Обновляем быстрые слоты в UI
+    (async () => {
+      const { GameEngine } = await import('../game/GameEngine.js');
+      GameEngine.updateQuickPotions();
+    })();
+    
+    return true;
   }
 } 
