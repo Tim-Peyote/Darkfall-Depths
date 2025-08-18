@@ -398,14 +398,6 @@ export class BuffManager {
         this.addDebuff('moveSpeed', gameState.player.moveSpeed * 0.6, 12);
         break;
         
-      case 'scroll_ghost':
-        // Призрак - прохождение сквозь стены
-        gameState.player.isGhost = true;
-        setTimeout(() => {
-          if (gameState.player) gameState.player.isGhost = false;
-        }, 10000);
-        break;
-        
       case 'scroll_fire_explosion':
         // Огненный взрыв
         this.createFireExplosion();

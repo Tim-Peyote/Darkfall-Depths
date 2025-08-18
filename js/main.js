@@ -159,18 +159,20 @@ document.addEventListener('DOMContentLoaded', async () => {
       await new Promise(resolve => setTimeout(resolve, 600));
       
       updateProgress(2, 5, 'Пробуждение эха подземелий');
-      try {
-        // Предварительно загружаем все аудио файлы с отображением прогресса
-        await audioManager.preloadAllAudio((progress, description) => {
-          updateProgress(2 + (progress / 100), 5, description);
-        });
-        
-        // Инициализируем аудио систему
-        await audioManager.init();
-      } catch (audioError) {
-        Logger.warn('Аудио не удалось инициализировать:', audioError);
-        // Продолжаем инициализацию даже при ошибке аудио
+      
+      // Предварительно загружаем все аудио файлы с отображением прогресса
+      // Ждем полной загрузки всех файлов перед продолжением
+      const audioLoaded = await audioManager.preloadAllAudio((progress, description) => {
+        updateProgress(2 + (progress / 100), 5, description);
+      });
+      
+      // Проверяем, что все файлы загружены
+      if (!audioLoaded) {
+        throw new Error('Не удалось загрузить все аудио файлы');
       }
+      
+      // Инициализируем аудио систему
+      await audioManager.init();
       
       // Задержка для визуального эффекта
       await new Promise(resolve => setTimeout(resolve, 600));
@@ -289,27 +291,28 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       }
       
-      // Принудительное переключение через 3 секунды, если что-то пошло не так
-      setTimeout(() => {
-        if (gameState.screen === 'loading') {
-          const loadingScreen = document.getElementById('loadingScreen');
-          const menuScreen = document.getElementById('menuScreen');
-          if (loadingScreen && menuScreen) {
-            loadingScreen.classList.add('hidden');
-            loadingScreen.classList.remove('active');
-            menuScreen.classList.remove('hidden');
-            menuScreen.classList.add('active');
-            gameState.screen = 'menu';
-          }
-        }
-      }, 3000);
+
     
   } catch (error) {
     Logger.error('Ошибка инициализации игры:', error);
     Logger.error('❌ Stack:', error.stack);
     
     if (loadingText) {
-      loadingText.textContent = 'Ошибка загрузки игры';
+      if (error.message.includes('аудио') || error.message.includes('Аудио')) {
+        loadingText.textContent = 'Ошибка загрузки аудио файлов. Перезагрузите страницу.';
+      } else {
+        loadingText.textContent = 'Ошибка загрузки игры. Перезагрузите страницу.';
+      }
+    }
+    
+    // Показываем кнопку перезагрузки
+    const loadingContent = document.querySelector('.loading-content');
+    if (loadingContent) {
+      const reloadBtn = document.createElement('button');
+      reloadBtn.textContent = '🔄 Перезагрузить';
+      reloadBtn.className = 'btn btn--primary gothic-btn mt-4';
+      reloadBtn.onclick = () => window.location.reload();
+      loadingContent.appendChild(reloadBtn);
     }
   }
 }); // Принудительное обновление кеша - Fri Aug  1 19:41:14 MSK 2025

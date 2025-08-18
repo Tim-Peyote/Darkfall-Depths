@@ -281,7 +281,6 @@ export const BASE_ITEMS = [
   // Свитки
   { base: 'scroll_werewolf', name: 'Свиток оборотня', class: null, icon: '🐺', color: '#8b4513', type: 'consumable', slot: 'consumable', description: 'Превращает в волка: скорость +50%, урон +30%, защита -20% на 15 сек' },
   { base: 'scroll_stone', name: 'Свиток камня', class: null, icon: '🗿', color: '#7f8c8d', type: 'consumable', slot: 'consumable', description: 'Превращает в голема: защита +100%, скорость -60% на 12 сек' },
-  { base: 'scroll_ghost', name: 'Свиток призрака', class: null, icon: '👻', color: '#ecf0f1', type: 'consumable', slot: 'consumable', description: 'Позволяет проходить сквозь стены и врагов на 10 сек' },
   { base: 'scroll_fire_explosion', name: 'Свиток огненного взрыва', class: null, icon: '🔥', color: '#e74c3c', type: 'consumable', slot: 'consumable', description: 'Взрывная волна огня: урон 40, радиус 120, поджигает врагов' },
   { base: 'scroll_ice_storm', name: 'Свиток ледяной бури', class: null, icon: '❄️', color: '#3498db', type: 'consumable', slot: 'consumable', description: 'Замораживает всех врагов в радиусе 150 на 5 сек' },
   { base: 'scroll_lightning', name: 'Свиток молнии', class: null, icon: '⚡', color: '#f1c40f', type: 'consumable', slot: 'consumable', description: 'Цепная молния между врагами: урон 25, до 5 целей' },
@@ -315,10 +314,10 @@ export const AFFIXES = [
 ];
 
 export const RARITIES = [
-  { key: 'common', name: 'Обычный', color: '#95a5a6', chance: 0.7 },
-  { key: 'rare', name: 'Редкий', color: '#3498db', chance: 0.25 },
-  { key: 'epic', name: 'Эпик', color: '#e67e22', chance: 0.04 },
-  { key: 'legendary', name: 'Легендарный', color: '#e74c3c', chance: 0.01 }
+  { key: 'common', name: 'Обычный', color: '#95a5a6', chance: 0.68 },
+  { key: 'rare', name: 'Редкий', color: '#3498db', chance: 0.21 },
+  { key: 'epic', name: 'Эпик', color: '#e67e22', chance: 0.07 },
+  { key: 'legendary', name: 'Легендарный', color: '#e74c3c', chance: 0.04 }
 ];
 
 // ==================== ГЕНЕРАЦИЯ ПРЕДМЕТОВ ====================
@@ -508,9 +507,6 @@ export function generateRandomItem(level, playerClass) {
         break;
       case 'scroll_stone':
         description = 'Превращает в голема: защита +100%, скорость -60% на 12 сек';
-        break;
-      case 'scroll_ghost':
-        description = 'Позволяет проходить сквозь стены и врагов на 10 сек';
         break;
       case 'scroll_fire_explosion':
         description = 'Взрывная волна огня: урон 40, радиус 120, поджигает врагов';

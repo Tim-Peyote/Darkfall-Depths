@@ -990,9 +990,6 @@ export class GameEngine {
           case 'scroll_stone':
             borderColor = '#7f8c8d'; // Серый для камня
             break;
-          case 'scroll_ghost':
-            borderColor = '#ecf0f1'; // Светло-серый для призрака
-            break;
           case 'scroll_fire_explosion':
             borderColor = '#e74c3c'; // Красный для огня
             break;
@@ -1506,7 +1503,6 @@ export class GameEngine {
       // Свитки
       case 'scroll_werewolf': icon = '🐺'; break;
       case 'scroll_stone': icon = '🗿'; break;
-      case 'scroll_ghost': icon = '👻'; break;
       case 'scroll_fire_explosion': icon = '🔥'; break;
       case 'scroll_ice_storm': icon = '❄️'; break;
       case 'scroll_lightning': icon = '⚡'; break;
@@ -1524,7 +1520,7 @@ export class GameEngine {
       case 'scroll_rage': icon = '😡'; break;
       case 'scroll_invulnerability': icon = '💎'; break;
       case 'scroll_vampirism': icon = '🦇'; break;
-      case 'mystery_scroll': icon = '❓'; break;
+      case 'mystery_scroll': icon = '📜'; break;
     }
     potionIcon.textContent = icon;
   }

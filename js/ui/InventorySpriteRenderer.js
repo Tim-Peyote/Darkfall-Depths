@@ -27,7 +27,7 @@ export class InventorySpriteRenderer {
       'amulet', 'ring',
       'potion', 'speed_potion', 'strength_potion', 'defense_potion', 'regen_potion', 'combo_potion', 'purification_potion', 'mystery_potion',
       // Свитки
-      'scroll_werewolf', 'scroll_stone', 'scroll_ghost', 'scroll_fire_explosion', 'scroll_ice_storm', 'scroll_lightning', 'scroll_earthquake', 'scroll_clone', 'scroll_teleport', 'scroll_invisibility', 'scroll_time', 'scroll_curse', 'scroll_chaos', 'scroll_fear', 'scroll_smoke', 'scroll_meteor', 'scroll_barrier', 'scroll_rage', 'scroll_invulnerability', 'scroll_vampirism', 'mystery_scroll'
+      'scroll_werewolf', 'scroll_stone', 'scroll_fire_explosion', 'scroll_ice_storm', 'scroll_lightning', 'scroll_earthquake', 'scroll_clone', 'scroll_teleport', 'scroll_invisibility', 'scroll_time', 'scroll_curse', 'scroll_chaos', 'scroll_fear', 'scroll_smoke', 'scroll_meteor', 'scroll_barrier', 'scroll_rage', 'scroll_invulnerability', 'scroll_vampirism', 'mystery_scroll'
     ];
     
     baseItems.forEach(base => {
@@ -81,7 +81,6 @@ export class InventorySpriteRenderer {
       // Свитки
       case 'scroll_werewolf': color = '#8b4513'; break;
       case 'scroll_stone': color = '#7f8c8d'; break;
-      case 'scroll_ghost': color = '#ecf0f1'; break;
       case 'scroll_fire_explosion': color = '#e74c3c'; break;
       case 'scroll_ice_storm': color = '#3498db'; break;
       case 'scroll_lightning': color = '#f1c40f'; break;
@@ -772,7 +771,6 @@ export class InventorySpriteRenderer {
      switch (base) {
        case 'scroll_werewolf': symbol = '🐺'; break;
        case 'scroll_stone': symbol = '🗿'; break;
-       case 'scroll_ghost': symbol = '👻'; break;
        case 'scroll_fire_explosion': symbol = '🔥'; break;
        case 'scroll_ice_storm': symbol = '❄️'; break;
        case 'scroll_lightning': symbol = '⚡'; break;
@@ -790,7 +788,7 @@ export class InventorySpriteRenderer {
        case 'scroll_rage': symbol = '😡'; break;
        case 'scroll_invulnerability': symbol = '💎'; break;
        case 'scroll_vampirism': symbol = '🦇'; break;
-       case 'mystery_scroll': symbol = '❓'; break;
+       case 'mystery_scroll': symbol = '📜'; break;
      }
      
      // Символ в центре

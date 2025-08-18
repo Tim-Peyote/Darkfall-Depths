@@ -185,7 +185,6 @@ export class DroppedItem extends Entity {
           // Свитки
           case 'scroll_werewolf':
           case 'scroll_stone':
-          case 'scroll_ghost':
           case 'scroll_fire_explosion':
           case 'scroll_ice_storm':
           case 'scroll_lightning':
@@ -258,7 +257,6 @@ export class DroppedItem extends Entity {
                 // Свитки
                 case 'scroll_werewolf': symbol = '🐺'; break;
                 case 'scroll_stone': symbol = '🗿'; break;
-                case 'scroll_ghost': symbol = '👻'; break;
                 case 'scroll_fire_explosion': symbol = '🔥'; break;
                 case 'scroll_ice_storm': symbol = '❄️'; break;
                 case 'scroll_lightning': symbol = '⚡'; break;
@@ -276,7 +274,7 @@ export class DroppedItem extends Entity {
                 case 'scroll_rage': symbol = '😡'; break;
                 case 'scroll_invulnerability': symbol = '💎'; break;
                 case 'scroll_vampirism': symbol = '🦇'; break;
-                case 'mystery_scroll': symbol = '❓'; break;
+                case 'mystery_scroll': symbol = '📜'; break;
                 default: symbol = '📦'; break;
               }
             }
@@ -962,7 +960,6 @@ export class DroppedItem extends Entity {
       // Свитки
       case 'scroll_werewolf':
       case 'scroll_stone':
-      case 'scroll_ghost':
       case 'scroll_fire_explosion':
       case 'scroll_ice_storm':
       case 'scroll_lightning':
@@ -1041,7 +1038,6 @@ export class DroppedItem extends Entity {
     switch (itemData.base) {
       case 'scroll_werewolf': symbol = '🐺'; break;
       case 'scroll_stone': symbol = '🗿'; break;
-      case 'scroll_ghost': symbol = '👻'; break;
       case 'scroll_fire_explosion': symbol = '🔥'; break;
       case 'scroll_ice_storm': symbol = '❄️'; break;
       case 'scroll_lightning': symbol = '⚡'; break;
@@ -1059,7 +1055,7 @@ export class DroppedItem extends Entity {
       case 'scroll_rage': symbol = '😡'; break;
       case 'scroll_invulnerability': symbol = '💎'; break;
       case 'scroll_vampirism': symbol = '🦇'; break;
-      case 'mystery_scroll': symbol = '❓'; break;
+      case 'mystery_scroll': symbol = '📜'; break;
     }
     
     // Символ в центре

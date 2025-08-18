@@ -12,28 +12,55 @@ export class Chest extends Entity {
     this.isOpened = false; // Оставляем для совместимости, но не используем
     this.isInteracting = false;
     this.level = level;
-    this.inventory = [];
-    this.maxSlots = 6; // Максимум 6 слотов в сундуке
+    this.inventory = new Array(12).fill(null); // 12 слотов (3x4)
+    this.maxSlots = 12; // Максимум 12 слотов в сундуке
     
     // Генерируем содержимое сундука
     this.generateContents();
   }
   
   generateContents() {
-    // Шанс пустого сундука (20%)
-    if (Math.random() < 0.2) {
+    // Редкость количества предметов - больше предметов = реже
+    const rarityRoll = Math.random();
+    let maxItems;
+    
+    if (rarityRoll < 0.10) {
+      maxItems = 0; // 10% - пустые сундуки
+    } else if (rarityRoll < 0.40) {
+      maxItems = 1; // 30% - 1 предмет
+    } else if (rarityRoll < 0.65) {
+      maxItems = 2; // 25% - 2 предмета
+    } else if (rarityRoll < 0.80) {
+      maxItems = 3; // 15% - 3 предмета
+    } else if (rarityRoll < 0.90) {
+      maxItems = 4; // 10% - 4 предмета
+    } else if (rarityRoll < 0.95) {
+      maxItems = 5; // 5% - 5 предметов
+    } else {
+      maxItems = Math.floor(Math.random() * 4) + 6; // 5% - 6-9 предметов
+    }
+    
+    // Если 0 предметов - сундук пустой
+    if (maxItems === 0) {
       return;
     }
     
-    // Количество предметов (1-4, редко 5-6)
-    const itemCount = Math.random() < 0.7 ? 
-      Math.floor(Math.random() * 3) + 1 : 
-      Math.floor(Math.random() * 2) + 4;
+    // Финальное количество предметов (может быть меньше maxItems)
+    const itemCount = Math.floor(Math.random() * maxItems) + 1;
     
-    for (let i = 0; i < itemCount && this.inventory.length < this.maxSlots; i++) {
+    // Размещаем предметы в случайные слоты
+    const availableSlots = [];
+    for (let i = 0; i < this.maxSlots; i++) {
+      availableSlots.push(i);
+    }
+    
+    for (let i = 0; i < itemCount && availableSlots.length > 0; i++) {
+      const randomSlotIndex = Math.floor(Math.random() * availableSlots.length);
+      const slotIndex = availableSlots.splice(randomSlotIndex, 1)[0];
+      
       const item = generateRandomItem(this.level, gameState.player?.class);
       if (item) {
-        this.inventory.push(item);
+        this.inventory[slotIndex] = item;
       }
     }
   }
@@ -166,7 +193,7 @@ export class Chest extends Entity {
     ctx.fillText('🗃️', screenX, screenY + 4);
     
     // Мелкий индикатор если есть предметы
-    if (this.inventory.length > 0) {
+    if (this.inventory.some(item => item !== null)) {
       ctx.fillStyle = '#FFD700';
       ctx.beginPath();
       ctx.arc(screenX + 8, screenY - 6, 3, 0, Math.PI * 2);

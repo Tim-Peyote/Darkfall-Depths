@@ -39,14 +39,6 @@ export class ScrollManager {
         await this.addDebuff('moveSpeed', gameState.player.moveSpeed * 0.6, 12);
         break;
         
-      case 'scroll_ghost':
-        // Призрак - прохождение сквозь стены
-        gameState.player.isGhost = true;
-        setTimeout(() => {
-          if (gameState.player) gameState.player.isGhost = false;
-        }, 10000);
-        break;
-        
       case 'scroll_fire_explosion':
         // Огненный взрыв
         this.createFireExplosion();
@@ -564,7 +556,7 @@ export class ScrollManager {
   
   static async applyRandomScrollEffect() {
     const scrollTypes = [
-      'scroll_werewolf', 'scroll_stone', 'scroll_ghost', 'scroll_fire_explosion',
+      'scroll_werewolf', 'scroll_stone', 'scroll_fire_explosion',
       'scroll_ice_storm', 'scroll_lightning', 'scroll_earthquake', 'scroll_clone',
       'scroll_teleport', 'scroll_invisibility', 'scroll_time', 'scroll_curse',
       'scroll_chaos', 'scroll_fear', 'scroll_smoke', 'scroll_meteor',

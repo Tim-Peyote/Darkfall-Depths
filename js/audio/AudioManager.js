@@ -26,11 +26,14 @@ export class AudioManager {
       await this.loadMusicTracksWithProgress(onProgress);
       await this.loadSfxTracksWithProgress(onProgress);
       
-      return true;
+      // Возвращаем true только если загрузились ВСЕ файлы
+      return this.loadedAudioFiles === this.totalAudioFiles;
     } catch (error) {
       return false;
     }
   }
+
+
 
   async loadMusicTracksWithProgress(onProgress) {
     const musicFiles = [
@@ -44,11 +47,12 @@ export class AudioManager {
       try {
         this.musicTracks[music.key] = await this.loadAudioFile(music.path);
         this.loadedAudioFiles++;
+        
         if (onProgress) {
           onProgress(Math.round((this.loadedAudioFiles / this.totalAudioFiles) * 100), `Загрузка музыки: ${music.key}...`);
         }
       } catch (error) {
-        // Игнорируем ошибки
+        // Игнорируем ошибки, но не увеличиваем счетчик
       }
     }
     
@@ -76,11 +80,12 @@ export class AudioManager {
       try {
         this.sfxTracks[sfx.key] = await this.loadAudioFile(sfx.path);
         this.loadedAudioFiles++;
+        
         if (onProgress) {
           onProgress(Math.round((this.loadedAudioFiles / this.totalAudioFiles) * 100), `Загрузка звуков: ${sfx.key}...`);
         }
       } catch (error) {
-        // Игнорируем ошибки
+        // Игнорируем ошибки, но не увеличиваем счетчик
       }
     }
     
@@ -111,9 +116,13 @@ export class AudioManager {
   setupAudioResumeHandlers() {
     // Функция для возобновления аудио контекста
     const resumeAudio = () => {
-      if (this.audioContext && this.audioContext.state === 'suspended') {
+      // Создаем аудио контекст при первом взаимодействии
+      if (!this.audioContext) {
+        this.createAudioContextAndPlay();
+      } else if (this.audioContext && this.audioContext.state === 'suspended') {
         this.audioContext.resume();
       }
+      
       if (this.currentMusic && this.currentMusic.paused && gameState.audio.enabled) {
         this.currentMusic.play().catch(e => console.warn('Failed to resume music:', e));
       }
@@ -146,15 +155,8 @@ export class AudioManager {
 
   // Метод для принудительного запуска музыки (вызывается из main.js)
   forceStartMusic() {
-    if (!this.audioContext) {
-              // Logger.debug('🎵 Creating audio context and playing...');
-      this.createAudioContextAndPlay();
-    } else if (gameState.audio.enabled && this.isMusicLoaded && !this.currentMusic) {
-              // Logger.debug('🎵 Force starting main music...');
-      this.playMusic('main');
-    } else {
-              // Logger.debug('🎵 Force start conditions not met');
-    }
+    // Не запускаем аудио автоматически - ждем взаимодействия пользователя
+    // Аудио будет запущено при первом клике пользователя
   }
 
   async loadMusicTracks() {
@@ -212,6 +214,7 @@ export class AudioManager {
 
     this.currentMusic = track;
     this.currentMusic.loop = loop;
+    
     this.currentMusic.volume = gameState.audio.musicVolume * gameState.audio.masterVolume;
     
     if (this.audioContext && this.audioContext.state === 'suspended') {
@@ -254,6 +257,8 @@ export class AudioManager {
     }
     
     try {
+      // Используем cloneNode() для воспроизведения из кеша
+      // Это позволяет воспроизводить один звук несколько раз одновременно
       const sfxClone = sfx.cloneNode();
       sfxClone.volume = gameState.audio.sfxVolume * gameState.audio.masterVolume;
       sfxClone.loop = false;

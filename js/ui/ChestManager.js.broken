@@ -115,7 +115,7 @@ export class ChestManager {
         
         .chest-slots {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(4, 1fr);
           gap: 10px;
           margin-bottom: 15px;
         }
@@ -205,7 +205,7 @@ export class ChestManager {
           }
           
           .chest-slots {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
           }
           
           .chest-slot {
@@ -341,9 +341,10 @@ export class ChestManager {
       
       // Всегда создаем слот, даже если он пустой
       if (!item) {
-        slot.innerHTML = '<div class="empty-slot"></div>';
+        slot.innerHTML = '<div class="empty-slot">Пусто</div>';
         slot.style.opacity = '0.3';
       } else {
+        
         // Используем спрайты из InventorySpriteRenderer
         if (item.base) {
           try {
@@ -388,7 +389,9 @@ export class ChestManager {
         slot.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          this.showTooltip(e, item);
+          if (item) {
+            this.showTooltip(e, item);
+          }
         });
         
         // Мобильные touch обработчики
@@ -451,7 +454,7 @@ export class ChestManager {
             lastClickTime = 0; // Сбрасываем для следующего двойного нажатия
           } else {
             // Одинарное нажатие - показываем тултип
-            if (touchDuration < 200) {
+            if (touchDuration < 200 && item) {
               // Передаем координаты из touchstart
               const tooltipEvent = {
                 touches: [{ clientX: touchStartX, clientY: touchStartY }],
@@ -463,7 +466,6 @@ export class ChestManager {
             lastClickTime = touchEndTime;
           }
         }, { passive: false });
-      }
       
       slotsContainer.appendChild(slot);
     }
@@ -665,3 +667,4 @@ export class ChestManager {
   
 
 }
+// Version: 1755550355
