@@ -14,7 +14,7 @@ export class WebGLRenderer {
   
   init() {
     try {
-      console.log('🔍 Попытка инициализации WebGL...');
+      // Logger.debug('🔍 Попытка инициализации WebGL...');
       
       // Получаем WebGL контекст
       this.gl = this.canvas.getContext('webgl2') || 
@@ -26,8 +26,8 @@ export class WebGLRenderer {
         return false;
       }
       
-      console.log('✅ WebGL контекст получен:', this.gl.getParameter(this.gl.VERSION));
-      console.log('✅ WebGL рендерер инициализирован');
+      // Logger.debug('✅ WebGL контекст получен:', this.gl.getParameter(this.gl.VERSION));
+      // Logger.debug('✅ WebGL рендерер инициализирован');
       
       // Настраиваем WebGL
       this.gl.enable(this.gl.BLEND);

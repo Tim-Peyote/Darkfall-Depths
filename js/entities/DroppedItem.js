@@ -92,6 +92,11 @@ export class DroppedItem extends Entity {
       itemType = 'armor';
     }
     
+    // Отладка для свитков
+    if (this.itemData.base && this.itemData.base.startsWith('scroll_')) {
+              // Logger.debug('🔍 Свиток обнаружен:', this.itemData.base, 'itemType:', itemType, 'slot:', this.itemData.slot, 'type:', this.itemData.type);
+    }
+    
 
     
     switch (itemType) {
@@ -120,8 +125,14 @@ export class DroppedItem extends Entity {
         DroppedItem.renderAccessory(ctx, x, y, rotation, this.radius, this.itemData);
         break;
       case 'consumable':
-        // Все зелья отрисовываются через renderConsumable
-        DroppedItem.renderConsumable(ctx, x, y, rotation, this.radius, this.itemData, this.sparkleTime);
+        // Проверяем, является ли это свитком
+        if (this.itemData.base && this.itemData.base.startsWith('scroll_')) {
+          // Свитки отрисовываются через renderScroll
+          DroppedItem.renderScroll(ctx, x, y, rotation, this.radius, this.itemData, this.sparkleTime);
+        } else {
+          // Зелья отрисовываются через renderConsumable
+          DroppedItem.renderConsumable(ctx, x, y, rotation, this.radius, this.itemData, this.sparkleTime);
+        }
         break;
       default:
         // Если itemType не совпадает, попробуем использовать base
@@ -167,7 +178,33 @@ export class DroppedItem extends Entity {
           case 'regen_potion':
           case 'combo_potion':
           case 'mystery_potion':
+          case 'purification_potion':
             // Зелья всегда должны отрисовываться правильно
+            DroppedItem.renderConsumable(ctx, x, y, rotation, this.radius, this.itemData, this.sparkleTime);
+            break;
+          // Свитки
+          case 'scroll_werewolf':
+          case 'scroll_stone':
+          case 'scroll_ghost':
+          case 'scroll_fire_explosion':
+          case 'scroll_ice_storm':
+          case 'scroll_lightning':
+          case 'scroll_earthquake':
+          case 'scroll_clone':
+          case 'scroll_teleport':
+          case 'scroll_invisibility':
+          case 'scroll_time':
+          case 'scroll_curse':
+          case 'scroll_chaos':
+          case 'scroll_fear':
+          case 'scroll_smoke':
+          case 'scroll_meteor':
+          case 'scroll_barrier':
+          case 'scroll_rage':
+          case 'scroll_invulnerability':
+          case 'scroll_vampirism':
+          case 'mystery_scroll':
+            // Свитки отрисовываются через renderConsumable
             DroppedItem.renderConsumable(ctx, x, y, rotation, this.radius, this.itemData, this.sparkleTime);
             break;
           default:
@@ -218,6 +255,28 @@ export class DroppedItem extends Entity {
                 case 'combo_potion': symbol = '🌈'; break;
                 case 'mystery_potion': symbol = '❓'; break;
                 case 'purification_potion': symbol = '✨'; break;
+                // Свитки
+                case 'scroll_werewolf': symbol = '🐺'; break;
+                case 'scroll_stone': symbol = '🗿'; break;
+                case 'scroll_ghost': symbol = '👻'; break;
+                case 'scroll_fire_explosion': symbol = '🔥'; break;
+                case 'scroll_ice_storm': symbol = '❄️'; break;
+                case 'scroll_lightning': symbol = '⚡'; break;
+                case 'scroll_earthquake': symbol = '🌋'; break;
+                case 'scroll_clone': symbol = '👥'; break;
+                case 'scroll_teleport': symbol = '🌀'; break;
+                case 'scroll_invisibility': symbol = '👁️'; break;
+                case 'scroll_time': symbol = '⏰'; break;
+                case 'scroll_curse': symbol = '💀'; break;
+                case 'scroll_chaos': symbol = '🎭'; break;
+                case 'scroll_fear': symbol = '😱'; break;
+                case 'scroll_smoke': symbol = '💨'; break;
+                case 'scroll_meteor': symbol = '☄️'; break;
+                case 'scroll_barrier': symbol = '🛡️'; break;
+                case 'scroll_rage': symbol = '😡'; break;
+                case 'scroll_invulnerability': symbol = '💎'; break;
+                case 'scroll_vampirism': symbol = '🦇'; break;
+                case 'mystery_scroll': symbol = '❓'; break;
                 default: symbol = '📦'; break;
               }
             }
@@ -898,42 +957,36 @@ export class DroppedItem extends Entity {
         ctx.fillRect(-size * 0.12, -size * 0.45, size * 0.24, size * 0.1);
         
         // Загадочные символы внутри с анимацией
-        ctx.fillStyle = '#ffffff';
-        ctx.globalAlpha = 0.8 + Math.sin(sparkleTime * 2) * 0.2;
-        for (let i = 0; i < 3; i++) {
-          const symbolX = -size * 0.15 + (i * size * 0.15);
-          const symbolY = -size * 0.1 + (i * size * 0.1) + Math.sin(sparkleTime + i) * size * 0.05;
-          const symbolSize = size * 0.08 + Math.sin(sparkleTime * 3 + i) * size * 0.02;
-          
-          // Рисуем загадочные символы (вопросительные знаки)
-          ctx.font = `${symbolSize}px Arial`;
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.fillText('?', symbolX, symbolY);
-        }
-        ctx.globalAlpha = 1.0;
-        
-        // Эффект таинственности - мерцающие частицы
-        ctx.fillStyle = '#ffffff';
-        ctx.globalAlpha = 0.6 + Math.sin(sparkleTime * 4) * 0.4;
-        for (let i = 0; i < 6; i++) {
-          const particleX = Math.cos(sparkleTime + i * Math.PI / 3) * size * 0.2;
-          const particleY = Math.sin(sparkleTime * 2 + i * Math.PI / 3) * size * 0.2;
-          const particleSize = size * 0.02 + Math.sin(sparkleTime * 5 + i) * size * 0.01;
-          
-          ctx.beginPath();
-          ctx.arc(particleX, particleY, particleSize, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.globalAlpha = 1.0;
-        
-        // Дополнительная обводка для эффекта с анимацией
-        ctx.strokeStyle = '#e74c3c';
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.5 + Math.sin(sparkleTime * 3) * 0.3;
-        ctx.strokeRect(-size * 0.3, -size * 0.4, size * 0.6, size * 0.8);
-        ctx.globalAlpha = 1.0;
         break;
+        
+      // Свитки
+      case 'scroll_werewolf':
+      case 'scroll_stone':
+      case 'scroll_ghost':
+      case 'scroll_fire_explosion':
+      case 'scroll_ice_storm':
+      case 'scroll_lightning':
+      case 'scroll_earthquake':
+      case 'scroll_clone':
+      case 'scroll_teleport':
+      case 'scroll_invisibility':
+      case 'scroll_time':
+      case 'scroll_curse':
+      case 'scroll_chaos':
+      case 'scroll_fear':
+      case 'scroll_smoke':
+      case 'scroll_meteor':
+      case 'scroll_barrier':
+      case 'scroll_rage':
+      case 'scroll_invulnerability':
+      case 'scroll_vampirism':
+      case 'mystery_scroll':
+        // Свитки отрисовываются через renderScroll
+        // Logger.debug('🎯 Рендерим свиток:', itemData.base, 'в позиции:', x, y);
+        DroppedItem.renderScroll(ctx, x, y, rotation, radius, itemData, sparkleTime);
+        break;
+        
+
         
       default:
         // Fallback для неизвестного зелья
@@ -945,6 +998,85 @@ export class DroppedItem extends Entity {
         ctx.fillRect(-size * 0.12, -size * 0.45, size * 0.24, size * 0.1);
         break;
     }
+    
+    ctx.restore();
+  }
+  
+  static renderScroll(ctx, x, y, rotation, radius, itemData, sparkleTime) {
+    const size = radius * 1.1; // Уменьшили размер до нормального
+    
+    // Logger.debug('📜 renderScroll вызван для:', itemData.base, 'размер:', size, 'радиус:', radius, 'координаты:', x, y);
+    
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+    
+    // Основной свиток - пергамент
+    ctx.fillStyle = '#f5f5dc'; // Бежевый цвет
+    ctx.fillRect(-size * 0.4, -size * 0.25, size * 0.8, size * 0.5);
+    
+    // Обводка свитка
+    ctx.strokeStyle = '#8b4513'; // Коричневая обводка
+    ctx.lineWidth = 2;
+    ctx.strokeRect(-size * 0.4, -size * 0.25, size * 0.8, size * 0.5);
+    
+    // Внутренние линии пергамента
+    ctx.strokeStyle = '#d2b48c';
+    ctx.lineWidth = 2;
+    for (let i = 0; i < 3; i++) {
+      const lineY = -size * 0.15 + (i * size * 0.1);
+      ctx.beginPath();
+      ctx.moveTo(-size * 0.3, lineY);
+      ctx.lineTo(size * 0.3, lineY);
+      ctx.stroke();
+    }
+    
+    // Магические символы в зависимости от типа свитка
+    ctx.fillStyle = itemData.color || '#8e44ad';
+    ctx.font = `${size * 0.15}px Arial`; // Уменьшили размер шрифта
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    let symbol = '📜';
+    switch (itemData.base) {
+      case 'scroll_werewolf': symbol = '🐺'; break;
+      case 'scroll_stone': symbol = '🗿'; break;
+      case 'scroll_ghost': symbol = '👻'; break;
+      case 'scroll_fire_explosion': symbol = '🔥'; break;
+      case 'scroll_ice_storm': symbol = '❄️'; break;
+      case 'scroll_lightning': symbol = '⚡'; break;
+      case 'scroll_earthquake': symbol = '🌋'; break;
+      case 'scroll_clone': symbol = '👥'; break;
+      case 'scroll_teleport': symbol = '🌀'; break;
+      case 'scroll_invisibility': symbol = '👁️'; break;
+      case 'scroll_time': symbol = '⏰'; break;
+      case 'scroll_curse': symbol = '💀'; break;
+      case 'scroll_chaos': symbol = '🎭'; break;
+      case 'scroll_fear': symbol = '😱'; break;
+      case 'scroll_smoke': symbol = '💨'; break;
+      case 'scroll_meteor': symbol = '☄️'; break;
+      case 'scroll_barrier': symbol = '🛡️'; break;
+      case 'scroll_rage': symbol = '😡'; break;
+      case 'scroll_invulnerability': symbol = '💎'; break;
+      case 'scroll_vampirism': symbol = '🦇'; break;
+      case 'mystery_scroll': symbol = '❓'; break;
+    }
+    
+    // Символ в центре
+    ctx.fillText(symbol, 0, 0);
+    
+    // Магические частицы вокруг свитка
+    ctx.fillStyle = itemData.color || '#8e44ad';
+    ctx.globalAlpha = 0.6 + Math.sin(sparkleTime * 3) * 0.4;
+    for (let i = 0; i < 4; i++) { // Уменьшили количество частиц
+      const angle = (i / 4) * Math.PI * 2 + sparkleTime;
+      const particleX = Math.cos(angle) * size * 0.4;
+      const particleY = Math.sin(angle) * size * 0.4;
+      const particleSize = Math.sin(sparkleTime * 4 + i) * 0.5 + 1; // Уменьшили размер частиц
+      
+      ctx.fillRect(particleX - particleSize, particleY - particleSize, particleSize * 2, particleSize * 2);
+    }
+    ctx.globalAlpha = 1.0;
     
     ctx.restore();
   }

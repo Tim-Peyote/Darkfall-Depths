@@ -284,6 +284,13 @@ export class ChestManager {
     const overlay = document.getElementById('chestOverlay');
     overlay.classList.remove('hidden');
     
+    // Обновляем заголовок сундука
+    const header = overlay.querySelector('.chest-header h3');
+    if (header) {
+      const itemCount = this.currentChest.inventory.filter(item => item !== null).length;
+      header.textContent = `Сундук (${itemCount}/${this.currentChest.maxSlots})`;
+    }
+    
     // Обновляем содержимое
     await this.updateChestDisplay();
     
@@ -329,8 +336,15 @@ export class ChestManager {
       slot.className = 'chest-slot';
       slot.dataset.index = i;
       
-      if (i < this.currentChest.inventory.length) {
-        const item = this.currentChest.inventory[i];
+      // Проверяем, есть ли предмет в этом слоте
+      const item = i < this.currentChest.inventory.length ? this.currentChest.inventory[i] : null;
+      
+      // Пропускаем пустые слоты (null предметы)
+      if (!item) {
+        slot.innerHTML = '<div class="empty-slot">Пусто</div>';
+        slot.style.opacity = '0.3';
+        continue;
+      }
         
         // Используем спрайты из InventorySpriteRenderer
         if (item.base) {
@@ -376,7 +390,9 @@ export class ChestManager {
         slot.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          this.showTooltip(e, item);
+          if (item) {
+            this.showTooltip(e, item);
+          }
         });
         
         // Мобильные touch обработчики
@@ -439,7 +455,7 @@ export class ChestManager {
             lastClickTime = 0; // Сбрасываем для следующего двойного нажатия
           } else {
             // Одинарное нажатие - показываем тултип
-            if (touchDuration < 200) {
+            if (touchDuration < 200 && item) {
               // Передаем координаты из touchstart
               const tooltipEvent = {
                 touches: [{ clientX: touchStartX, clientY: touchStartY }],
@@ -460,7 +476,12 @@ export class ChestManager {
   }
   
   static async takeItem(itemIndex) {
-    if (!this.currentChest || itemIndex < 0 || itemIndex >= this.currentChest.inventory.length) {
+    if (!this.currentChest || itemIndex < 0 || itemIndex >= this.currentChest.maxSlots) {
+      return;
+    }
+    
+    // Проверяем, что слот не пустой
+    if (itemIndex >= this.currentChest.inventory.length || !this.currentChest.inventory[itemIndex]) {
       return;
     }
     
@@ -473,6 +494,14 @@ export class ChestManager {
         if (success) {
           // Обновляем отображение
           await this.updateChestDisplay();
+          
+          // Обновляем заголовок сундука
+          const overlay = document.getElementById('chestOverlay');
+          const header = overlay.querySelector('.chest-header h3');
+          if (header) {
+            const itemCount = this.currentChest.inventory.filter(item => item !== null).length;
+            header.textContent = `Сундук (${itemCount}/${this.currentChest.maxSlots})`;
+          }
           
           // Звуковой эффект
           this.playTakeItemSound();
@@ -524,6 +553,11 @@ export class ChestManager {
     let left = clientX + 10;
     let top = clientY - 10;
     
+    // Проверяем, не выходит ли тултип за левую границу
+    if (left < 10) {
+      left = 10; // Отступ от левого края
+    }
+    
     // Проверяем, не выходит ли тултип за правую границу
     if (left + 250 > window.innerWidth) {
       left = clientX - 260; // Показываем слева от курсора
@@ -532,6 +566,22 @@ export class ChestManager {
     // Проверяем, не выходит ли тултип за верхнюю границу
     if (top < 10) {
       top = clientY + 10; // Показываем под курсором
+    }
+    
+    // Проверяем, не выходит ли тултип за нижнюю границу
+    if (top + 100 > window.innerHeight) {
+      top = window.innerHeight - 110; // Отступ от нижнего края
+    }
+    
+    // Дополнительная проверка для мобильных устройств
+    // Если тултип все еще выходит за левый край после всех расчетов
+    if (left < 10) {
+      left = 10;
+    }
+    
+    // Если тултип все еще выходит за правый край после всех расчетов
+    if (left + 250 > window.innerWidth - 10) {
+      left = window.innerWidth - 260;
     }
     
     tooltip.style.left = left + 'px';
@@ -547,7 +597,10 @@ export class ChestManager {
   }
   
   static showContextMenu(e, itemIndex) {
-    if (!this.currentChest || itemIndex < 0 || itemIndex >= this.currentChest.inventory.length) return;
+    if (!this.currentChest || itemIndex < 0 || itemIndex >= this.currentChest.maxSlots) return;
+    
+    // Не показываем контекстное меню для пустых слотов
+    if (itemIndex >= this.currentChest.inventory.length || !this.currentChest.inventory[itemIndex]) return;
     
     e.preventDefault();
     e.stopPropagation();

@@ -604,7 +604,7 @@ export class InventoryManager {
       // Применяем эффекты банки
       (async () => {
         const { BuffManager } = await import('../core/BuffManager.js');
-        BuffManager.applyConsumableEffects(item);
+        await BuffManager.applyConsumableEffects(item);
       })();
       
       // Удаляем банку из соответствующего слота
@@ -649,7 +649,7 @@ export class InventoryManager {
       // Применяем эффекты банки
       (async () => {
         const { BuffManager } = await import('../core/BuffManager.js');
-        BuffManager.applyConsumableEffects(item);
+        await BuffManager.applyConsumableEffects(item);
       })();
       
       // Удаляем банку из рюкзака
@@ -844,7 +844,7 @@ export class InventoryManager {
       // Для банок используем систему временных баффов
       (async () => {
         const { BuffManager } = await import('../core/BuffManager.js');
-        BuffManager.applyConsumableEffects(item);
+        await BuffManager.applyConsumableEffects(item);
       })();
     }
     
@@ -1441,6 +1441,11 @@ export class InventoryManager {
     let finalX = x;
     let finalY = y;
     
+    // Если тултип выходит за левый край экрана
+    if (x < 0) {
+      finalX = 10; // Отступ от левого края
+    }
+    
     // Если тултип выходит за правый край экрана
     if (x + tooltipRect.width > windowWidth) {
       finalX = event.clientX - tooltipRect.width - 10;
@@ -1454,6 +1459,17 @@ export class InventoryManager {
     // Если тултип выходит за нижний край экрана
     if (y + tooltipRect.height > windowHeight) {
       finalY = windowHeight - tooltipRect.height - 10;
+    }
+    
+    // Дополнительная проверка для мобильных устройств
+    // Если тултип все еще выходит за левый край после всех расчетов
+    if (finalX < 10) {
+      finalX = 10;
+    }
+    
+    // Если тултип все еще выходит за правый край после всех расчетов
+    if (finalX + tooltipRect.width > windowWidth - 10) {
+      finalX = windowWidth - tooltipRect.width - 10;
     }
     
     tooltipElement.style.left = finalX + 'px';
@@ -2076,7 +2092,7 @@ export class InventoryManager {
           gameState.audioManager.playItemPickup();
         }
         
-        console.log(`Предмет "${item.name}" добавлен в инвентарь в слот ${i}`);
+        // Logger.debug(`Предмет "${item.name}" добавлен в инвентарь в слот ${i}`);
         return true;
       }
     }

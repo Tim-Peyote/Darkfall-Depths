@@ -40,7 +40,7 @@ export class MapGenerator {
     const dynamicMinRooms = MIN_ROOMS + Math.floor(level * 0.4); // Возвращаю оригинальное значение
     const dynamicMaxRooms = MAX_ROOMS + Math.floor(level * 0.6); // Возвращаю оригинальное значение
     
-    Logger.map('Generating dungeon - Level:', level, 'Map size:', dynamicMapSize, 'Rooms:', dynamicMinRooms, '-', dynamicMaxRooms);
+    // Logger.debug('Generating dungeon - Level:', level, 'Map size:', dynamicMapSize, 'Rooms:', dynamicMinRooms, '-', dynamicMaxRooms);
     
     const map = Array.from({ length: dynamicMapSize }, () => Array(dynamicMapSize).fill(1)); // 1 = стена
     const rooms = [];
@@ -61,7 +61,7 @@ export class MapGenerator {
       }
     }
     
-    Logger.map('Created', partitions.length, 'partitions');
+    // Logger.debug('Created', partitions.length, 'partitions');
     
     // Создаем комнаты в каждом разделе
     partitions.forEach((partition, index) => {
@@ -80,7 +80,7 @@ export class MapGenerator {
       }
     });
     
-    Logger.map('Generated', rooms.length, 'rooms');
+    // Logger.debug('Generated', rooms.length, 'rooms');
     
     // Проверяем, что у нас есть хотя бы одна комната
     if (rooms.length === 0) {
@@ -447,7 +447,7 @@ export class MapGenerator {
     const fireBowlChance = 0.3; // 30% чаш с огнем в центре
     // Декоративные источники света (сферы, кристаллы) генерируются в больших комнатах
     
-    Logger.map('Generating light sources for level', level);
+    // Logger.debug('Generating light sources for level', level);
     
     // Размещаем источники света в комнатах
     rooms.forEach((room, roomIndex) => {
@@ -471,7 +471,7 @@ export class MapGenerator {
           
           if (this.isWithinMapBounds(tileX, tileY, mapSize)) {
             lightSources.push(lightSource);
-            Logger.map(`Added ${lightSource.lightType} at (${tileX}, ${tileY})`);
+            // Logger.debug(`Added ${lightSource.lightType} at (${tileX}, ${tileY})`);
           } else {
             Logger.warn(`Light source out of bounds at (${tileX}, ${tileY}), map size: ${mapSize}`);
           }
@@ -488,7 +488,7 @@ export class MapGenerator {
           
           if (this.isWithinMapBounds(tileX, tileY, mapSize)) {
             lightSources.push(decorativeLight);
-            Logger.map(`Added decorative ${decorativeLight.lightType} at (${tileX}, ${tileY})`);
+            // Logger.debug(`Added decorative ${decorativeLight.lightType} at (${tileX}, ${tileY})`);
           } else {
             Logger.warn(`Decorative light source out of bounds at (${tileX}, ${tileY}), map size: ${mapSize}`);
           }
@@ -499,7 +499,7 @@ export class MapGenerator {
     // Умная система размещения факелов в коридорах
     this.placeCorridorTorches(map, rooms, mapSize, lightSources);
     
-    Logger.map(`Generated ${lightSources.length} light sources`);
+    // Logger.debug(`Generated ${lightSources.length} light sources`);
     return lightSources;
   }
   
@@ -720,7 +720,7 @@ export class MapGenerator {
             lightSource.corridorPosition = i;
             
             lightSources.push(lightSource);
-            Logger.map(`Added corridor torch at (${position.x}, ${position.y}) - position ${i}/${torchCount}`);
+            // Logger.debug(`Added corridor torch at (${position.x}, ${position.y}) - position ${i}/${torchCount}`);
           }
         }
       }
@@ -805,7 +805,7 @@ export class MapGenerator {
     const minChests = Math.max(1, Math.floor(rooms.length * 0.1)); // Минимум 10% от комнат
     const maxChests = Math.floor(rooms.length * 0.25); // Максимум 25% от комнат
     
-    Logger.map(`Generating chests - Level: ${level}, Rooms: ${rooms.length}, Target: ${(targetChestsPerRoom * 100).toFixed(1)}%`);
+    // Logger.debug(`Generating chests - Level: ${level}, Rooms: ${rooms.length}, Target: ${(targetChestsPerRoom * 100).toFixed(1)}%`);
     
     // Сначала определяем количество сундуков для этого уровня
     const targetChestCount = Math.floor(rooms.length * targetChestsPerRoom);
@@ -827,11 +827,11 @@ export class MapGenerator {
         };
         
         chests.push(chest);
-        Logger.map(`Added chest ${index + 1}/${actualChestCount} in room at (${chestPosition.x}, ${chestPosition.y})`);
+        // Logger.debug(`Added chest ${index + 1}/${actualChestCount} in room at (${chestPosition.x}, ${chestPosition.y})`);
       }
     });
     
-    Logger.map(`Generated ${chests.length} chests out of ${actualChestCount} target`);
+    // Logger.debug(`Generated ${chests.length} chests out of ${actualChestCount} target`);
     return chests;
   }
   

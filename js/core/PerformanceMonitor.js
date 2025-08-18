@@ -16,7 +16,7 @@ export class PerformanceMonitor {
   static effectQuality = 'high';
   
   static init() {
-    Logger.info('PerformanceMonitor initialized');
+    // Logger.debug('PerformanceMonitor initialized');
   }
   
   static update(currentTime) {
@@ -49,13 +49,13 @@ export class PerformanceMonitor {
     // Включаем режим низкой производительности при FPS < 30 (вернули нормальный порог)
     if (this.fps < 30 && !this.lowPerformanceMode) {
       this.enableLowPerformanceMode();
-      Logger.warn(`⚠️ Низкий FPS обнаружен (${this.fps}), включаем режим оптимизации`);
+      // Logger.debug(`⚠️ Низкий FPS обнаружен (${this.fps}), включаем режим оптимизации`);
     }
     
     // Отключаем режим низкой производительности при FPS > 50 (вернули нормальный порог)
     if (this.fps > 50 && this.lowPerformanceMode) {
       this.disableLowPerformanceMode();
-      Logger.info(`✅ Хороший FPS обнаружен (${this.fps}), отключаем режим оптимизации`);
+      // Logger.debug(`✅ Хороший FPS обнаружен (${this.fps}), отключаем режим оптимизации`);
     }
     
     // Логируем критически низкий FPS
@@ -68,14 +68,14 @@ export class PerformanceMonitor {
     this.lowPerformanceMode = true;
     this.particleLimit = 15; // Еще больше ограничиваем частицы (было 30)
     this.effectQuality = 'low';
-    Logger.info('⚠️ Режим низкой производительности включен - частицы ограничены до', this.particleLimit);
+          // Logger.debug('⚠️ Режим низкой производительности включен - частицы ограничены до', this.particleLimit);
   }
   
   static disableLowPerformanceMode() {
     this.lowPerformanceMode = false;
     this.particleLimit = 60; // Уменьшили с 100 до 60 для стабильности
     this.effectQuality = 'high';
-    Logger.info('✅ Режим низкой производительности отключен - частицы до', this.particleLimit);
+          // Logger.debug('✅ Режим низкой производительности отключен - частицы до', this.particleLimit);
   }
   
   static shouldCreateParticle() {
@@ -107,6 +107,6 @@ export class PerformanceMonitor {
   
   // Метод для отладки производительности
   static logPerformanceStats() {
-    Logger.info(`FPS: ${this.fps}, Avg Frame Time: ${this.getAverageFrameTime().toFixed(2)}ms, Low Performance Mode: ${this.lowPerformanceMode}`);
+    // Logger.debug(`FPS: ${this.fps}, Avg Frame Time: ${this.getAverageFrameTime().toFixed(2)}ms, Low Performance Mode: ${this.lowPerformanceMode}`);
   }
 }

@@ -148,7 +148,7 @@ export class ScreenManager {
               const mobileInventoryBtn = document.getElementById('mobileInventoryBtn');
               
               if (pauseBtn && inventoryBtn) {
-                console.log('✅ Game buttons found and initialized');
+                // Logger.debug('✅ Game buttons found and initialized');
                 // Принудительно показываем кнопки
                 pauseBtn.style.display = 'flex';
                 inventoryBtn.style.display = 'flex';
@@ -161,24 +161,24 @@ export class ScreenManager {
               if (window.innerWidth <= 768) {
                 if (mobileControls) {
                   mobileControls.classList.remove('hidden');
-                  console.log('✅ Mobile controls enabled');
+                  // Logger.debug('✅ Mobile controls enabled');
                 }
                 if (joystick) {
                   joystick.style.display = 'flex';
-                  console.log('✅ Joystick enabled');
+                  // Logger.debug('✅ Joystick enabled');
                 }
                 if (abilityBtn) {
                   abilityBtn.style.display = 'flex';
-                  console.log('✅ Mobile ability button enabled');
+                  // Logger.debug('✅ Mobile ability button enabled');
                 }
                 if (mobileInventoryBtn) {
                   mobileInventoryBtn.style.display = 'flex';
-                  console.log('✅ Mobile inventory button enabled');
+                  // Logger.debug('✅ Mobile inventory button enabled');
                 }
               } else {
                 if (mobileControls) {
                   mobileControls.classList.add('hidden');
-                  console.log('✅ Mobile controls disabled on desktop');
+                  // Logger.debug('✅ Mobile controls disabled on desktop');
                 }
               }
             }, 500);
@@ -242,25 +242,25 @@ export class ScreenManager {
     
     if (isMobile) {
       // Мобильная версия с аватарами и деталями
-      console.log('📱 Building mobile version...');
+      // Logger.debug('📱 Building mobile version...');
       this.buildMobileCharacterSelect();
       
       // Скрываем десктопный контейнер
       const charList = document.getElementById('charList');
       if (charList) {
         charList.style.display = 'none';
-        console.log('🔧 Hidden charList (desktop container)');
+        // Logger.debug('🔧 Hidden charList (desktop container)');
       }
     } else {
       // Десктопная версия с карточками
-      console.log('🖥️ Building desktop version...');
+              // Logger.debug('🖥️ Building desktop version...');
       this.buildDesktopCharacterSelect();
       
       // Скрываем мобильный контейнер
       const characterAvatars = document.getElementById('characterAvatars');
       if (characterAvatars) {
         characterAvatars.style.display = 'none';
-        console.log('🔧 Hidden characterAvatars (mobile container)');
+        // Logger.debug('🔧 Hidden characterAvatars (mobile container)');
       }
     }
   }
@@ -269,16 +269,16 @@ export class ScreenManager {
     const characterAvatars = document.getElementById('characterAvatars');
     const characterDetails = document.getElementById('characterDetails');
     
-    console.log('🔍 Building mobile character select...');
-    console.log('characterAvatars element:', characterAvatars);
-    console.log('characterDetails element:', characterDetails);
+          // Logger.debug('🔍 Building mobile character select...');
+      // Logger.debug('characterAvatars element:', characterAvatars);
+      // Logger.debug('characterDetails element:', characterDetails);
     
     // Принудительно показываем контейнер аватаров
     if (characterAvatars) {
       characterAvatars.style.display = 'flex';
       characterAvatars.style.visibility = 'visible';
       characterAvatars.style.opacity = '1';
-      console.log('🔧 Forced characterAvatars to display: flex');
+      // Logger.debug('🔧 Forced characterAvatars to display: flex');
     }
     
     // Скрываем детали персонажа по умолчанию
@@ -287,7 +287,7 @@ export class ScreenManager {
       characterDetails.style.opacity = '0';
       characterDetails.style.transform = 'translateY(20px)';
       characterDetails.style.visibility = 'hidden';
-      console.log('🔧 Hidden characterDetails by default');
+      // Logger.debug('🔧 Hidden characterDetails by default');
     }
     
     CHARACTERS.forEach((char, index) => {
@@ -319,7 +319,7 @@ export class ScreenManager {
       `;
       
       avatarContainer.addEventListener('click', () => {
-        console.log('🎯 Avatar clicked:', char.name);
+        // Logger.debug('🎯 Avatar clicked:', char.name);
         
         // Убираем выделение со всех аватаров
         document.querySelectorAll('.character-avatar-container').forEach(a => a.classList.remove('selected'));
@@ -341,7 +341,7 @@ export class ScreenManager {
       // Добавляем также обработчик для touch событий
       avatarContainer.addEventListener('touchend', (e) => {
         e.preventDefault();
-        console.log('🎯 Avatar touched:', char.name);
+        // Logger.debug('🎯 Avatar touched:', char.name);
         
         // Убираем выделение со всех аватаров
         document.querySelectorAll('.character-avatar-container').forEach(a => a.classList.remove('selected'));
@@ -363,9 +363,9 @@ export class ScreenManager {
       characterAvatars.appendChild(avatarContainer);
     });
     
-    console.log('✅ Mobile character select built. Total avatars:', characterAvatars.children.length);
-    console.log('characterAvatars display style:', characterAvatars.style.display);
-    console.log('characterAvatars computed style:', window.getComputedStyle(characterAvatars).display);
+          // Logger.debug('✅ Mobile character select built. Total avatars:', characterAvatars.children.length);
+      // Logger.debug('characterAvatars display style:', characterAvatars.style.display);
+      // Logger.debug('characterAvatars computed style:', window.getComputedStyle(characterAvatars).display);
     
     // Принудительно показываем все аватары
     const avatarContainers = characterAvatars.querySelectorAll('.character-avatar-container');
@@ -373,7 +373,7 @@ export class ScreenManager {
       container.style.display = 'flex';
       container.style.visibility = 'visible';
       container.style.opacity = '1';
-      console.log(`🔧 Forced avatar ${index + 1} to display: flex`);
+              // Logger.debug(`🔧 Forced avatar ${index + 1} to display: flex`);
       
       // Принудительно показываем элементы внутри аватара
       const avatarSmall = container.querySelector('.character-avatar-small');
@@ -502,13 +502,13 @@ export class ScreenManager {
     
     if (!characterDetails) return;
     
-    console.log('🎯 Showing character details for:', char.name);
-    console.log('Character data:', char);
-    console.log('detailsSprite element:', detailsSprite);
-    console.log('detailsName element:', detailsName);
-    console.log('detailsClass element:', detailsClass);
-    console.log('detailsDescription element:', detailsDescription);
-    console.log('detailsStats element:', detailsStats);
+    // Logger.debug('🎯 Showing character details for:', char.name);
+    // Logger.debug('Character data:', char);
+    // Logger.debug('detailsSprite element:', detailsSprite);
+    // Logger.debug('detailsName element:', detailsName);
+    // Logger.debug('detailsClass element:', detailsClass);
+    // Logger.debug('detailsDescription element:', detailsDescription);
+    // Logger.debug('detailsStats element:', detailsStats);
     
     // Определяем иконку способности
     let abilityIcon = '';
@@ -527,24 +527,24 @@ export class ScreenManager {
     // Обновляем детали персонажа
     if (detailsSprite) {
       detailsSprite.textContent = char.sprite;
-      console.log('✅ Updated detailsSprite with:', char.sprite);
+      // Logger.debug('✅ Updated detailsSprite with:', char.sprite);
     }
     if (detailsName) {
       detailsName.textContent = char.name;
-      console.log('✅ Updated detailsName with:', char.name);
+      // Logger.debug('✅ Updated detailsName with:', char.name);
     }
     if (detailsClass) {
       detailsClass.textContent = char.class;
-      console.log('✅ Updated detailsClass with:', char.class);
+      // Logger.debug('✅ Updated detailsClass with:', char.class);
     }
     if (detailsDescription) {
       detailsDescription.textContent = char.description;
-      console.log('✅ Updated detailsDescription with:', char.description);
+      // Logger.debug('✅ Updated detailsDescription with:', char.description);
     }
     
     // Обновляем статистику
     if (detailsStats) {
-      console.log('✅ Updating detailsStats with character stats');
+      // Logger.debug('✅ Updating detailsStats with character stats');
       detailsStats.innerHTML = `
         <div class="character-details-stat">
           <div class="character-details-stat-label">HP</div>
@@ -586,13 +586,13 @@ export class ScreenManager {
     characterDetails.style.position = 'relative';
     characterDetails.style.transition = 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
     
-    console.log('🎯 Showing character details for:', char.name);
+    // Logger.debug('🎯 Showing character details for:', char.name);
     
     // Запускаем плавную анимацию с задержкой
     setTimeout(() => {
       characterDetails.style.opacity = '1';
       characterDetails.style.transform = 'translateY(0) scale(1)';
-      console.log('🎯 Smooth animation started');
+      // Logger.debug('🎯 Smooth animation started');
     }, 50);
   }
 

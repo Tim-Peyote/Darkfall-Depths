@@ -13,6 +13,78 @@ export class AudioManager {
     this.isMusicLoaded = false;
     this.isSfxLoaded = false;
     this.inventorySoundPlaying = false;
+    this.loadingProgress = 0;
+    this.totalAudioFiles = 0;
+    this.loadedAudioFiles = 0;
+  }
+
+  async preloadAllAudio(onProgress) {
+    try {
+      this.totalAudioFiles = 17;
+      this.loadedAudioFiles = 0;
+      
+      await this.loadMusicTracksWithProgress(onProgress);
+      await this.loadSfxTracksWithProgress(onProgress);
+      
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  async loadMusicTracksWithProgress(onProgress) {
+    const musicFiles = [
+      { key: 'main', path: 'Audio/Main.mp3' },
+      { key: 'stage1', path: 'Audio/stage1.mp3' },
+      { key: 'gameOver', path: 'Audio/GameOver.mp3' },
+      { key: 'levelComplete', path: 'Audio/Level_Complite.mp3' }
+    ];
+    
+    for (const music of musicFiles) {
+      try {
+        this.musicTracks[music.key] = await this.loadAudioFile(music.path);
+        this.loadedAudioFiles++;
+        if (onProgress) {
+          onProgress(Math.round((this.loadedAudioFiles / this.totalAudioFiles) * 100), `Загрузка музыки: ${music.key}...`);
+        }
+      } catch (error) {
+        // Игнорируем ошибки
+      }
+    }
+    
+    this.isMusicLoaded = true;
+  }
+
+  async loadSfxTracksWithProgress(onProgress) {
+    const sfxToLoad = [
+      { key: 'inventoryOpen', path: 'Audio/Fx/Inventory_open.mp3' },
+      { key: 'healthPotion', path: 'Audio/Fx/health_potion.mp3' },
+      { key: 'itemPickup', path: 'Audio/Fx/item_pickup.mp3' },
+      { key: 'enemyDie', path: 'Audio/Fx/enemy_die.mp3' },
+      { key: 'enemyHit', path: 'Audio/Fx/enemy_hit.mp3' },
+      { key: 'heroesHit', path: 'Audio/Fx/heroes_hit.mp3' },
+      { key: 'heroesDie', path: 'Audio/Fx/Heroes_die.mp3' },
+      { key: 'dagger', path: 'Audio/Fx/Dagger.mp3' },
+      { key: 'fireball', path: 'Audio/Fx/Fireball.mp3' },
+      { key: 'sword', path: 'Audio/Fx/sword.mp3' },
+      { key: 'explosion', path: 'Audio/Fx/explosion.mp3' },
+      { key: 'armor', path: 'Audio/Fx/Armor.mp3' },
+      { key: 'dash', path: 'Audio/Fx/Dash.mp3' }
+    ];
+    
+    for (const sfx of sfxToLoad) {
+      try {
+        this.sfxTracks[sfx.key] = await this.loadAudioFile(sfx.path);
+        this.loadedAudioFiles++;
+        if (onProgress) {
+          onProgress(Math.round((this.loadedAudioFiles / this.totalAudioFiles) * 100), `Загрузка звуков: ${sfx.key}...`);
+        }
+      } catch (error) {
+        // Игнорируем ошибки
+      }
+    }
+    
+    this.isSfxLoaded = true;
   }
 
   async init() {
@@ -22,10 +94,6 @@ export class AudioManager {
         Logger.warn('Web Audio API not supported in this browser');
         return;
       }
-      
-      // Загружаем треки без создания аудио контекста
-      await this.loadMusicTracks();
-      await this.loadSfxTracks();
       
       // Добавляем обработчики для автоматического возобновления аудио
       this.setupAudioResumeHandlers();
@@ -79,170 +147,78 @@ export class AudioManager {
   // Метод для принудительного запуска музыки (вызывается из main.js)
   forceStartMusic() {
     if (!this.audioContext) {
-      console.log('🎵 Creating audio context and playing...');
+              // Logger.debug('🎵 Creating audio context and playing...');
       this.createAudioContextAndPlay();
     } else if (gameState.audio.enabled && this.isMusicLoaded && !this.currentMusic) {
-      console.log('🎵 Force starting main music...');
+              // Logger.debug('🎵 Force starting main music...');
       this.playMusic('main');
     } else {
-      console.log('🎵 Force start conditions not met');
+              // Logger.debug('🎵 Force start conditions not met');
     }
   }
 
   async loadMusicTracks() {
-    try {
-      // Загружаем треки
-      this.musicTracks.main = await this.loadAudioFile('Audio/Main.mp3');
-      this.musicTracks.stage1 = await this.loadAudioFile('Audio/stage1.mp3');
-      this.musicTracks.gameOver = await this.loadAudioFile('Audio/GameOver.mp3');
-      this.musicTracks.levelComplete = await this.loadAudioFile('Audio/Level_Complite.mp3');
-      
-      this.isMusicLoaded = true;
-    } catch (error) {
-      console.warn('⚠️ Failed to load music tracks:', error);
-      this.isMusicLoaded = false;
-      // Не выбрасываем ошибку, чтобы игра продолжала работать
-    }
+    // Используем новый метод с прогрессом, но без callback
+    return this.loadMusicTracksWithProgress(null);
   }
 
   async loadSfxTracks() {
-    try {
-      // Загружаем звуковые эффекты по одному, чтобы один неудачный не прерывал остальные
-      const sfxToLoad = [
-        { key: 'inventoryOpen', path: 'Audio/Fx/Inventory_open.mp3' },
-        { key: 'healthPotion', path: 'Audio/Fx/health_potion.mp3' },
-        { key: 'itemPickup', path: 'Audio/Fx/item_pickup.mp3' },
-        { key: 'enemyDie', path: 'Audio/Fx/enemy_die.mp3' },
-        { key: 'enemyHit', path: 'Audio/Fx/enemy_hit.mp3' },
-        { key: 'heroesHit', path: 'Audio/Fx/heroes_hit.mp3' },
-        { key: 'heroesDie', path: 'Audio/Fx/Heroes_die.mp3' },
-        { key: 'dagger', path: 'Audio/Fx/Dagger.mp3' },
-        { key: 'fireball', path: 'Audio/Fx/Fireball.mp3' },
-        { key: 'sword', path: 'Audio/Fx/sword.mp3' },
-        { key: 'explosion', path: 'Audio/Fx/explosion.mp3' },
-        { key: 'armor', path: 'Audio/Fx/Armor.mp3' },
-        { key: 'dash', path: 'Audio/Fx/Dash.mp3' }
-      ];
-      
-      let loadedCount = 0;
-      
-      for (const sfx of sfxToLoad) {
-        try {
-          this.sfxTracks[sfx.key] = await this.loadAudioFile(sfx.path);
-          loadedCount++;
-        } catch (error) {
-          console.warn(`❌ Failed to load ${sfx.key} sound:`, error);
-        }
-      }
-      
-      if (loadedCount > 0) {
-        this.isSfxLoaded = true;
-      } else {
-        this.isSfxLoaded = false;
-        console.warn('❌ No sound effects loaded');
-      }
-    } catch (error) {
-      console.warn('⚠️ Failed to load sound effects:', error);
-      this.isSfxLoaded = false;
-    }
+    // Используем новый метод с прогрессом, но без callback
+    return this.loadSfxTracksWithProgress(null);
   }
 
   async loadAudioFile(url) {
     return new Promise((resolve, reject) => {
       const audio = new Audio();
+      const timeout = setTimeout(() => reject(new Error(`Timeout: ${url}`)), 10000);
       
-      // Проверяем, запущена ли игра через file:// протокол
-      const isLocalFile = window.location.protocol === 'file:';
-      if (isLocalFile) {
-        console.warn(`⚠️ Audio loading may fail with file:// protocol: ${url}`);
-        // Уменьшаем таймаут для file:// протокола
-        const timeout = setTimeout(() => {
-          console.warn(`Audio load timeout for: ${url}`);
-          reject(new Error(`Audio load timeout: ${url}`));
-        }, 5000); // 5 секунд таймаут для file://
-        
-        audio.addEventListener('canplaythrough', () => {
-          clearTimeout(timeout);
-          resolve(audio);
-        }, false);
-        
-        audio.addEventListener('error', (e) => {
-          clearTimeout(timeout);
-          console.warn(`❌ Audio load error for ${url}:`, e);
-          reject(e);
-        }, false);
-        
-        audio.src = url;
-        audio.load();
-      } else {
-        // Обычная загрузка для HTTP сервера
-        const timeout = setTimeout(() => {
-          console.warn(`Audio load timeout for: ${url}`);
-          reject(new Error(`Audio load timeout: ${url}`));
-        }, 10000); // 10 секунд таймаут
-        
-        audio.addEventListener('canplaythrough', () => {
-          clearTimeout(timeout);
-          console.log(`✅ Audio file loaded successfully: ${url}`);
-          resolve(audio);
-        }, false);
-        
-        audio.addEventListener('error', (e) => {
-          clearTimeout(timeout);
-          console.warn(`❌ Audio load error for ${url}:`, e);
-          reject(e);
-        }, false);
-        
-        audio.src = url;
-        audio.load();
-      }
+      audio.addEventListener('canplaythrough', () => {
+        clearTimeout(timeout);
+        resolve(audio);
+      }, false);
+      
+      audio.addEventListener('error', () => {
+        clearTimeout(timeout);
+        reject(new Error(`Failed to load: ${url}`));
+      }, false);
+      
+      audio.src = url;
+      audio.load();
     });
   }
 
   playMusic(trackName, loop = true) {
     if (!this.isMusicLoaded || !gameState.audio.enabled) {
-      console.warn(`🎵 Cannot play music ${trackName}: musicLoaded=${this.isMusicLoaded}, audioEnabled=${gameState.audio.enabled}`);
       return;
     }
     
-    // Проверяем, доступно ли аудио в браузере
     if (!window.AudioContext && !window.webkitAudioContext) {
-      console.warn('🎵 Web Audio API not supported');
       return;
     }
     
     const track = this.musicTracks[trackName];
     if (!track) {
-      console.warn(`❌ Track ${trackName} not found in musicTracks:`, Object.keys(this.musicTracks));
       return;
     }
-    
-    console.log(`🎵 Playing music track: ${trackName}, loop: ${loop}`);
 
-    // Проверяем, не играет ли уже нужный трек
     if (this.currentMusic === track && !this.currentMusic.paused) {
-      return; // Уже играет нужный трек
+      return;
     }
 
-    // Останавливаем текущую музыку
     if (this.currentMusic && this.currentMusic !== track) {
       this.currentMusic.pause();
       this.currentMusic.currentTime = 0;
     }
 
-    // Начинаем новый трек
     this.currentMusic = track;
     this.currentMusic.loop = loop;
     this.currentMusic.volume = gameState.audio.musicVolume * gameState.audio.masterVolume;
     
-    // Воспроизводим только если контекст активен
     if (this.audioContext && this.audioContext.state === 'suspended') {
       this.audioContext.resume();
     }
     
-    this.currentMusic.play().catch(e => {
-      console.warn('❌ Failed to play music:', e);
-    });
+    this.currentMusic.play();
   }
 
   stopMusic() {
@@ -267,7 +243,6 @@ export class AudioManager {
     }
   }
 
-  // Методы для воспроизведения звуковых эффектов
   playSfx(sfxName) {
     if (!this.isSfxLoaded || !gameState.audio.enabled) {
       return;
@@ -275,21 +250,16 @@ export class AudioManager {
     
     const sfx = this.sfxTracks[sfxName];
     if (!sfx) {
-      console.warn(`❌ Sound effect ${sfxName} not found in sfxTracks:`, Object.keys(this.sfxTracks));
       return;
     }
     
     try {
-      // Клонируем аудио для одновременного воспроизведения
       const sfxClone = sfx.cloneNode();
       sfxClone.volume = gameState.audio.sfxVolume * gameState.audio.masterVolume;
       sfxClone.loop = false;
-      
-      sfxClone.play().catch(e => {
-        console.warn(`❌ Failed to play sound effect ${sfxName}:`, e);
-      });
+      sfxClone.play();
     } catch (e) {
-      console.warn(`❌ Error creating sound effect ${sfxName}:`, e);
+      // Игнорируем ошибки
     }
   }
 
@@ -376,7 +346,7 @@ export class AudioManager {
   }
 
   playLevelComplete() {
-    console.log('🎵 playLevelComplete called');
+    // Logger.debug('🎵 playLevelComplete called');
     this.stopMusic();
     this.playMusic('levelComplete', false);
     
@@ -455,24 +425,7 @@ export class AudioManager {
     this.playHeroesHit();
   }
 
-  // Метод для тестирования звуковых эффектов (только для разработки)
-  testAllSounds() {
-    Logger.debug('Testing all sound effects...');
-    Logger.debug('Available SFX tracks:', Object.keys(this.sfxTracks));
-    Logger.debug('SFX loaded:', this.isSfxLoaded);
-    Logger.debug('Audio enabled:', gameState.audio.enabled);
-    
-    // Тестируем каждый звук
-    setTimeout(() => this.playInventoryOpen(), 100);
-    setTimeout(() => this.playHealthPotion(), 200);
-    setTimeout(() => this.playEnemyHit(), 300);
-    setTimeout(() => this.playEnemyDie(), 400);
-    setTimeout(() => this.playHeroesHit(), 500);
-    setTimeout(() => this.playHeroesDie(), 600);
-    setTimeout(() => this.playSwordAttack(), 700);
-    setTimeout(() => this.playDaggerAttack(), 800);
-    setTimeout(() => this.playFireballAttack(), 900);
-  }
+
 }
 
 // Создаем глобальный экземпляр

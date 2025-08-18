@@ -983,6 +983,70 @@ export class GameEngine {
           case 'purification_potion':
             borderColor = '#f39c12'; // Золотой для очищения
             break;
+          // Свитки
+          case 'scroll_werewolf':
+            borderColor = '#8b4513'; // Коричневый для оборотня
+            break;
+          case 'scroll_stone':
+            borderColor = '#7f8c8d'; // Серый для камня
+            break;
+          case 'scroll_ghost':
+            borderColor = '#ecf0f1'; // Светло-серый для призрака
+            break;
+          case 'scroll_fire_explosion':
+            borderColor = '#e74c3c'; // Красный для огня
+            break;
+          case 'scroll_ice_storm':
+            borderColor = '#3498db'; // Синий для льда
+            break;
+          case 'scroll_lightning':
+            borderColor = '#f1c40f'; // Желтый для молнии
+            break;
+          case 'scroll_earthquake':
+            borderColor = '#8b4513'; // Коричневый для землетрясения
+            break;
+          case 'scroll_clone':
+            borderColor = '#9b59b6'; // Фиолетовый для клона
+            break;
+          case 'scroll_teleport':
+            borderColor = '#e67e22'; // Оранжевый для телепорта
+            break;
+          case 'scroll_invisibility':
+            borderColor = '#95a5a6'; // Серый для невидимости
+            break;
+          case 'scroll_time':
+            borderColor = '#34495e'; // Темно-серый для времени
+            break;
+          case 'scroll_curse':
+            borderColor = '#2c3e50'; // Темный для проклятия
+            break;
+          case 'scroll_chaos':
+            borderColor = '#e74c3c'; // Красный для хаоса
+            break;
+          case 'scroll_fear':
+            borderColor = '#8e44ad'; // Фиолетовый для страха
+            break;
+          case 'scroll_smoke':
+            borderColor = '#7f8c8d'; // Серый для дыма
+            break;
+          case 'scroll_meteor':
+            borderColor = '#e67e22'; // Оранжевый для метеорита
+            break;
+          case 'scroll_barrier':
+            borderColor = '#3498db'; // Синий для барьера
+            break;
+          case 'scroll_rage':
+            borderColor = '#e74c3c'; // Красный для ярости
+            break;
+          case 'scroll_invulnerability':
+            borderColor = '#f1c40f'; // Желтый для неуязвимости
+            break;
+          case 'scroll_vampirism':
+            borderColor = '#8e44ad'; // Фиолетовый для вампиризма
+            break;
+          case 'mystery_scroll':
+            borderColor = '#8e44ad'; // Фиолетовый для тайного свитка
+            break;
           default:
             borderColor = '#ff6666';
         }
@@ -1076,7 +1140,7 @@ export class GameEngine {
     }
   }
   
-  static useQuickPotion(slotIndex) {
+  static async useQuickPotion(slotIndex) {
     if (!gameState.player) return;
     
     // Дополнительная проверка на паузу
@@ -1105,12 +1169,12 @@ export class GameEngine {
     
     // Применяем эффекты зелья (оптимизированная версия)
     if (!this.buffManager) {
-      import('../core/BuffManager.js').then(module => {
+      import('../core/BuffManager.js').then(async module => {
         this.buffManager = module.BuffManager;
-        this.buffManager.applyConsumableEffects(potion);
+        await this.buffManager.applyConsumableEffects(potion);
       });
     } else {
-      this.buffManager.applyConsumableEffects(potion);
+      await this.buffManager.applyConsumableEffects(potion);
     }
     
     // Удаляем зелье из рюкзака
@@ -1439,6 +1503,28 @@ export class GameEngine {
       case 'combo_potion': icon = '✨'; break;
       case 'mystery_potion': icon = '❓'; break;
       case 'purification_potion': icon = '✨'; break;
+      // Свитки
+      case 'scroll_werewolf': icon = '🐺'; break;
+      case 'scroll_stone': icon = '🗿'; break;
+      case 'scroll_ghost': icon = '👻'; break;
+      case 'scroll_fire_explosion': icon = '🔥'; break;
+      case 'scroll_ice_storm': icon = '❄️'; break;
+      case 'scroll_lightning': icon = '⚡'; break;
+      case 'scroll_earthquake': icon = '🌋'; break;
+      case 'scroll_clone': icon = '👥'; break;
+      case 'scroll_teleport': icon = '🌀'; break;
+      case 'scroll_invisibility': icon = '👁️'; break;
+      case 'scroll_time': icon = '⏰'; break;
+      case 'scroll_curse': icon = '💀'; break;
+      case 'scroll_chaos': icon = '🎭'; break;
+      case 'scroll_fear': icon = '😱'; break;
+      case 'scroll_smoke': icon = '💨'; break;
+      case 'scroll_meteor': icon = '☄️'; break;
+      case 'scroll_barrier': icon = '🛡️'; break;
+      case 'scroll_rage': icon = '😡'; break;
+      case 'scroll_invulnerability': icon = '💎'; break;
+      case 'scroll_vampirism': icon = '🦇'; break;
+      case 'mystery_scroll': icon = '❓'; break;
     }
     potionIcon.textContent = icon;
   }

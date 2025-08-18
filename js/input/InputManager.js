@@ -332,7 +332,7 @@ export class InputManager {
       // Проверяем, есть ли сундук в этой области И игрок рядом с ним
       if (gameState.entities && gameState.player) {
         for (const entity of gameState.entities) {
-          if (entity.constructor.name === 'Chest' && entity.inventory.length > 0) {
+          if (entity.constructor.name === 'Chest') {
             // Расстояние от клика до сундука
             const clickDistance = Math.sqrt(
               Math.pow(entity.x - gameX, 2) + 
@@ -381,7 +381,7 @@ export class InputManager {
       // Проверяем, есть ли сундук в этой области И игрок рядом с ним
       if (gameState.entities && gameState.player) {
         for (const entity of gameState.entities) {
-          if (entity.constructor.name === 'Chest' && entity.inventory.length > 0) {
+          if (entity.constructor.name === 'Chest') {
             // Расстояние от тапа до сундука
             const tapDistance = Math.sqrt(
               Math.pow(entity.x - gameX, 2) + 

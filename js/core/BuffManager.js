@@ -301,8 +301,15 @@ export class BuffManager {
     gameState.debuffs.active = [];
   }
   
-  static applyConsumableEffects(item) {
+  static async applyConsumableEffects(item) {
     if (!item || !item.bonus) return;
+    
+    // Проверяем, является ли предмет свитком
+    if (item.base && item.base.startsWith('scroll_')) {
+      const { ScrollManager } = await import('./ScrollManager.js');
+      await ScrollManager.applyScrollEffects(item);
+      return;
+    }
     
     // Тайная банка - применяем случайные эффекты
     if (item.bonus.mystery && item.bonus.effects) {
@@ -352,6 +359,155 @@ export class BuffManager {
     // Регенерация здоровья
     if (item.bonus.heal && item.bonus.regenDuration) {
       this.addRegenerationBuff(item.bonus.heal, item.bonus.regenDuration, item.bonus.regenTick || 1);
+    }
+  }
+  
+  static applyScrollEffects(item) {
+    if (!gameState.player) return;
+    
+    // Создаем эффект использования свитка
+    (async () => {
+      const { Utils } = await import('../utils/Utils.js');
+      const { createParticle } = await import('../effects/Particle.js');
+      
+      // Создаем частицы свитка
+      for (let i = 0; i < 10; i++) {
+        createParticle(
+          gameState.player.x + Utils.random(-25, 25),
+          gameState.player.y + Utils.random(-25, 25),
+          Utils.randomFloat(-60, 60),
+          Utils.randomFloat(-60, 60),
+          item.color || '#8e44ad',
+          1.8,
+          5
+        );
+      }
+    })();
+    
+    switch (item.base) {
+      case 'scroll_werewolf':
+        // Превращение в волка
+        this.addBuff('moveSpeed', gameState.player.moveSpeed * 0.5, 15);
+        this.addBuff('damage', gameState.player.damage * 0.3, 15);
+        this.addDebuff('defense', gameState.player.defense * 0.2, 15);
+        break;
+        
+      case 'scroll_stone':
+        // Превращение в голема
+        this.addBuff('defense', gameState.player.defense, 12);
+        this.addDebuff('moveSpeed', gameState.player.moveSpeed * 0.6, 12);
+        break;
+        
+      case 'scroll_ghost':
+        // Призрак - прохождение сквозь стены
+        gameState.player.isGhost = true;
+        setTimeout(() => {
+          if (gameState.player) gameState.player.isGhost = false;
+        }, 10000);
+        break;
+        
+      case 'scroll_fire_explosion':
+        // Огненный взрыв
+        this.createFireExplosion();
+        break;
+        
+      case 'scroll_ice_storm':
+        // Ледяная буря
+        this.createIceStorm();
+        break;
+        
+      case 'scroll_lightning':
+        // Молния
+        this.createLightningChain();
+        break;
+        
+      case 'scroll_earthquake':
+        // Землетрясение
+        this.createEarthquake();
+        break;
+        
+      case 'scroll_clone':
+        // Клонирование
+        this.createPlayerClone();
+        break;
+        
+      case 'scroll_teleport':
+        // Телепортация
+        this.randomTeleport();
+        break;
+        
+      case 'scroll_invisibility':
+        // Невидимость
+        gameState.player.isInvisible = true;
+        setTimeout(() => {
+          if (gameState.player) gameState.player.isInvisible = false;
+        }, 8000);
+        break;
+        
+      case 'scroll_time':
+        // Замедление времени
+        this.slowTime();
+        break;
+        
+      case 'scroll_curse':
+        // Проклятие врагов
+        this.curseEnemies();
+        break;
+        
+      case 'scroll_chaos':
+        // Хаос - враги атакуют друг друга
+        this.createChaos();
+        break;
+        
+      case 'scroll_fear':
+        // Страх - враги убегают
+        this.createFear();
+        break;
+        
+      case 'scroll_smoke':
+        // Дымовая завеса
+        this.createSmokeScreen();
+        break;
+        
+      case 'scroll_meteor':
+        // Метеорит
+        this.createMeteor();
+        break;
+        
+      case 'scroll_barrier':
+        // Энергетический барьер
+        this.createBarrier();
+        break;
+        
+      case 'scroll_rage':
+        // Ярость
+        this.addBuff('damage', gameState.player.damage, 12);
+        gameState.player.rageMode = true;
+        setTimeout(() => {
+          if (gameState.player) gameState.player.rageMode = false;
+        }, 12000);
+        break;
+        
+      case 'scroll_invulnerability':
+        // Неуязвимость
+        gameState.player.isInvulnerable = true;
+        setTimeout(() => {
+          if (gameState.player) gameState.player.isInvulnerable = false;
+        }, 5000);
+        break;
+        
+      case 'scroll_vampirism':
+        // Вампиризм
+        gameState.player.vampirism = true;
+        setTimeout(() => {
+          if (gameState.player) gameState.player.vampirism = false;
+        }, 15000);
+        break;
+        
+      case 'mystery_scroll':
+        // Тайный свиток - случайный эффект
+        this.applyRandomScrollEffect();
+        break;
     }
   }
   

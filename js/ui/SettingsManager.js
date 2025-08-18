@@ -331,7 +331,7 @@ export class SettingsManager {
       setTimeout(() => {
         const retryPauseBtn = document.getElementById('pauseBtn');
         if (retryPauseBtn) {
-          console.log('✅ Pause button found on retry');
+          // Logger.debug('✅ Pause button found on retry');
           this.setupGameButtonEventListeners();
         }
       }, 500);
@@ -377,7 +377,7 @@ export class SettingsManager {
       setTimeout(() => {
         const retryInventoryBtn = document.getElementById('inventoryToggle');
         if (retryInventoryBtn) {
-          console.log('✅ Inventory button found on retry');
+          // Logger.debug('✅ Inventory button found on retry');
           this.setupGameButtonEventListeners();
         }
       }, 500);
@@ -529,11 +529,11 @@ export class SettingsManager {
   }
 
   static setupRecordsEventListeners() {
-    console.log('📊 Setting up records screen event listeners...');
+    // Logger.debug('📊 Setting up records screen event listeners...');
     
     // Кнопка очистки рекордов
     const clearRecords = document.getElementById('clearRecords');
-    console.log('🗑️ Clear records button found:', !!clearRecords);
+          // Logger.debug('🗑️ Clear records button found:', !!clearRecords);
     if (clearRecords) {
       // Удаляем старые обработчики
       const newClearRecords = clearRecords.cloneNode(true);
@@ -542,7 +542,7 @@ export class SettingsManager {
       const handleClearRecords = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🗑️ Clear records button clicked! Event type:', e.type);
+        // Logger.debug('🗑️ Clear records button clicked! Event type:', e.type);
         const { RecordsManager } = await import('../ui/RecordsManager.js');
         RecordsManager.clearRecords();
       };
@@ -552,12 +552,12 @@ export class SettingsManager {
       newClearRecords.addEventListener('touchend', handleClearRecords);
       newClearRecords.addEventListener('touchstart', (e) => e.preventDefault());
       
-      console.log('🗑️ Clear records button event listeners set up successfully');
+      // Logger.debug('🗑️ Clear records button event listeners set up successfully');
     }
     
     // Кнопка "Назад" из рекордов
     const backToMenuFromRecords = document.getElementById('backToMenuFromRecords');
-    console.log('⬅️ Back from records button found:', !!backToMenuFromRecords);
+          // Logger.debug('⬅️ Back from records button found:', !!backToMenuFromRecords);
     if (backToMenuFromRecords) {
       // Удаляем старые обработчики
       const newBackButton = backToMenuFromRecords.cloneNode(true);
@@ -566,7 +566,7 @@ export class SettingsManager {
       const handleBackToMenu = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('⬅️ Back from records button clicked! Event type:', e.type);
+        // Logger.debug('⬅️ Back from records button clicked! Event type:', e.type);
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         ScreenManager.switchScreen('menu');
       };
@@ -576,12 +576,12 @@ export class SettingsManager {
       newBackButton.addEventListener('touchend', handleBackToMenu);
       newBackButton.addEventListener('touchstart', (e) => e.preventDefault());
       
-      console.log('⬅️ Back from records button event listeners set up successfully');
+      // Logger.debug('⬅️ Back from records button event listeners set up successfully');
     }
   }
 
   static setupSettingsEventListeners() {
-    console.log('⚙️ Setting up settings screen event listeners...');
+    // Logger.debug('⚙️ Setting up settings screen event listeners...');
     
     // Убираем фокус со всех ползунков при открытии настроек
     setTimeout(() => {
@@ -593,7 +593,7 @@ export class SettingsManager {
     
     // Кнопка "Назад" из настроек
     const backToMenuFromSettings = document.getElementById('backToMenuFromSettings');
-    console.log('⬅️ Back from settings button found:', !!backToMenuFromSettings);
+          // Logger.debug('⬅️ Back from settings button found:', !!backToMenuFromSettings);
     if (backToMenuFromSettings) {
       // Удаляем старые обработчики
       const newBackButton = backToMenuFromSettings.cloneNode(true);
@@ -602,7 +602,7 @@ export class SettingsManager {
       const handleBackToMenu = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('⬅️ Back from settings button clicked! Event type:', e.type);
+        // Logger.debug('⬅️ Back from settings button clicked! Event type:', e.type);
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         ScreenManager.switchScreen('menu');
       };
@@ -612,12 +612,12 @@ export class SettingsManager {
       newBackButton.addEventListener('touchend', handleBackToMenu);
       newBackButton.addEventListener('touchstart', (e) => e.preventDefault());
       
-      console.log('⬅️ Back from settings button event listeners set up successfully');
+      // Logger.debug('⬅️ Back from settings button event listeners set up successfully');
     }
     
     // Кнопка "Выключить звук"
     const muteToggle = document.getElementById('muteToggle');
-    console.log('🔇 Mute toggle button found:', !!muteToggle);
+          // Logger.debug('🔇 Mute toggle button found:', !!muteToggle);
     if (muteToggle) {
       // Удаляем старые обработчики
       const newMuteToggle = muteToggle.cloneNode(true);
@@ -626,7 +626,7 @@ export class SettingsManager {
       const handleMuteToggle = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🔇 Mute toggle button clicked! Event type:', e.type);
+        // Logger.debug('🔇 Mute toggle button clicked! Event type:', e.type);
         gameState.audio.enabled = !gameState.audio.enabled;
         
         // Обновляем текст кнопки
@@ -651,7 +651,7 @@ export class SettingsManager {
       newMuteToggle.addEventListener('touchend', handleMuteToggle);
       newMuteToggle.addEventListener('touchstart', (e) => e.preventDefault());
       
-      console.log('🔇 Mute toggle button event listeners set up successfully');
+      // Logger.debug('🔇 Mute toggle button event listeners set up successfully');
     }
     
     // Настраиваем ползунки с поддержкой touch
@@ -719,11 +719,11 @@ export class SettingsManager {
     // Кнопки меню паузы
     const quitBtn = document.getElementById('quitBtn');
     
-    console.log('Quit button found:', quitBtn);
+          // Logger.debug('Quit button found:', quitBtn);
     
     if (quitBtn) {
       quitBtn.addEventListener('click', async () => {
-        console.log('Quit to main menu button clicked');
+        // Logger.debug('Quit to main menu button clicked');
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         const { GameEngine } = await import('../game/GameEngine.js');
         
@@ -748,7 +748,7 @@ export class SettingsManager {
       const handleClosePauseClick = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('❌ Close pause button clicked');
+        // Logger.debug('❌ Close pause button clicked');
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         await ScreenManager.togglePause();
       };
@@ -762,15 +762,15 @@ export class SettingsManager {
     
     // Кнопка паузы на игровом экране
     const pauseBtn = document.getElementById('pauseBtn');
-    console.log('Pause button found:', pauseBtn);
+          // Logger.debug('Pause button found:', pauseBtn);
     if (pauseBtn) {
       // Функция обработчика паузы
       const handlePauseClick = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('🔴 PAUSE BUTTON CLICKED! Event type:', e.type);
-        console.log('🔴 Current gameState.screen:', gameState.screen);
-        console.log('🔴 Current gameState.isPaused:', gameState.isPaused);
+        // Logger.debug('🔴 PAUSE BUTTON CLICKED! Event type:', e.type);
+        // Logger.debug('🔴 Current gameState.screen:', gameState.screen);
+        // Logger.debug('🔴 Current gameState.isPaused:', gameState.isPaused);
         
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         await ScreenManager.togglePause();
@@ -794,14 +794,14 @@ export class SettingsManager {
     // Кнопка закрытия инвентаря (только в игровом экране)
     const closeInventoryBtn = document.getElementById('closeInventory');
     if (closeInventoryBtn && gameState.screen === 'game') {
-      console.log('✅ Кнопка закрытия инвентаря найдена и настроена');
+              // Logger.debug('✅ Кнопка закрытия инвентаря найдена и настроена');
       
       // Удаляем старые обработчики, если они есть
       const newCloseInventoryBtn = closeInventoryBtn.cloneNode(true);
       closeInventoryBtn.parentNode.replaceChild(newCloseInventoryBtn, closeInventoryBtn);
       
       newCloseInventoryBtn.addEventListener('click', async (e) => {
-        console.log('🔴 Close inventory button clicked');
+        // Logger.debug('🔴 Close inventory button clicked');
         e.preventDefault();
         e.stopPropagation();
         const { InventoryManager } = await import('../ui/InventoryManager.js');
@@ -813,7 +813,7 @@ export class SettingsManager {
       if (inventoryOverlay) {
         inventoryOverlay.addEventListener('click', async (e) => {
           if (e.target === inventoryOverlay) {
-            console.log('🔴 Inventory overlay clicked - closing');
+            // Logger.debug('🔴 Inventory overlay clicked - closing');
             const { InventoryManager } = await import('../ui/InventoryManager.js');
             InventoryManager.toggleInventory();
           }
@@ -825,13 +825,13 @@ export class SettingsManager {
         SettingsManager.delegatedListenerAdded = true;
         document.addEventListener('click', async (e) => {
         if (e.target && e.target.id === 'closeInventory') {
-          console.log('🔴 Close inventory button clicked (delegated)');
+          // Logger.debug('🔴 Close inventory button clicked (delegated)');
           e.preventDefault();
           e.stopPropagation();
           const { InventoryManager } = await import('../ui/InventoryManager.js');
           InventoryManager.toggleInventory();
         } else if (e.target && e.target.id === 'restartBtn') {
-          console.log('🔄 Restart button clicked (delegated)');
+          // Logger.debug('🔄 Restart button clicked (delegated)');
           e.preventDefault();
           e.stopPropagation();
           const { GameEngine } = await import('../game/GameEngine.js');
@@ -847,7 +847,7 @@ export class SettingsManager {
           LevelManager.endGame();
           GameEngine.startGame();
         } else if (e.target && e.target.id === 'menuBtn') {
-          console.log('🏠 Menu button clicked (delegated)');
+          // Logger.debug('🏠 Menu button clicked (delegated)');
           e.preventDefault();
           e.stopPropagation();
           const { ScreenManager } = await import('../ui/ScreenManager.js');
@@ -864,7 +864,7 @@ export class SettingsManager {
           ScreenManager.switchScreen('menu');
         } else if (e.target && e.target.id === 'nextLevelBtn') {
           // Убираем дублирующий обработчик - используем только прямой обработчик
-          console.log('⬇️ Next level button clicked (delegated) - IGNORED');
+          // Logger.debug('⬇️ Next level button clicked (delegated) - IGNORED');
           // Не выполняем никаких действий - прямой обработчик справится
         }
       });
@@ -878,7 +878,7 @@ export class SettingsManager {
           if (e.key === 'Escape') {
             const inventoryOverlay = document.getElementById('inventoryOverlay');
             if (inventoryOverlay && !inventoryOverlay.classList.contains('hidden')) {
-              console.log('🔴 Escape key pressed - closing inventory');
+              // Logger.debug('🔴 Escape key pressed - closing inventory');
               const { InventoryManager } = await import('../ui/InventoryManager.js');
               InventoryManager.toggleInventory();
               e.preventDefault(); // Предотвращаем срабатывание других обработчиков Escape
@@ -891,13 +891,13 @@ export class SettingsManager {
       }
     } else if (closeInventoryBtn && gameState.screen !== 'game') {
       // Кнопка есть, но мы не в игре - это нормально
-      console.log('ℹ️ Кнопка закрытия инвентаря найдена, но не в игровом экране - пропускаем');
+              // Logger.debug('ℹ️ Кнопка закрытия инвентаря найдена, но не в игровом экране - пропускаем');
     } else if (!closeInventoryBtn && gameState.screen === 'game') {
       // Кнопки нет, но мы в игре - это ошибка
       console.error('❌ Кнопка закрытия инвентаря не найдена в игровом экране!');
     } else {
       // Кнопки нет и мы не в игре - это нормально
-      console.log('ℹ️ Кнопка закрытия инвентаря не найдена (не в игровом экране)');
+              // Logger.debug('ℹ️ Кнопка закрытия инвентаря не найдена (не в игровом экране)');
     }
     
     // Кнопка открытия инвентаря на экране (только в игре)
@@ -936,16 +936,16 @@ export class SettingsManager {
       desktopAbilityBtn.addEventListener('click', async () => {
         // Проверяем, что мы в игре, не в паузе и у игрока есть способность
         if (gameState.screen !== 'game' || !gameState.player) {
-          console.log('Ability button clicked outside game - ignoring');
+          // Logger.debug('Ability button clicked outside game - ignoring');
           return;
         }
         
         if (gameState.isPaused) {
-          console.log('Ability button clicked during pause - ignoring');
+          // Logger.debug('Ability button clicked during pause - ignoring');
           return;
         }
         
-        console.log('Desktop ability button clicked');
+        // Logger.debug('Desktop ability button clicked');
         
         // Активируем способность в зависимости от персонажа
         if (gameState.player.hasDash && gameState.player.dashCooldown <= 0) {
@@ -961,15 +961,15 @@ export class SettingsManager {
     // Кнопка следующего уровня
     const nextLevelBtn = document.getElementById('nextLevelBtn');
     if (nextLevelBtn) {
-      console.log('✅ Кнопка следующего уровня найдена и настроена');
+              // Logger.debug('✅ Кнопка следующего уровня найдена и настроена');
       
       // Удаляем старые обработчики, если они есть
       const newNextLevelBtn = nextLevelBtn.cloneNode(true);
       nextLevelBtn.parentNode.replaceChild(newNextLevelBtn, nextLevelBtn);
       
       newNextLevelBtn.addEventListener('click', async () => {
-        console.log('🎮 Next level button clicked');
-        console.log(`🎮 Button click - level: ${gameState.level}, gameRunning: ${gameState.gameRunning}`);
+        // Logger.debug('🎮 Next level button clicked');
+        // Logger.debug(`🎮 Button click - level: ${gameState.level}, gameRunning: ${gameState.gameRunning}`);
         
         try {
           const { GameEngine } = await import('../game/GameEngine.js');
@@ -979,18 +979,18 @@ export class SettingsManager {
           const levelCompleteOverlay = document.getElementById('levelCompleteOverlay');
           if (levelCompleteOverlay) {
             levelCompleteOverlay.classList.add('hidden');
-            console.log('🎮 Level complete overlay hidden');
+            // Logger.debug('🎮 Level complete overlay hidden');
           }
           
           // Переход на следующий уровень через LevelManager
-          console.log(`🎮 Before nextLevel: level ${gameState.level}, gameRunning: ${gameState.gameRunning}`);
+          // Logger.debug(`🎮 Before nextLevel: level ${gameState.level}, gameRunning: ${gameState.gameRunning}`);
           await LevelManager.nextLevel();
-          console.log(`🎮 After nextLevel: level ${gameState.level}, gameRunning: ${gameState.gameRunning}`);
+          // Logger.debug(`🎮 After nextLevel: level ${gameState.level}, gameRunning: ${gameState.gameRunning}`);
           
           // Продолжаем игру с новым уровнем
-          console.log('🎮 Continuing game...');
+          // Logger.debug('🎮 Continuing game...');
           await GameEngine.continueGame();
-          console.log('🎮 Game continued successfully');
+          // Logger.debug('🎮 Game continued successfully');
         } catch (error) {
           console.error('❌ Error in next level button handler:', error);
         }
@@ -1034,7 +1034,7 @@ export class SettingsManager {
       const handleClearRecords = async (e) => {
         e.preventDefault();
         e.stopPropagation();
-        console.log('Clear records button clicked');
+        // Logger.debug('Clear records button clicked');
         const { RecordsManager } = await import('../ui/RecordsManager.js');
         RecordsManager.clearRecords();
       };
@@ -1054,7 +1054,7 @@ export class SettingsManager {
       restartBtn.parentNode.replaceChild(newRestartBtn, restartBtn);
       
       newRestartBtn.addEventListener('click', async () => {
-        console.log('Restart button clicked');
+        // Logger.debug('Restart button clicked');
         const { GameEngine } = await import('../game/GameEngine.js');
         const { LevelManager } = await import('../game/LevelManager.js');
         
@@ -1076,7 +1076,7 @@ export class SettingsManager {
       menuBtn.parentNode.replaceChild(newMenuBtn, menuBtn);
       
       newMenuBtn.addEventListener('click', async () => {
-        console.log('Menu button clicked');
+        // Logger.debug('Menu button clicked');
         const { ScreenManager } = await import('../ui/ScreenManager.js');
         const { LevelManager } = await import('../game/LevelManager.js');
         
@@ -1161,11 +1161,11 @@ export class SettingsManager {
   }
 
   static setupSelectEventListeners() {
-    console.log('👤 Setting up character select screen event listeners...');
+    // Logger.debug('👤 Setting up character select screen event listeners...');
     
     // Кнопка "Назад" из экрана выбора персонажей
     const backToMenuFromSelect = document.getElementById('backToMenuFromSelect');
-    console.log('⬅️ Back from select button found:', !!backToMenuFromSelect);
+          // Logger.debug('⬅️ Back from select button found:', !!backToMenuFromSelect);
     if (backToMenuFromSelect) {
       // Удаляем старые обработчики
       const newBackButton = backToMenuFromSelect.cloneNode(true);
@@ -1187,12 +1187,12 @@ export class SettingsManager {
       newBackButton.addEventListener('touchend', handleBackToMenu);
       newBackButton.addEventListener('touchstart', (e) => e.preventDefault());
       
-      console.log('⬅️ Back from select button event listeners set up successfully');
+      // Logger.debug('⬅️ Back from select button event listeners set up successfully');
     }
     
     // Кнопка "Старт" игры
     const startGameBtn = document.getElementById('startGameBtn');
-    console.log('🎮 Start game button found:', !!startGameBtn);
+          // Logger.debug('🎮 Start game button found:', !!startGameBtn);
     if (startGameBtn) {
       // Удаляем старые обработчики
       const newStartButton = startGameBtn.cloneNode(true);
@@ -1221,7 +1221,7 @@ export class SettingsManager {
       newStartButton.addEventListener('touchend', handleStartGame);
       newStartButton.addEventListener('touchstart', (e) => e.preventDefault());
       
-      console.log('🎮 Start game button event listeners set up successfully');
+      // Logger.debug('🎮 Start game button event listeners set up successfully');
     }
   }
 } 

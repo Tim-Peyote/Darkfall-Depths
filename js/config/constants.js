@@ -276,7 +276,30 @@ export const BASE_ITEMS = [
   { base: 'regen_potion', name: 'Зелье регенерации', class: null, icon: '💚', color: '#27ae60', type: 'consumable', slot: 'consumable' },
   { base: 'combo_potion', name: 'Комплексное зелье', class: null, icon: '🌈', color: '#9b59b6', type: 'consumable', slot: 'consumable' },
   { base: 'purification_potion', name: 'Зелье очищения', class: null, icon: '✨', color: '#f39c12', type: 'consumable', slot: 'consumable' },
-  { base: 'mystery_potion', name: 'Тайная банка', class: null, icon: '❓', color: '#8e44ad', type: 'consumable', slot: 'consumable' }
+  { base: 'mystery_potion', name: 'Тайная банка', class: null, icon: '❓', color: '#8e44ad', type: 'consumable', slot: 'consumable' },
+  
+  // Свитки
+  { base: 'scroll_werewolf', name: 'Свиток оборотня', class: null, icon: '🐺', color: '#8b4513', type: 'consumable', slot: 'consumable', description: 'Превращает в волка: скорость +50%, урон +30%, защита -20% на 15 сек' },
+  { base: 'scroll_stone', name: 'Свиток камня', class: null, icon: '🗿', color: '#7f8c8d', type: 'consumable', slot: 'consumable', description: 'Превращает в голема: защита +100%, скорость -60% на 12 сек' },
+  { base: 'scroll_ghost', name: 'Свиток призрака', class: null, icon: '👻', color: '#ecf0f1', type: 'consumable', slot: 'consumable', description: 'Позволяет проходить сквозь стены и врагов на 10 сек' },
+  { base: 'scroll_fire_explosion', name: 'Свиток огненного взрыва', class: null, icon: '🔥', color: '#e74c3c', type: 'consumable', slot: 'consumable', description: 'Взрывная волна огня: урон 40, радиус 120, поджигает врагов' },
+  { base: 'scroll_ice_storm', name: 'Свиток ледяной бури', class: null, icon: '❄️', color: '#3498db', type: 'consumable', slot: 'consumable', description: 'Замораживает всех врагов в радиусе 150 на 5 сек' },
+  { base: 'scroll_lightning', name: 'Свиток молнии', class: null, icon: '⚡', color: '#f1c40f', type: 'consumable', slot: 'consumable', description: 'Цепная молния между врагами: урон 25, до 5 целей' },
+  { base: 'scroll_earthquake', name: 'Свиток землетрясения', class: null, icon: '🌋', color: '#8b4513', type: 'consumable', slot: 'consumable', description: 'Создает трещины, замедляющие врагов на 8 сек' },
+  { base: 'scroll_clone', name: 'Свиток клонирования', class: null, icon: '👥', color: '#9b59b6', type: 'consumable', slot: 'consumable', description: 'Создает временного клона игрока: урон 50% на 20 сек' },
+  { base: 'scroll_teleport', name: 'Свиток телепортации', class: null, icon: '🌀', color: '#e67e22', type: 'consumable', slot: 'consumable', description: 'Случайный телепорт в пределах карты' },
+  { base: 'scroll_invisibility', name: 'Свиток невидимости', class: null, icon: '👁️', color: '#95a5a6', type: 'consumable', slot: 'consumable', description: 'Невидимость для врагов на 8 сек' },
+  { base: 'scroll_time', name: 'Свиток времени', class: null, icon: '⏰', color: '#34495e', type: 'consumable', slot: 'consumable', description: 'Замедляет всех врагов на 60% на 10 сек' },
+  { base: 'scroll_curse', name: 'Свиток проклятия', class: null, icon: '💀', color: '#2c3e50', type: 'consumable', slot: 'consumable', description: 'Накладывает случайный дебафф на всех врагов в радиусе 200' },
+  { base: 'scroll_chaos', name: 'Свиток хаоса', class: null, icon: '🎭', color: '#e74c3c', type: 'consumable', slot: 'consumable', description: 'Заставляет врагов атаковать друг друга на 15 сек' },
+  { base: 'scroll_fear', name: 'Свиток страха', class: null, icon: '😱', color: '#8e44ad', type: 'consumable', slot: 'consumable', description: 'Заставляет врагов убегать от игрока на 12 сек' },
+  { base: 'scroll_smoke', name: 'Свиток дыма', class: null, icon: '💨', color: '#7f8c8d', type: 'consumable', slot: 'consumable', description: 'Создает дымовую завесу, скрывающую игрока на 10 сек' },
+  { base: 'scroll_meteor', name: 'Свиток метеорита', class: null, icon: '☄️', color: '#e67e22', type: 'consumable', slot: 'consumable', description: 'Вызывает падение метеорита в случайную точку карты' },
+  { base: 'scroll_barrier', name: 'Свиток барьера', class: null, icon: '🛡️', color: '#3498db', type: 'consumable', slot: 'consumable', description: 'Создает энергетический щит, абсорбирующий 100 урона' },
+  { base: 'scroll_rage', name: 'Свиток ярости', class: null, icon: '😡', color: '#e74c3c', type: 'consumable', slot: 'consumable', description: 'Урон +100%, но игрок получает урон при атаке на 12 сек' },
+  { base: 'scroll_invulnerability', name: 'Свиток неуязвимости', class: null, icon: '💎', color: '#f1c40f', type: 'consumable', slot: 'consumable', description: 'Полная неуязвимость к урону на 5 сек' },
+  { base: 'scroll_vampirism', name: 'Свиток вампиризма', class: null, icon: '🦇', color: '#8e44ad', type: 'consumable', slot: 'consumable', description: '50% урона от атак восстанавливает здоровье на 15 сек' },
+  { base: 'mystery_scroll', name: 'Тайный свиток', class: null, icon: '📜', color: '#8e44ad', type: 'consumable', slot: 'consumable', description: 'Случайный эффект из всех возможных свитков' }
 ];
 
 export const AFFIXES = [
@@ -292,9 +315,9 @@ export const AFFIXES = [
 ];
 
 export const RARITIES = [
-  { key: 'common', name: 'Обычный', color: '#95a5a6', chance: 0.6 },
-  { key: 'rare', name: 'Редкий', color: '#3498db', chance: 0.3 },
-  { key: 'epic', name: 'Эпик', color: '#e67e22', chance: 0.09 },
+  { key: 'common', name: 'Обычный', color: '#95a5a6', chance: 0.7 },
+  { key: 'rare', name: 'Редкий', color: '#3498db', chance: 0.25 },
+  { key: 'epic', name: 'Эпик', color: '#e67e22', chance: 0.04 },
   { key: 'legendary', name: 'Легендарный', color: '#e74c3c', chance: 0.01 }
 ];
 
@@ -303,18 +326,26 @@ export function generateRandomItem(level, playerClass) {
   // 1. Сначала выбираем базу с учётом класса
   let pool = BASE_ITEMS.filter(it => !it.class || it.class === playerClass);
   
-  // 5% шанс на "не свой" предмет
-  if (Math.random() < 0.05) {
+  // 3% шанс на "не свой" предмет
+  if (Math.random() < 0.03) {
     pool = BASE_ITEMS;
+  }
+  
+  // 5% шанс на свиток (если уровень >= 5)
+  if (level >= 5 && Math.random() < 0.05) {
+    const scrollPool = BASE_ITEMS.filter(it => it.base && it.base.startsWith('scroll_'));
+    if (scrollPool.length > 0) {
+      pool = scrollPool;
+    }
   }
   
   // 2. Применяем пониженный шанс для зелья очищения
   const purificationPotion = pool.find(it => it.base === 'purification_potion');
   if (purificationPotion) {
-    // 15% шанс что зелье очищения будет исключено из пула
-    if (Math.random() < 0.15) {
-      pool = pool.filter(it => it.base !== 'purification_potion');
-    }
+      // 25% шанс что зелье очищения будет исключено из пула
+  if (Math.random() < 0.25) {
+    pool = pool.filter(it => it.base !== 'purification_potion');
+  }
   }
   
   const base = pool[Math.floor(Math.random() * pool.length)];
@@ -470,6 +501,70 @@ export function generateRandomItem(level, playerClass) {
         break;
       case 'mystery_potion':
         description = 'Содержит неизвестные эффекты. Может быть как полезным, так и вредным...';
+        break;
+      // Свитки
+      case 'scroll_werewolf':
+        description = 'Превращает в волка: скорость +50%, урон +30%, защита -20% на 15 сек';
+        break;
+      case 'scroll_stone':
+        description = 'Превращает в голема: защита +100%, скорость -60% на 12 сек';
+        break;
+      case 'scroll_ghost':
+        description = 'Позволяет проходить сквозь стены и врагов на 10 сек';
+        break;
+      case 'scroll_fire_explosion':
+        description = 'Взрывная волна огня: урон 40, радиус 120, поджигает врагов';
+        break;
+      case 'scroll_ice_storm':
+        description = 'Замораживает всех врагов в радиусе 150 на 5 сек';
+        break;
+      case 'scroll_lightning':
+        description = 'Цепная молния между врагами: урон 25, до 5 целей';
+        break;
+      case 'scroll_earthquake':
+        description = 'Создает трещины, замедляющие врагов на 8 сек';
+        break;
+      case 'scroll_clone':
+        description = 'Создает временного клона игрока: урон 50% на 20 сек';
+        break;
+      case 'scroll_teleport':
+        description = 'Случайный телепорт в пределах карты';
+        break;
+      case 'scroll_invisibility':
+        description = 'Невидимость для врагов на 8 сек';
+        break;
+      case 'scroll_time':
+        description = 'Замедляет всех врагов на 60% на 10 сек';
+        break;
+      case 'scroll_curse':
+        description = 'Накладывает случайный дебафф на всех врагов в радиусе 200';
+        break;
+      case 'scroll_chaos':
+        description = 'Заставляет врагов атаковать друг друга на 15 сек';
+        break;
+      case 'scroll_fear':
+        description = 'Заставляет врагов убегать от игрока на 12 сек';
+        break;
+      case 'scroll_smoke':
+        description = 'Создает дымовую завесу, скрывающую игрока на 10 сек';
+        break;
+      case 'scroll_meteor':
+        description = 'Вызывает падение метеорита в случайную точку карты';
+        break;
+      case 'scroll_barrier':
+        description = 'Создает энергетический щит, абсорбирующий 100 урона';
+        break;
+      case 'scroll_rage':
+        description = 'Урон +100%, но игрок получает урон при атаке на 12 сек';
+        break;
+      case 'scroll_invulnerability':
+        description = 'Полная неуязвимость к урону на 5 сек';
+        break;
+      case 'scroll_vampirism':
+        description = '50% урона от атак восстанавливает здоровье на 15 сек';
+        break;
+      case 'mystery_scroll':
+        description = 'Случайный эффект из всех возможных свитков';
         break;
       default:
         description = `Восстанавливает ${bonus.heal} здоровья`;

@@ -226,7 +226,7 @@ export class LevelManager {
               room.centerX !== undefined && room.centerY !== undefined &&
               this.isWithinSafeBounds(room.centerX, room.centerY, gameState.map)) {
             fallbackRoom = room;
-            console.log('🔄 Using fallback room:', i, room);
+            // Logger.debug('🔄 Using fallback room:', i, room);
             break;
           }
         }
@@ -251,7 +251,7 @@ export class LevelManager {
           // Инициализируем туман войны
           if (gameState.fogOfWar) {
             gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y);
-            console.log('🌫️ Fog of war initialized for fallback room');
+            // Logger.debug('🌫️ Fog of war initialized for fallback room');
           }
         } else {
           // Последний fallback: спавним в безопасном центре карты
@@ -283,7 +283,7 @@ export class LevelManager {
                       (testY + 0.5) * TILE_SIZE
                     );
                     foundSafePosition = true;
-                    console.log('✅ Found safe fallback position:', testX, testY);
+                    // Logger.debug('✅ Found safe fallback position:', testX, testY);
                     break;
                   }
                 }
@@ -301,7 +301,7 @@ export class LevelManager {
           // Инициализируем туман войны для центра карты
           if (gameState.fogOfWar) {
             gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y);
-            console.log('🌫️ Fog of war initialized for center position');
+            // Logger.debug('🌫️ Fog of war initialized for center position');
           }
         }
       }
@@ -425,7 +425,7 @@ export class LevelManager {
             enemy.speed = Math.floor(enemy.speed * (1 + speedBonus));
           }
           
-          console.log(`👹 Enemy level ${gameState.level} - HP: ${enemy.hp}, Damage: ${enemy.damage}, Speed: ${enemy.speed}`);
+          // Logger.debug(`👹 Enemy level ${gameState.level} - HP: ${enemy.hp}, Damage: ${enemy.damage}, Speed: ${enemy.speed}`);
         }
         
         gameState.entities.push(enemy);
@@ -455,7 +455,7 @@ export class LevelManager {
       // Проверяем, нет ли уже портала в игре
       const existingPortal = gameState.entities.find(entity => entity.constructor.name === 'Portal');
       if (existingPortal) {
-        console.log('Портал уже существует, пропускаем создание нового');
+        // Logger.debug('Портал уже существует, пропускаем создание нового');
       } else {
         try {
           const { Portal } = await import('../entities/Portal.js');
@@ -469,7 +469,7 @@ export class LevelManager {
             // Валидация спавна портала
             if (this.validateSpawnBounds(portal, 'Portal')) {
               gameState.entities.push(portal);
-              console.log('Портал успешно создан в комнате:', portalRoom, 'на позиции:', safePosition);
+              // Logger.debug('Портал успешно создан в комнате:', portalRoom, 'на позиции:', safePosition);
             } else {
               console.warn('Портал не может быть создан - валидация границ не пройдена');
             }
@@ -495,7 +495,7 @@ export class LevelManager {
           // Валидация спавна сундука
           if (this.validateSpawnBounds(chest, 'Chest')) {
             gameState.entities.push(chest);
-            console.log(`Сундук ${index + 1} создан на позиции: (${chestData.x}, ${chestData.y})`);
+            // Logger.debug(`Сундук ${index + 1} создан на позиции: (${chestData.x}, ${chestData.y})`);
           } else {
             console.warn(`Сундук ${index + 1} не может быть создан - валидация границ не пройдена`);
           }
@@ -505,12 +505,12 @@ export class LevelManager {
       }
     }
     
-    // Спавн предметов (улучшенная система прогрессии)
-    const baseItemChance = 0.3;
-    const levelBonus = Math.min(0.4, gameState.level * 0.03);
+    // Спавн предметов (сбалансированная система прогрессии)
+    const baseItemChance = 0.15;
+    const levelBonus = Math.min(0.3, gameState.level * 0.02);
     const itemChance = baseItemChance + levelBonus;
     
-    console.log(`📦 Level ${gameState.level} - Item spawn chance: ${(itemChance * 100).toFixed(1)}%`);
+          // Logger.debug(`📦 Level ${gameState.level} - Item spawn chance: ${(itemChance * 100).toFixed(1)}%`);
     
     for (let i = 1; i < rooms.length; i++) {
       const room = rooms[i];
@@ -546,11 +546,11 @@ export class LevelManager {
       }
     }
     
-    console.log('🗺️ Level generation completed - Player:', gameState.player ? 'exists' : 'missing', 'Entities:', gameState.entities.length);
+    // Logger.debug('🗺️ Level generation completed - Player:', gameState.player ? 'exists' : 'missing', 'Entities:', gameState.entities.length);
   }
 
   static async nextLevel() {
-    console.log(`🎮 nextLevel called - current level: ${gameState.level}`);
+    // Logger.debug(`🎮 nextLevel called - current level: ${gameState.level}`);
     
     // Устанавливаем флаг перехода на следующий уровень
     gameState.isLevelTransition = true;
@@ -558,7 +558,7 @@ export class LevelManager {
     
     // Увеличиваем уровень ДО генерации нового уровня
     gameState.level++;
-    console.log(`🎮 nextLevel - level increased to: ${gameState.level}`);
+          // Logger.debug(`🎮 nextLevel - level increased to: ${gameState.level}`);
     
     gameState.stats.levelsCompleted++;
     gameState.stats.bestLevel = Math.max(gameState.stats.bestLevel, gameState.level);
@@ -570,7 +570,7 @@ export class LevelManager {
     })();
     
     // В рогалике НЕ восстанавливаем здоровье автоматически - игрок должен сам лечиться
-    console.log(`🎮 Level ${gameState.level} - Player HP: ${gameState.player?.hp}/${gameState.player?.maxHp} (no auto-heal)`);
+          // Logger.debug(`🎮 Level ${gameState.level} - Player HP: ${gameState.player?.hp}/${gameState.player?.maxHp} (no auto-heal)`);
     
     // Временные баффы сохраняются между уровнями - они сами истекают по времени
     
@@ -587,7 +587,7 @@ export class LevelManager {
     
     await this.generateLevel();
     
-    console.log(`🎮 nextLevel completed - final level: ${gameState.level}`);
+    // Logger.debug(`🎮 nextLevel completed - final level: ${gameState.level}`);
     
     // Принудительно обновляем UI после генерации нового уровня
     (async () => {
@@ -629,7 +629,7 @@ export class LevelManager {
   }
 
   static showLevelComplete() {
-    console.log(`🎮 showLevelComplete called - level: ${gameState.level}, gameRunning: ${gameState.gameRunning}`);
+    // Logger.debug(`🎮 showLevelComplete called - level: ${gameState.level}, gameRunning: ${gameState.gameRunning}`);
     
     // Обновляем данные в экране завершения уровня
     const completedLevelEl = document.getElementById('completedLevel');
@@ -663,7 +663,7 @@ export class LevelManager {
       SettingsManager.reinitEventListeners();
     })();
     
-    console.log(`🎮 showLevelComplete completed - gameRunning: ${gameState.gameRunning}`);
+    // Logger.debug(`🎮 showLevelComplete completed - gameRunning: ${gameState.gameRunning}`);
   }
 
   static async showGameOver() {
@@ -736,7 +736,7 @@ export class LevelManager {
           const playerX = (x + 0.5) * TILE_SIZE;
           const playerY = (y + 0.5) * TILE_SIZE;
           
-          console.log('✅ Found safe spawn position:', playerX, playerY);
+          // Logger.debug('✅ Found safe spawn position:', playerX, playerY);
           
           gameState.player = new Player(
             { ...gameState.selectedCharacter },
@@ -768,7 +768,7 @@ export class LevelManager {
           // Инициализируем туман войны
           if (gameState.fogOfWar) {
             gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y);
-            console.log('🌫️ Fog of war initialized for safe spawn position');
+            // Logger.debug('🌫️ Fog of war initialized for safe spawn position');
           }
           
           return;
@@ -816,7 +816,7 @@ export class LevelManager {
     // Инициализируем туман войны
     if (gameState.fogOfWar) {
       gameState.fogOfWar.updateVisibility(gameState.player.x, gameState.player.y);
-      console.log('🌫️ Fog of war initialized for room center position');
+              // Logger.debug('🌫️ Fog of war initialized for room center position');
     }
   }
 } 

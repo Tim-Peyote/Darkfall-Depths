@@ -25,7 +25,9 @@ export class InventorySpriteRenderer {
       'sword', 'axe', 'shield', 'staff', 'wand', 'dagger', 'crossbow',
       'robe', 'leather', 'plate', 'helmet', 'hood', 'cap', 'gloves', 'belt', 'boots',
       'amulet', 'ring',
-      'potion', 'speed_potion', 'strength_potion', 'defense_potion', 'regen_potion', 'combo_potion', 'purification_potion', 'mystery_potion'
+      'potion', 'speed_potion', 'strength_potion', 'defense_potion', 'regen_potion', 'combo_potion', 'purification_potion', 'mystery_potion',
+      // Свитки
+      'scroll_werewolf', 'scroll_stone', 'scroll_ghost', 'scroll_fire_explosion', 'scroll_ice_storm', 'scroll_lightning', 'scroll_earthquake', 'scroll_clone', 'scroll_teleport', 'scroll_invisibility', 'scroll_time', 'scroll_curse', 'scroll_chaos', 'scroll_fear', 'scroll_smoke', 'scroll_meteor', 'scroll_barrier', 'scroll_rage', 'scroll_invulnerability', 'scroll_vampirism', 'mystery_scroll'
     ];
     
     baseItems.forEach(base => {
@@ -76,6 +78,28 @@ export class InventorySpriteRenderer {
       case 'combo_potion': color = '#9b59b6'; break;
       case 'purification_potion': color = '#f39c12'; break;
       case 'mystery_potion': color = '#8e44ad'; break;
+      // Свитки
+      case 'scroll_werewolf': color = '#8b4513'; break;
+      case 'scroll_stone': color = '#7f8c8d'; break;
+      case 'scroll_ghost': color = '#ecf0f1'; break;
+      case 'scroll_fire_explosion': color = '#e74c3c'; break;
+      case 'scroll_ice_storm': color = '#3498db'; break;
+      case 'scroll_lightning': color = '#f1c40f'; break;
+      case 'scroll_earthquake': color = '#8b4513'; break;
+      case 'scroll_clone': color = '#9b59b6'; break;
+      case 'scroll_teleport': color = '#e67e22'; break;
+      case 'scroll_invisibility': color = '#95a5a6'; break;
+      case 'scroll_time': color = '#34495e'; break;
+      case 'scroll_curse': color = '#2c3e50'; break;
+      case 'scroll_chaos': color = '#e74c3c'; break;
+      case 'scroll_fear': color = '#8e44ad'; break;
+      case 'scroll_smoke': color = '#7f8c8d'; break;
+      case 'scroll_meteor': color = '#e67e22'; break;
+      case 'scroll_barrier': color = '#3498db'; break;
+      case 'scroll_rage': color = '#e74c3c'; break;
+      case 'scroll_invulnerability': color = '#f1c40f'; break;
+      case 'scroll_vampirism': color = '#8e44ad'; break;
+      case 'mystery_scroll': color = '#8e44ad'; break;
     }
     
     // Рисуем предмет в зависимости от типа
@@ -95,6 +119,8 @@ export class InventorySpriteRenderer {
       this.renderAccessorySprite(ctx, centerX, centerY, itemSize, base, color, rarity);
     } else if (['potion', 'speed_potion', 'strength_potion', 'defense_potion', 'regen_potion', 'combo_potion', 'purification_potion', 'mystery_potion'].includes(base)) {
       this.renderConsumableSprite(ctx, centerX, centerY, itemSize, base, color);
+    } else if (base && base.startsWith('scroll_')) {
+      this.renderScrollSprite(ctx, centerX, centerY, itemSize, base, color);
     }
     
     return canvas;
@@ -712,6 +738,79 @@ export class InventorySpriteRenderer {
     
     ctx.restore();
   }
+  
+     static renderScrollSprite(ctx, x, y, size, base, color) {
+     ctx.save();
+     
+     // Основной свиток - пергамент
+     ctx.fillStyle = '#f5f5dc'; // Бежевый цвет пергамента
+     ctx.fillRect(x - size * 0.3, y - size * 0.2, size * 0.6, size * 0.4);
+     
+     // Обводка свитка
+     ctx.strokeStyle = '#8b4513'; // Коричневая обводка
+     ctx.lineWidth = 2;
+     ctx.strokeRect(x - size * 0.3, y - size * 0.2, size * 0.6, size * 0.4);
+     
+     // Внутренние линии пергамента
+     ctx.strokeStyle = '#d2b48c';
+     ctx.lineWidth = 1;
+     for (let i = 0; i < 3; i++) {
+       const lineY = y - size * 0.15 + (i * size * 0.1);
+       ctx.beginPath();
+       ctx.moveTo(x - size * 0.25, lineY);
+       ctx.lineTo(x + size * 0.25, lineY);
+       ctx.stroke();
+     }
+     
+     // Магические символы в зависимости от типа свитка
+     ctx.fillStyle = color;
+     ctx.font = `${size * 0.15}px Arial`;
+     ctx.textAlign = 'center';
+     ctx.textBaseline = 'middle';
+     
+     let symbol = '📜';
+     switch (base) {
+       case 'scroll_werewolf': symbol = '🐺'; break;
+       case 'scroll_stone': symbol = '🗿'; break;
+       case 'scroll_ghost': symbol = '👻'; break;
+       case 'scroll_fire_explosion': symbol = '🔥'; break;
+       case 'scroll_ice_storm': symbol = '❄️'; break;
+       case 'scroll_lightning': symbol = '⚡'; break;
+       case 'scroll_earthquake': symbol = '🌋'; break;
+       case 'scroll_clone': symbol = '👥'; break;
+       case 'scroll_teleport': symbol = '🌀'; break;
+       case 'scroll_invisibility': symbol = '👁️'; break;
+       case 'scroll_time': symbol = '⏰'; break;
+       case 'scroll_curse': symbol = '💀'; break;
+       case 'scroll_chaos': symbol = '🎭'; break;
+       case 'scroll_fear': symbol = '😱'; break;
+       case 'scroll_smoke': symbol = '💨'; break;
+       case 'scroll_meteor': symbol = '☄️'; break;
+       case 'scroll_barrier': symbol = '🛡️'; break;
+       case 'scroll_rage': symbol = '😡'; break;
+       case 'scroll_invulnerability': symbol = '💎'; break;
+       case 'scroll_vampirism': symbol = '🦇'; break;
+       case 'mystery_scroll': symbol = '❓'; break;
+     }
+     
+     // Символ в центре
+     ctx.fillText(symbol, x, y);
+     
+     // Магические частицы вокруг свитка
+     ctx.fillStyle = color;
+     ctx.globalAlpha = 0.6;
+     for (let i = 0; i < 4; i++) {
+       const angle = (i / 4) * Math.PI * 2;
+       const particleX = x + Math.cos(angle) * size * 0.4;
+       const particleY = y + Math.sin(angle) * size * 0.4;
+       const particleSize = size * 0.02;
+       
+       ctx.fillRect(particleX - particleSize, particleY - particleSize, particleSize * 2, particleSize * 2);
+     }
+     ctx.globalAlpha = 1.0;
+     
+          ctx.restore();
+   }
   
   static getItemSprite(item) {
     if (!item) return null;

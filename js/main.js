@@ -112,8 +112,13 @@ export {
 // window.testSounds = () => { audioManager.testAllSounds(); };
 // Использование: testSounds() в консоли браузера
 
+
+
 // Инициализация игры
 document.addEventListener('DOMContentLoaded', async () => {
+  // Настройка логирования для продакшена (только критические ошибки)
+  Logger.enableProduction();
+  
   // Проверяем, запущена ли игра через HTTP сервер
   const isLocalFile = window.location.protocol === 'file:';
   if (isLocalFile) {
@@ -155,6 +160,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       updateProgress(2, 5, 'Пробуждение эха подземелий');
       try {
+        // Предварительно загружаем все аудио файлы с отображением прогресса
+        await audioManager.preloadAllAudio((progress, description) => {
+          updateProgress(2 + (progress / 100), 5, description);
+        });
+        
+        // Инициализируем аудио систему
         await audioManager.init();
       } catch (audioError) {
         Logger.warn('Аудио не удалось инициализировать:', audioError);
@@ -219,7 +230,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Задержка для визуального эффекта
       await new Promise(resolve => setTimeout(resolve, 600));
       
-                 updateProgress(4, 5, 'Настройка аудио');
+      updateProgress(4, 5, 'Настройка игровых систем');
       
       // Задержка для визуального эффекта
       await new Promise(resolve => setTimeout(resolve, 600));

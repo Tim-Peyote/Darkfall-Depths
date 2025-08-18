@@ -41,8 +41,8 @@ export class Chest extends Entity {
   update(dt) {
     super.update(dt);
     
-    // Проверяем взаимодействие с игроком
-    if (gameState.player && this.inventory.length > 0) {
+    // Проверяем взаимодействие с игроком (можно открывать даже пустые сундуки)
+    if (gameState.player) {
       const distance = Math.sqrt(
         Math.pow(this.x - gameState.player.x, 2) + 
         Math.pow(this.y - gameState.player.y, 2)
@@ -59,14 +59,14 @@ export class Chest extends Entity {
   }
   
   showInteractionHint() {
-    // Проверяем, что это ближайший сундук к игроку
+    // Проверяем, что это ближайший сундук к игроку (включая пустые)
     if (!gameState.player || !gameState.entities) return;
     
     let nearestChest = null;
     let minDistance = Infinity;
     
     for (const entity of gameState.entities) {
-      if (entity.constructor.name === 'Chest' && entity.inventory.length > 0) {
+      if (entity.constructor.name === 'Chest') {
         const distance = Math.sqrt(
           Math.pow(entity.x - gameState.player.x, 2) + 
           Math.pow(entity.y - gameState.player.y, 2)
@@ -97,7 +97,7 @@ export class Chest extends Entity {
         
         // Отладочная информация для мобильных
         if (IS_MOBILE) {
-          console.log('Показываем мобильную подсказку для сундука');
+          // Logger.debug('Показываем мобильную подсказку для сундука');
         }
       }
     }
@@ -202,7 +202,9 @@ export class Chest extends Entity {
   takeItem(itemIndex) {
     if (itemIndex < 0 || itemIndex >= this.inventory.length) return null;
     
-    const item = this.inventory.splice(itemIndex, 1)[0];
+    // Заменяем предмет на null вместо удаления, чтобы не сдвигать остальные
+    const item = this.inventory[itemIndex];
+    this.inventory[itemIndex] = null;
     
     // НЕ помечаем сундук как открытый - позволяем открывать повторно
     // if (this.inventory.length === 0) {
@@ -213,6 +215,7 @@ export class Chest extends Entity {
   }
   
   isEmpty() {
-    return this.inventory.length === 0;
+    // Проверяем, есть ли хотя бы один непустой предмет
+    return !this.inventory.some(item => item !== null);
   }
 }
