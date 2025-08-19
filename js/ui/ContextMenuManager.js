@@ -212,6 +212,12 @@ export class ContextMenuManager {
     item.addEventListener('click', () => {
       onClick();
       this.hideContextMenu();
+      // Сбрасываем флаг в InventoryManager
+      import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
+        if (typeof InventoryManager !== 'undefined') {
+          InventoryManager.resetContextMenuFlag();
+        }
+      });
     });
 
     return item;
@@ -224,6 +230,13 @@ export class ContextMenuManager {
     // НЕ сбрасываем currentItem и currentSlot, так как они нужны для deleteItem
     // currentItem = null;
     // currentSlot = null;
+    
+    // Сбрасываем флаг в InventoryManager
+    import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
+      if (typeof InventoryManager !== 'undefined') {
+        InventoryManager.resetContextMenuFlag();
+      }
+    });
   }
 
   static resetContextMenu() {
@@ -295,12 +308,24 @@ export class ContextMenuManager {
       popup.classList.add('hidden');
       confirmBtn.removeEventListener('click', handleConfirm);
       cancelBtn.removeEventListener('click', handleCancel);
+      // Сбрасываем флаг в InventoryManager
+      import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
+        if (typeof InventoryManager !== 'undefined') {
+          InventoryManager.resetContextMenuFlag();
+        }
+      });
     };
 
     const handleCancel = () => {
       popup.classList.add('hidden');
       confirmBtn.removeEventListener('click', handleConfirm);
       cancelBtn.removeEventListener('click', handleCancel);
+      // Сбрасываем флаг в InventoryManager
+      import('../ui/InventoryManager.js').then(({ InventoryManager }) => {
+        if (typeof InventoryManager !== 'undefined') {
+          InventoryManager.resetContextMenuFlag();
+        }
+      });
     };
 
     confirmBtn.addEventListener('click', handleConfirm);

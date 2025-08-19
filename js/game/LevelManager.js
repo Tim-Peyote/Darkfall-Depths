@@ -641,8 +641,8 @@ export class LevelManager {
     }
     
     if (enemiesKilledEl) {
-      // Показываем общее количество убитых врагов (включая текущую сессию)
-      enemiesKilledEl.textContent = gameState.stats.enemiesKilled + gameState.stats.currentSessionKills;
+      // Показываем количество убитых врагов на текущем уровне
+      enemiesKilledEl.textContent = gameState.stats.levelKills;
     }
     
     // Воспроизводим звук завершения уровня (асинхронно)

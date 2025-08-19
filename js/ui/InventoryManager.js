@@ -18,6 +18,8 @@ let touchMoved = false;
 let longPressTimer = null;
 let lastClickTime = 0;
 let lastClickSlot = null;
+let contextMenuShown = false; // Флаг для предотвращения показа тултипа после контекстного меню
+let contextMenuShownTime = 0; // Время показа контекстного меню
 
 export class InventoryManager {
   static init() {
@@ -1475,6 +1477,12 @@ export class InventoryManager {
     tooltipElement.style.left = finalX + 'px';
     tooltipElement.style.top = finalY + 'px';
   }
+  
+  // Метод для сброса флага контекстного меню
+  static resetContextMenuFlag() {
+    contextMenuShown = false;
+    contextMenuShownTime = 0;
+  }
 
   static setupMobileSlotEvents(slot, type, index) {
     // Проверяем, что это мобильное устройство
@@ -1550,6 +1558,11 @@ export class InventoryManager {
         longPressTimer = null;
       }
       
+      // Дополнительная проверка - если контекстное меню было показано, не обрабатываем tap
+      if (contextMenuShown) {
+        return;
+      }
+      
       if (!touchMoved) {
         this.handleTap(slot, type, index);
       } else {
@@ -1585,11 +1598,26 @@ export class InventoryManager {
       
       // Показываем контекстное меню
       ContextMenuManager.showContextMenu(fakeEvent, item, type, index);
+      
+      // Устанавливаем флаг, что контекстное меню было показано
+      contextMenuShown = true;
+      contextMenuShownTime = Date.now();
+      
+      // Сбрасываем флаг через более длительную задержку
+      setTimeout(() => {
+        contextMenuShown = false;
+        contextMenuShownTime = 0;
+      }, 500);
     }
   }
 
   static handleTap(slot, type, index) {
+    // Проверяем, не было ли показано контекстное меню
     const currentTime = Date.now();
+    if (contextMenuShown || (contextMenuShownTime > 0 && currentTime - contextMenuShownTime < 1000)) {
+      return; // Не показываем тултип если было показано контекстное меню
+    }
+    
     const timeDiff = currentTime - lastClickTime;
     const isSameSlot = lastClickSlot === `${type}-${index}`;
     

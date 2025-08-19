@@ -373,8 +373,12 @@ export class Enemy extends Entity {
     
     if (this.hp <= 0) {
       this.isDead = true;
-      gameState.stats.enemiesKilled++;
-      gameState.stats.currentSessionKills++;
+      
+      // Используем RecordsManager для правильного подсчета статистики
+      (async () => {
+        const { RecordsManager } = await import('../ui/RecordsManager.js');
+        RecordsManager.addSessionKill();
+      })();
       
       // Воспроизводим звук смерти врага (асинхронно)
       (async () => {

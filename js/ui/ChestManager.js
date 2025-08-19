@@ -5,6 +5,8 @@ import { gameState } from '../core/GameState.js';
 export class ChestManager {
   static currentChest = null;
   static isOpen = false;
+  static contextMenuShown = false; // Флаг для предотвращения показа тултипа после контекстного меню
+  static contextMenuShownTime = 0; // Время показа контекстного меню
   
   static init() {
     this.createChestUI();
@@ -388,7 +390,10 @@ export class ChestManager {
         slot.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          this.showTooltip(e, item);
+          const currentTime = Date.now();
+          if (!this.contextMenuShown && (this.contextMenuShownTime === 0 || currentTime - this.contextMenuShownTime >= 1000)) {
+            this.showTooltip(e, item);
+          }
         });
         
         // Мобильные touch обработчики
@@ -411,6 +416,14 @@ export class ChestManager {
           longPressTimer = setTimeout(() => {
             if (!touchMoved) {
               this.showContextMenu(e, i);
+              // Устанавливаем флаг, что контекстное меню было показано
+              this.contextMenuShown = true;
+              this.contextMenuShownTime = Date.now();
+              // Сбрасываем флаг через более длительную задержку
+              setTimeout(() => {
+                this.contextMenuShown = false;
+                this.contextMenuShownTime = 0;
+              }, 500);
             }
           }, 500);
         }, { passive: false });
@@ -439,6 +452,12 @@ export class ChestManager {
             longPressTimer = null;
           }
           
+          // Дополнительная проверка - если контекстное меню было показано, не обрабатываем tap
+          const currentTime = Date.now();
+          if (this.contextMenuShown || (this.contextMenuShownTime > 0 && currentTime - this.contextMenuShownTime < 1000)) {
+            return;
+          }
+          
           if (touchMoved) return;
           
           const touchEndTime = Date.now();
@@ -451,7 +470,7 @@ export class ChestManager {
             lastClickTime = 0; // Сбрасываем для следующего двойного нажатия
           } else {
             // Одинарное нажатие - показываем тултип
-            if (touchDuration < 200) {
+            if (touchDuration < 200 && !this.contextMenuShown && (this.contextMenuShownTime === 0 || currentTime - this.contextMenuShownTime >= 1000)) {
               // Передаем координаты из touchstart
               const tooltipEvent = {
                 touches: [{ clientX: touchStartX, clientY: touchStartY }],
@@ -637,6 +656,8 @@ export class ChestManager {
     takeOption.addEventListener('click', async () => {
       await this.takeItem(itemIndex);
       contextMenu.remove();
+      this.contextMenuShown = false; // Сбрасываем флаг при закрытии меню
+      this.contextMenuShownTime = 0;
     });
     
     contextMenu.appendChild(takeOption);
@@ -647,6 +668,8 @@ export class ChestManager {
       if (contextMenu && !contextMenu.contains(e.target)) {
         contextMenu.remove();
         document.removeEventListener('click', removeMenu);
+        this.contextMenuShown = false; // Сбрасываем флаг при закрытии меню
+        this.contextMenuShownTime = 0;
       }
     };
     
