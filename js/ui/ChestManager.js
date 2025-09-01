@@ -330,6 +330,21 @@ export class ChestManager {
     const slotsContainer = document.querySelector('.chest-slots');
     if (!slotsContainer || !this.currentChest) return;
     
+    // Дожидаемся разрешения всех Promise в инвентаре
+    const resolvedInventory = await Promise.all(
+      this.currentChest.inventory.map(async (item) => {
+        if (item instanceof Promise) {
+          try {
+            return await item;
+          } catch (error) {
+            console.error('❌ Error resolving item Promise:', error);
+            return null;
+          }
+        }
+        return item;
+      })
+    );
+    
     slotsContainer.innerHTML = '';
     
     // Создаем статическую сетку 4x4 (16 слотов)
@@ -339,7 +354,12 @@ export class ChestManager {
       slot.dataset.index = i;
       
       // Проверяем, есть ли предмет в этом слоте
-      const item = this.currentChest.inventory[i];
+      const item = resolvedInventory[i];
+      
+      // Отладочная информация
+      if (item) {
+        console.log(`📦 Chest slot ${i}:`, item.name, item.base, item.type, item.rarity);
+      }
       
       // Всегда создаем слот, даже если он пустой
       if (!item) {
@@ -350,17 +370,15 @@ export class ChestManager {
         if (item.base) {
           try {
             const { InventorySpriteRenderer } = await import('./InventorySpriteRenderer.js');
-            const sprite = InventorySpriteRenderer.renderItemSprite(item.base, item.rarity || 'common', 48);
+            const spriteElement = InventorySpriteRenderer.createSpriteElement(item, 48);
             
-            // Создаем img элемент для спрайта
-            const img = document.createElement('img');
-            img.src = sprite.toDataURL();
-            img.style.width = '100%';
-            img.style.height = '100%';
-            img.style.objectFit = 'contain';
-            
-            slot.innerHTML = '';
-            slot.appendChild(img);
+            if (spriteElement) {
+              slot.innerHTML = '';
+              slot.appendChild(spriteElement);
+            } else {
+              console.warn('Не удалось создать спрайт для предмета:', item);
+              slot.innerHTML = `<div class="item-icon">${item.icon || '📦'}</div>`;
+            }
           } catch (e) {
             console.warn('Не удалось загрузить спрайт предмета:', e);
             slot.innerHTML = `<div class="item-icon">${item.icon || '📦'}</div>`;
