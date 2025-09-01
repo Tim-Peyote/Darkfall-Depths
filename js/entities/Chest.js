@@ -2,6 +2,7 @@
 
 import { Entity } from './Entity.js';
 import { gameState, ctx } from '../core/GameState.js';
+import { Logger } from '../utils/Logger.js';
 import { TILE_SIZE, IS_MOBILE } from '../config/constants.js';
 import { generateRandomItem } from '../config/constants.js';
 
@@ -17,7 +18,7 @@ export class Chest extends Entity {
     
     // Генерируем содержимое сундука
     this.generateContents().catch(err => {
-      console.error('❌ Error generating chest contents:', err);
+      Logger.error('❌ Error generating chest contents:', err);
     });
   }
   
@@ -63,13 +64,14 @@ export class Chest extends Entity {
       try {
         const item = await generateRandomItem(this.level, gameState.player?.class);
         if (item) {
-          console.log('✅ Generated item for chest:', item.name, item.type, item.rarity);
+          // Сводим отладочное логирование к минимуму в продакшене
+          Logger.debug('✅ Generated item for chest:', item.name, item.type, item.rarity);
           this.inventory[slotIndex] = item;
         } else {
-          console.error('❌ Failed to generate item for chest');
+          Logger.error('❌ Failed to generate item for chest');
         }
       } catch (error) {
-        console.error('❌ Error generating item for chest:', error);
+        Logger.error('❌ Error generating item for chest:', error);
       }
     }
   }
@@ -231,7 +233,7 @@ export class Chest extends Entity {
       // НЕ помечаем сундук как открытый - позволяем открывать повторно
       // this.isOpened = true;
     } catch (e) {
-      console.error('Ошибка при открытии сундука:', e);
+      Logger.error('Ошибка при открытии сундука:', e);
     }
   }
   

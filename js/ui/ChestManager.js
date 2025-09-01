@@ -1,6 +1,7 @@
 /* Darkfall Depths - Управление сундуками - Updated v3 - Fixed */
 
 import { gameState } from '../core/GameState.js';
+import { Logger } from '../utils/Logger.js';
 
 export class ChestManager {
   static currentChest = null;
@@ -251,7 +252,7 @@ export class ChestManager {
           const { Chest } = await import('../entities/Chest.js');
           Chest.hideAllInteractionHints();
         } catch (e) {
-          console.warn('Ошибка при скрытии подсказки:', e);
+          Logger.warn('Ошибка при скрытии подсказки:', e);
         }
       }
     });
@@ -337,7 +338,7 @@ export class ChestManager {
           try {
             return await item;
           } catch (error) {
-            console.error('❌ Error resolving item Promise:', error);
+            Logger.error('❌ Error resolving item Promise:', error);
             return null;
           }
         }
@@ -358,7 +359,7 @@ export class ChestManager {
       
       // Отладочная информация
       if (item) {
-        console.log(`📦 Chest slot ${i}:`, item.name, item.base, item.type, item.rarity);
+        Logger.debug(`📦 Chest slot ${i}:`, item.name, item.base, item.type, item.rarity);
       }
       
       // Всегда создаем слот, даже если он пустой
@@ -376,11 +377,11 @@ export class ChestManager {
               slot.innerHTML = '';
               slot.appendChild(spriteElement);
             } else {
-              console.warn('Не удалось создать спрайт для предмета:', item);
+              Logger.warn('Не удалось создать спрайт для предмета:', item);
               slot.innerHTML = `<div class="item-icon">${item.icon || '📦'}</div>`;
             }
           } catch (e) {
-            console.warn('Не удалось загрузить спрайт предмета:', e);
+            Logger.warn('Не удалось загрузить спрайт предмета:', e);
             slot.innerHTML = `<div class="item-icon">${item.icon || '📦'}</div>`;
           }
         } else {
@@ -538,7 +539,7 @@ export class ChestManager {
           this.playTakeItemSound();
         }
       } catch (e) {
-        console.error('Ошибка при добавлении предмета в инвентарь:', e);
+        Logger.error('Ошибка при добавлении предмета в инвентарь:', e);
       }
     }
   }

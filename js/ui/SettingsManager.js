@@ -2,6 +2,7 @@
 
 import { gameState, canvas, DPR } from '../core/GameState.js';
 import { audioManager } from '../audio/AudioManager.js';
+import { Logger } from '../utils/Logger.js';
 
 export class SettingsManager {
   static escapeListenerAdded = false;
@@ -326,7 +327,7 @@ export class SettingsManager {
       });
       
     } else {
-      console.error('❌ Pause button not found!');
+      Logger.error('❌ Pause button not found!');
       // Попробуем найти кнопку через некоторое время
       setTimeout(() => {
         const retryPauseBtn = document.getElementById('pauseBtn');
@@ -372,7 +373,7 @@ export class SettingsManager {
       });
       
     } else {
-      console.error('❌ Inventory button not found!');
+      Logger.error('❌ Inventory button not found!');
       // Попробуем найти кнопку через некоторое время
       setTimeout(() => {
         const retryInventoryBtn = document.getElementById('inventoryToggle');
@@ -739,7 +740,7 @@ export class SettingsManager {
         ScreenManager.switchScreen('menu');
       });
     } else {
-      console.error('❌ Quit button not found!');
+      Logger.error('❌ Quit button not found!');
     }
     
     // Кнопка закрытия паузы (крестик) - также настраиваем в основной функции
@@ -788,7 +789,7 @@ export class SettingsManager {
         e.preventDefault();
       });
     } else {
-      console.error('❌ Pause button not found!');
+      Logger.error('❌ Pause button not found!');
     }
     
     // Кнопка закрытия инвентаря (только в игровом экране)
@@ -894,7 +895,7 @@ export class SettingsManager {
               // Logger.debug('ℹ️ Кнопка закрытия инвентаря найдена, но не в игровом экране - пропускаем');
     } else if (!closeInventoryBtn && gameState.screen === 'game') {
       // Кнопки нет, но мы в игре - это ошибка
-      console.error('❌ Кнопка закрытия инвентаря не найдена в игровом экране!');
+      Logger.error('❌ Кнопка закрытия инвентаря не найдена в игровом экране!');
     } else {
       // Кнопки нет и мы не в игре - это нормально
               // Logger.debug('ℹ️ Кнопка закрытия инвентаря не найдена (не в игровом экране)');
@@ -992,11 +993,11 @@ export class SettingsManager {
           await GameEngine.continueGame();
           // Logger.debug('🎮 Game continued successfully');
         } catch (error) {
-          console.error('❌ Error in next level button handler:', error);
+          Logger.error('❌ Error in next level button handler:', error);
         }
       });
     } else {
-      console.error('❌ Кнопка следующего уровня не найдена!');
+      Logger.error('❌ Кнопка следующего уровня не найдена!');
     }
     
     // Возвраты в меню с поддержкой touch событий
@@ -1212,6 +1213,9 @@ export class SettingsManager {
           return;
         }
         
+        // Разрешаем аудио в явном пользовательском жесте
+        try { audioManager.createAudioContextAndPlay(); } catch (_) {}
+
         const { GameEngine } = await import('../game/GameEngine.js');
         GameEngine.startGame();
       };

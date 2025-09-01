@@ -1,5 +1,7 @@
 /* Darkfall Depths - WebGL Рендерер для максимальной производительности */
 
+import { Logger } from '../utils/Logger.js';
+
 export class WebGLRenderer {
   constructor(canvas) {
     this.canvas = canvas;
@@ -22,7 +24,7 @@ export class WebGLRenderer {
                 this.canvas.getContext('experimental-webgl');
       
       if (!this.gl) {
-        console.error('❌ WebGL не поддерживается, используем Canvas 2D');
+        Logger.error('❌ WebGL не поддерживается, используем Canvas 2D');
         return false;
       }
       
@@ -40,7 +42,7 @@ export class WebGLRenderer {
       
       return true;
     } catch (error) {
-      console.error('❌ Ошибка инициализации WebGL:', error);
+      Logger.error('❌ Ошибка инициализации WebGL:', error);
       return false;
     }
   }
@@ -89,7 +91,7 @@ export class WebGLRenderer {
     this.gl.linkProgram(this.program);
     
     if (!this.gl.getProgramParameter(this.program, this.gl.LINK_STATUS)) {
-      console.error('Ошибка линковки программы:', this.gl.getProgramInfoLog(this.program));
+      Logger.error('Ошибка линковки программы:', this.gl.getProgramInfoLog(this.program));
     }
     
     this.gl.useProgram(this.program);
@@ -101,7 +103,7 @@ export class WebGLRenderer {
     this.gl.compileShader(shader);
     
     if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-      console.error('Ошибка компиляции шейдера:', this.gl.getShaderInfoLog(shader));
+      Logger.error('Ошибка компиляции шейдера:', this.gl.getShaderInfoLog(shader));
       this.gl.deleteShader(shader);
       return null;
     }

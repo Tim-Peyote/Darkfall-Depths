@@ -404,7 +404,8 @@ export class Enemy extends Entity {
     
     // Проверяем, что предмет сгенерирован корректно
     if (!item) {
-      console.error('❌ Failed to generate item for enemy');
+      const { Logger } = await import('../utils/Logger.js');
+      Logger.error('❌ Failed to generate item for enemy');
       return;
     }
     

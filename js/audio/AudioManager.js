@@ -103,10 +103,8 @@ export class AudioManager {
       // Добавляем обработчики для автоматического возобновления аудио
       this.setupAudioResumeHandlers();
       
-      // Автоматически создаем аудио контекст и запускаем музыку
-      setTimeout(() => {
-        this.createAudioContextAndPlay();
-      }, 1000);
+      // Не автозапускаем аудио: браузеры блокируют без жеста пользователя
+      // Создание/запуск будет происходить по пользовательскому событию в setupAudioResumeHandlers
     } catch (e) {
       Logger.warn('Audio system initialization failed:', e);
       // Не выбрасываем ошибку, чтобы игра продолжала работать без аудио
@@ -124,7 +122,7 @@ export class AudioManager {
       }
       
       if (this.currentMusic && this.currentMusic.paused && gameState.audio.enabled) {
-        this.currentMusic.play().catch(e => console.warn('Failed to resume music:', e));
+        this.currentMusic.play().catch(e => Logger.warn('Failed to resume music:', e));
       }
       
       // Если музыка не играет и мы на главном экране, запускаем её
@@ -149,7 +147,7 @@ export class AudioManager {
         this.playMusic('main');
       }
     } catch (e) {
-      console.warn('❌ Failed to create audio context:', e);
+      Logger.warn('❌ Failed to create audio context:', e);
     }
   }
 
@@ -221,7 +219,14 @@ export class AudioManager {
       this.audioContext.resume();
     }
     
-    this.currentMusic.play();
+    try {
+      const playPromise = this.currentMusic.play();
+      if (playPromise && typeof playPromise.then === 'function') {
+        playPromise.catch(() => {/* ignored due to autoplay policy until user gesture */});
+      }
+    } catch (_) {
+      // Игнорируем ошибки автоплея — разблокируется по пользовательскому жесту
+    }
   }
 
   stopMusic() {
@@ -397,7 +402,7 @@ export class AudioManager {
       oscillator.start(this.audioContext.currentTime);
       oscillator.stop(this.audioContext.currentTime + duration);
     } catch (e) {
-      console.warn('Audio error:', e);
+      Logger.warn('Audio error:', e);
     }
   }
 

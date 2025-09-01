@@ -15,6 +15,7 @@ import { PerformanceMonitor } from '../core/PerformanceMonitor.js';
 import { WebGLRenderer } from '../core/WebGLRenderer.js';
 import { WebGLFogOfWar } from '../map/WebGLFogOfWar.js';
 import { LightingSystem } from '../map/LightingSystem.js';
+import { Logger } from '../utils/Logger.js';
 import { PlayerLight } from '../entities/PlayerLight.js';
 
 let lastFrameTime = 0;
@@ -40,7 +41,7 @@ export class GameEngine {
   
   static async init() {
     if (!canvas || !ctx) {
-      console.error('Canvas elements not found');
+      Logger.error('Canvas elements not found');
       return;
     }
     
@@ -71,7 +72,7 @@ export class GameEngine {
       const { ChestManager } = await import('../ui/ChestManager.js');
       ChestManager.init();
     } catch (e) {
-      console.warn('Ошибка инициализации ChestManager:', e);
+      Logger.warn('Ошибка инициализации ChestManager:', e);
     }
     
     // Загрузка настроек и рекордов
@@ -92,7 +93,7 @@ export class GameEngine {
 
   static async startGame() {
     if (!gameState.selectedCharacter) {
-      console.error('❌ No character selected');
+      Logger.error('❌ No character selected');
       return;
     }
     
@@ -200,8 +201,8 @@ export class GameEngine {
       this.render();
       gameLoopId = requestAnimationFrame(this.gameLoop.bind(this));
     } catch (error) {
-      console.error('❌ Error in game loop:', error);
-      console.error('❌ Stack:', error.stack);
+      Logger.error('❌ Error in game loop:', error);
+      Logger.error('❌ Stack:', error.stack);
     }
   }
 
@@ -299,7 +300,7 @@ export class GameEngine {
 
   static render() {
     if (!ctx) {
-      console.error('❌ Canvas context not available');
+      Logger.error('❌ Canvas context not available');
       return;
     }
     
@@ -316,7 +317,7 @@ export class GameEngine {
     this.webglRenderer.clear();
     
     if (!gameState.map) {
-      console.error('❌ Game map not available');
+      Logger.error('❌ Game map not available');
       return;
     }
     
@@ -385,7 +386,7 @@ export class GameEngine {
     ctx.fillRect(0, 0, canvas.width / DPR, canvas.height / DPR);
     
     if (!gameState.map) {
-      console.error('❌ Game map not available');
+      Logger.error('❌ Game map not available');
       return;
     }
     
@@ -905,7 +906,7 @@ export class GameEngine {
 
   static resizeCanvas() {
     if (!canvas) {
-      console.error('❌ Canvas not found in resizeCanvas');
+      Logger.error('❌ Canvas not found in resizeCanvas');
       return;
     }
     
@@ -1070,7 +1071,7 @@ export class GameEngine {
                 this.setPotionIconFallback(potionIcon, potionType);
               }
             } catch (error) {
-              console.warn('Не удалось загрузить рендерер спрайтов:', error);
+              Logger.warn('Не удалось загрузить рендерер спрайтов:', error);
               this.setPotionIconFallback(potionIcon, potionType);
             }
           });
@@ -1084,7 +1085,7 @@ export class GameEngine {
               this.setPotionIconFallback(potionIcon, potionType);
             }
           } catch (error) {
-            console.warn('Не удалось создать спрайт зелья:', error);
+            Logger.warn('Не удалось создать спрайт зелья:', error);
             this.setPotionIconFallback(potionIcon, potionType);
           }
         }

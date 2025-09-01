@@ -1,6 +1,7 @@
 /* Darkfall Depths - Продвинутая система освещения */
 
 import { TILE_SIZE, MAP_SIZE } from '../config/constants.js';
+import { Logger } from '../utils/Logger.js';
 
 export class LightingSystem {
   constructor(webglRenderer) {
@@ -126,7 +127,7 @@ export class LightingSystem {
     gl.linkProgram(program);
     
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      console.error('Ошибка линковки программы освещения:', gl.getProgramInfoLog(program));
+      Logger.error('Ошибка линковки программы освещения:', gl.getProgramInfoLog(program));
       return null;
     }
     
@@ -140,7 +141,7 @@ export class LightingSystem {
     gl.compileShader(shader);
     
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      console.error('Ошибка компиляции шейдера освещения:', gl.getShaderInfoLog(shader));
+      Logger.error('Ошибка компиляции шейдера освещения:', gl.getShaderInfoLog(shader));
       gl.deleteShader(shader);
       return null;
     }

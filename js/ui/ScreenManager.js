@@ -153,7 +153,7 @@ export class ScreenManager {
                 pauseBtn.style.display = 'flex';
                 inventoryBtn.style.display = 'flex';
               } else {
-                console.warn('⚠️ Some game buttons not found, retrying...');
+                import('../utils/Logger.js').then(({ Logger }) => Logger.warn('⚠️ Some game buttons not found, retrying...'));
                 SettingsManager.setupGameButtonEventListeners();
               }
               
@@ -191,7 +191,7 @@ export class ScreenManager {
         MenuNavigationManager.refreshNavigation();
       }, 200);
     } else {
-      console.error('Screen not found:', screenName + 'Screen');
+      import('../utils/Logger.js').then(({ Logger }) => Logger.error('Screen not found:', screenName + 'Screen'));
     }
   }
 
@@ -645,7 +645,7 @@ export class ScreenManager {
     const overlay = document.getElementById('pauseOverlay');
     
     if (!overlay) {
-      console.error('❌ Pause overlay not found');
+      import('../utils/Logger.js').then(({ Logger }) => Logger.error('❌ Pause overlay not found'));
       return;
     }
     
@@ -733,4 +733,3 @@ export class ScreenManager {
     })();
   }
 } // Принудительное обновление кеша - Fri Aug  1 19:39:05 MSK 2025
-

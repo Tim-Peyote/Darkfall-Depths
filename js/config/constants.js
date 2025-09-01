@@ -347,7 +347,8 @@ export async function generateRandomItem(level, playerClass) {
   
   // Проверяем, что itemType определен
   if (!itemType) {
-    console.error('❌ ItemType is undefined! roll:', roll, 'accumulatedChance:', accumulatedChance);
+    const { Logger } = await import('../utils/Logger.js');
+    Logger.error('❌ ItemType is undefined! roll:', roll, 'accumulatedChance:', accumulatedChance);
     // Выбираем последний тип как fallback
     const types = Object.keys(baseRates);
     itemType = types[types.length - 1];
@@ -367,7 +368,8 @@ export async function generateRandomItem(level, playerClass) {
   
   // Проверяем, что пул не пустой
   if (pool.length === 0) {
-    console.error('❌ Item pool is empty! itemType:', itemType, 'BASE_ITEMS length:', BASE_ITEMS.length);
+    const { Logger } = await import('../utils/Logger.js');
+    Logger.error('❌ Item pool is empty! itemType:', itemType, 'BASE_ITEMS length:', BASE_ITEMS.length);
     // Fallback: используем все предметы
     pool = BASE_ITEMS;
   }
@@ -416,7 +418,8 @@ export async function generateRandomItem(level, playerClass) {
   
   // Проверяем, что base определен
   if (!base) {
-    console.error('❌ Base item is undefined! Pool length:', pool.length);
+    const { Logger } = await import('../utils/Logger.js');
+    Logger.error('❌ Base item is undefined! Pool length:', pool.length);
     return null;
   }
   

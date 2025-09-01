@@ -6,6 +6,7 @@ import { WebGLFogOfWar } from '../map/WebGLFogOfWar.js';
 import { Player } from '../entities/Player.js';
 import { Enemy } from '../entities/Enemy.js';
 import { TILE_SIZE, ENEMY_TYPES, generateRandomItem } from '../config/constants.js';
+import { Logger } from '../utils/Logger.js';
 
 export class LevelManager {
   // Утилита для проверки границ карты
@@ -47,7 +48,7 @@ export class LevelManager {
   static findSafePositionInRoom(room, map, maxAttempts = 15) {
     // Проверяем, что комната сама находится в пределах карты
     if (!this.isWithinMapBounds(room.centerX, room.centerY, map)) {
-      console.warn('Комната находится за пределами карты:', room);
+      Logger.warn('Комната находится за пределами карты:', room);
       return null;
     }
     
@@ -84,7 +85,7 @@ export class LevelManager {
       return { worldX, worldY, tileX, tileY };
     }
     
-    console.warn('Не удалось найти безопасную позицию в комнате:', room, 'Границы карты:', map.length, 'x', map[0]?.length);
+    Logger.warn('Не удалось найти безопасную позицию в комнате:', room, 'Границы карты:', map.length, 'x', map[0]?.length);
     return null;
   }
   
@@ -99,7 +100,7 @@ export class LevelManager {
     const isValid = this.isValidSafeSpawnPosition(tileX, tileY, gameState.map);
     
     if (!isValid) {
-      console.warn(`🚫 ${entityType} спавн за пределами безопасных границ карты:`, {
+      Logger.warn(`🚫 ${entityType} спавн за пределами безопасных границ карты:`, {
         entity: { x: entity.x, y: entity.y },
         tile: { x: tileX, y: tileY },
         mapSize: { width: gameState.map[0]?.length, height: gameState.map.length }
@@ -117,19 +118,19 @@ export class LevelManager {
     gameState.droppedItems = [];
     
     if (!gameState.selectedCharacter) {
-      console.error('❌ No character selected!');
+      Logger.error('❌ No character selected!');
       return;
     }
     
     const { map, rooms, lightSources, chests } = MapGenerator.generateDungeon();
     
     if (!rooms || rooms.length === 0) {
-      console.error('❌ No rooms generated!');
+      Logger.error('❌ No rooms generated!');
       return;
     }
     
     if (!map || map.length === 0) {
-      console.error('❌ Map not generated!');
+      Logger.error('❌ Map not generated!');
       return;
     }
     
@@ -205,7 +206,7 @@ export class LevelManager {
             // Fog of war initialized for player position
           }
         } else {
-          console.error('❌ Player spawn position is in wall:', tileX, tileY, 'Tile value:', gameState.map[tileY]?.[tileX]);
+          Logger.error('❌ Player spawn position is in wall:', tileX, tileY, 'Tile value:', gameState.map[tileY]?.[tileX]);
           // Fallback: ищем свободное место в первой комнате
           this.findSafeSpawnPosition(startRoom, gameState.map);
           
@@ -216,7 +217,7 @@ export class LevelManager {
           }
         }
       } else {
-        console.error('❌ Invalid start room position:', startRoom);
+        Logger.error('❌ Invalid start room position:', startRoom);
         
         // Fallback: ищем любую подходящую комнату в безопасных границах
         let fallbackRoom = null;
@@ -255,7 +256,7 @@ export class LevelManager {
           }
         } else {
           // Последний fallback: спавним в безопасном центре карты
-          console.error('❌ No valid rooms found, spawning in safe center');
+          Logger.error('❌ No valid rooms found, spawning in safe center');
           const centerX = Math.floor(gameState.map[0].length / 2);
           const centerY = Math.floor(gameState.map.length / 2);
           
@@ -269,7 +270,7 @@ export class LevelManager {
             );
           } else {
             // Если центр не подходит, ищем ближайшую безопасную позицию
-            console.error('❌ Center not safe, searching for nearest safe position');
+            Logger.error('❌ Center not safe, searching for nearest safe position');
             let foundSafePosition = false;
             for (let radius = 1; radius <= 10; radius++) {
               for (let dx = -radius; dx <= radius; dx++) {
@@ -293,7 +294,7 @@ export class LevelManager {
             }
             
             if (!foundSafePosition) {
-              console.error('❌ CRITICAL: No safe position found anywhere on map!');
+              Logger.error('❌ CRITICAL: No safe position found anywhere on map!');
               return;
             }
           }
@@ -391,7 +392,7 @@ export class LevelManager {
         const safePosition = this.findSafePositionInRoom(room, gameState.map, 15);
         
         if (!safePosition) {
-          console.warn(`Не удалось найти безопасную позицию для врага в комнате ${i}, пропускаем`);
+          Logger.warn(`Не удалось найти безопасную позицию для врага в комнате ${i}, пропускаем`);
           continue;
         }
         
@@ -402,7 +403,7 @@ export class LevelManager {
         
         // Валидация спавна врага
         if (!this.validateSpawnBounds(enemy, 'Enemy')) {
-          console.warn(`Пропускаем спавн врага за пределами карты в комнате ${i}`);
+          Logger.warn(`Пропускаем спавн врага за пределами карты в комнате ${i}`);
           continue;
         }
         
@@ -436,7 +437,7 @@ export class LevelManager {
     let portalRoom = null;
     if (!rooms || rooms.length <= 1) {
       portalRoom = null;
-      console.warn('Недостаточно комнат для спавна портала! rooms:', rooms);
+      Logger.warn('Недостаточно комнат для спавна портала! rooms:', rooms);
     } else {
       const startRoom = rooms[0];
       let maxDist = -1;
@@ -471,17 +472,17 @@ export class LevelManager {
               gameState.entities.push(portal);
               // Logger.debug('Портал успешно создан в комнате:', portalRoom, 'на позиции:', safePosition);
             } else {
-              console.warn('Портал не может быть создан - валидация границ не пройдена');
+              Logger.warn('Портал не может быть создан - валидация границ не пройдена');
             }
           } else {
-            console.warn('Портал не может быть создан - не найдена безопасная позиция в комнате:', portalRoom);
+            Logger.warn('Портал не может быть создан - не найдена безопасная позиция в комнате:', portalRoom);
           }
         } catch (e) {
-          console.error('Ошибка при создании портала:', e);
+          Logger.error('Ошибка при создании портала:', e);
         }
       }
     } else {
-      console.warn('Портал не был создан, потому что нет подходящей комнаты! rooms:', rooms);
+      Logger.warn('Портал не был создан, потому что нет подходящей комнаты! rooms:', rooms);
     }
     
     // Создание сундуков
@@ -497,11 +498,11 @@ export class LevelManager {
             gameState.entities.push(chest);
             // Logger.debug(`Сундук ${index + 1} создан на позиции: (${chestData.x}, ${chestData.y})`);
           } else {
-            console.warn(`Сундук ${index + 1} не может быть создан - валидация границ не пройдена`);
+            Logger.warn(`Сундук ${index + 1} не может быть создан - валидация границ не пройдена`);
           }
         });
       } catch (e) {
-        console.error('Ошибка при создании сундуков:', e);
+        Logger.error('Ошибка при создании сундуков:', e);
       }
     }
     
@@ -527,7 +528,7 @@ export class LevelManager {
         const safePosition = this.findSafePositionInRoom(room, gameState.map, 15);
         
         if (!safePosition) {
-          console.warn(`Не удалось найти безопасную позицию для предмета в комнате ${i}, пропускаем`);
+          Logger.warn(`Не удалось найти безопасную позицию для предмета в комнате ${i}, пропускаем`);
           continue;
         }
         
@@ -538,7 +539,7 @@ export class LevelManager {
         
         // Валидация спавна предмета
         if (!this.validateSpawnBounds(droppedItem, 'Item')) {
-          console.warn(`Пропускаем спавн предмета за пределами карты в комнате ${i}`);
+          Logger.warn(`Пропускаем спавн предмета за пределами карты в комнате ${i}`);
           continue;
         }
         
@@ -777,7 +778,7 @@ export class LevelManager {
     }
     
     // Если не нашли безопасное место, проверяем центр комнаты
-    console.warn('⚠️ No safe position found, checking room center');
+    Logger.warn('⚠️ No safe position found, checking room center');
     if (LevelManager.isValidSafeSpawnPosition(room.centerX, room.centerY, map)) {
       const playerX = (room.centerX + 0.5) * TILE_SIZE;
       const playerY = (room.centerY + 0.5) * TILE_SIZE;
@@ -803,7 +804,7 @@ export class LevelManager {
         gameState.player.attackAnimation = 0;
       }
     } else {
-      console.error('❌ Room center is not safe either!');
+      Logger.error('❌ Room center is not safe either!');
       return;
     }
     

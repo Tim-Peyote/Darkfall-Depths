@@ -4,6 +4,7 @@ import { gameState } from '../core/GameState.js';
 import { ContextMenuManager } from './ContextMenuManager.js';
 import { InventorySpriteRenderer } from './InventorySpriteRenderer.js';
 import { BASE_ITEMS } from '../config/constants.js';
+import { Logger } from '../utils/Logger.js';
 
 let tooltipElement = null;
 let draggedItem = null;
@@ -130,7 +131,7 @@ export class InventoryManager {
   static toggleInventory() {
     const overlay = document.getElementById('inventoryOverlay');
     if (!overlay) {
-      console.error('🎒 Inventory overlay not found!');
+      Logger.error('🎒 Inventory overlay not found!');
       return;
     }
     
@@ -328,13 +329,13 @@ export class InventoryManager {
           slot.classList.add('filled', item.rarity);
           
           // Создаем спрайт предмета
-          console.log(`🎒 Inventory item:`, item.name, item.base, item.type, item.rarity);
+          Logger.debug('🎒 Inventory item:', item.name, item.base, item.type, item.rarity);
           const spriteElement = InventorySpriteRenderer.createSpriteElement(item, 48);
           if (spriteElement) {
             slot.innerHTML = '';
             slot.appendChild(spriteElement);
           } else {
-            console.warn(`❌ Failed to create sprite for item:`, item);
+            Logger.warn('❌ Failed to create sprite for item:', item);
             // Fallback на старый способ с эмодзи
             slot.innerHTML = `<div class="item-sprite" style="background:${item.color};font-size:2rem;display:flex;align-items:center;justify-content:center;">${item.icon||''}</div>`;
           }
@@ -2123,7 +2124,7 @@ export class InventoryManager {
   // Метод для добавления предмета в инвентарь игрока
   static addItemToInventory(item) {
     if (!gameState.inventory || !gameState.inventory.backpack) {
-      console.warn('Инвентарь не инициализирован');
+      Logger.warn('Инвентарь не инициализирован');
       return false;
     }
     
@@ -2148,7 +2149,7 @@ export class InventoryManager {
       }
     }
     
-    console.warn('Рюкзак полон');
+    Logger.warn('Рюкзак полон');
     return false;
   }
-} 
+}
