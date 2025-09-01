@@ -63,9 +63,10 @@ export class DroppedItem extends Entity {
     
     // Фоновое свечение
     const gradient = ctx.createRadialGradient(x, y, 0, x, y, glowSize);
-    gradient.addColorStop(0, `${this.itemData.color}40`);
-    gradient.addColorStop(0.7, `${this.itemData.color}20`);
-    gradient.addColorStop(1, `${this.itemData.color}00`);
+          const itemColor = this.itemData.color || '#95a5a6'; // Fallback цвет если undefined
+      gradient.addColorStop(0, `${itemColor}40`);
+      gradient.addColorStop(0.7, `${itemColor}20`);
+      gradient.addColorStop(1, `${itemColor}00`);
     ctx.fillStyle = gradient;
     ctx.beginPath();
     ctx.arc(x, y, glowSize, 0, Math.PI * 2);

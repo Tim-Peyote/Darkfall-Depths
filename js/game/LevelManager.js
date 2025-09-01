@@ -520,7 +520,7 @@ export class LevelManager {
         const maxItemLevel = gameState.level + 1; // Предметы могут быть на уровень выше
         const itemLevel = Utils.random(minItemLevel, maxItemLevel);
         
-        const item = generateRandomItem(itemLevel, gameState.selectedCharacter?.class || null);
+        const item = await generateRandomItem(itemLevel, gameState.selectedCharacter?.class || null);
         const { DroppedItem } = await import('../entities/DroppedItem.js');
         
         // Ищем безопасную позицию для предмета (на полу, не на стене)

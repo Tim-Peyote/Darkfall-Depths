@@ -328,11 +328,13 @@ export class InventoryManager {
           slot.classList.add('filled', item.rarity);
           
           // Создаем спрайт предмета
+          console.log(`🎒 Inventory item:`, item.name, item.base, item.type, item.rarity);
           const spriteElement = InventorySpriteRenderer.createSpriteElement(item, 48);
           if (spriteElement) {
             slot.innerHTML = '';
             slot.appendChild(spriteElement);
           } else {
+            console.warn(`❌ Failed to create sprite for item:`, item);
             // Fallback на старый способ с эмодзи
             slot.innerHTML = `<div class="item-sprite" style="background:${item.color};font-size:2rem;display:flex;align-items:center;justify-content:center;">${item.icon||''}</div>`;
           }
@@ -427,6 +429,27 @@ export class InventoryManager {
             icon = '✨';
             color = '#f39c12';
             name = 'Зелье очищения';
+            break;
+          // Добавляем поддержку свитков
+          case 'scroll_fire':
+            icon = '🔥';
+            color = '#e74c3c';
+            name = 'Свиток огня';
+            break;
+          case 'scroll_ice':
+            icon = '❄️';
+            color = '#3498db';
+            name = 'Свиток льда';
+            break;
+          case 'scroll_teleport':
+            icon = '🌀';
+            color = '#9b59b6';
+            name = 'Свиток телепортации';
+            break;
+          case 'scroll_mystery':
+            icon = '🔮';
+            color = '#34495e';
+            name = 'Тайный свиток';
             break;
         }
         

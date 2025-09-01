@@ -321,57 +321,161 @@ export const RARITIES = [
 ];
 
 // ==================== ГЕНЕРАЦИЯ ПРЕДМЕТОВ ====================
-export function generateRandomItem(level, playerClass) {
-  // 1. Сначала выбираем базу с учётом класса
-  let pool = BASE_ITEMS.filter(it => !it.class || it.class === playerClass);
-  
-  // 3% шанс на "не свой" предмет
-  if (Math.random() < 0.03) {
-    pool = BASE_ITEMS;
-  }
-  
-  // 5% шанс на свиток (если уровень >= 5)
-  if (level >= 5 && Math.random() < 0.05) {
-    const scrollPool = BASE_ITEMS.filter(it => it.base && it.base.startsWith('scroll_'));
-    if (scrollPool.length > 0) {
-      pool = scrollPool;
+export async function generateRandomItem(level, playerClass) {
+  const { LOOT_CONFIG, getLevelRarityRates, getClassWeights, PityTimerSystem } = await import('./lootConfig.js');
+
+  // 1. Определяем тип предмета на основе базовых шансов и классовых весов
+  const classWeights = getClassWeights(playerClass || 'WARRIOR');
+  const baseRates = LOOT_CONFIG.BASE_DROP_RATES;
+  const roll = Math.random();
+  let itemType;
+  let accumulatedChance = 0;
+
+  // Сначала нормализуем веса
+  const totalWeight = Object.entries(baseRates).reduce((sum, [type, chance]) => {
+    return sum + chance * (classWeights[type] || 1);
+  }, 0);
+
+  for (const [type, chance] of Object.entries(baseRates)) {
+    const normalizedChance = (chance * (classWeights[type] || 1)) / totalWeight;
+    accumulatedChance += normalizedChance;
+    if (roll <= accumulatedChance) {
+      itemType = type;
+      break;
     }
   }
   
-  // 2. Применяем пониженный шанс для зелья очищения
-  const purificationPotion = pool.find(it => it.base === 'purification_potion');
-  if (purificationPotion) {
-      // 25% шанс что зелье очищения будет исключено из пула
-  if (Math.random() < 0.25) {
-    pool = pool.filter(it => it.base !== 'purification_potion');
+  // Проверяем, что itemType определен
+  if (!itemType) {
+    console.error('❌ ItemType is undefined! roll:', roll, 'accumulatedChance:', accumulatedChance);
+    // Выбираем последний тип как fallback
+    const types = Object.keys(baseRates);
+    itemType = types[types.length - 1];
   }
-  }
+
+  // 2. Формируем пул предметов на основе выбранного типа
+  let pool = BASE_ITEMS.filter(it => {
+    if (itemType === 'EQUIPMENT') {
+      return !it.base.startsWith('scroll_') && !it.base.includes('potion');
+    } else if (itemType === 'SCROLLS') {
+      return it.base.startsWith('scroll_');
+    } else if (itemType === 'POTIONS') {
+      return it.base.includes('potion');
+    }
+    return true; // MISC items
+  });
   
+  // Проверяем, что пул не пустой
+  if (pool.length === 0) {
+    console.error('❌ Item pool is empty! itemType:', itemType, 'BASE_ITEMS length:', BASE_ITEMS.length);
+    // Fallback: используем все предметы
+    pool = BASE_ITEMS;
+  }
+
+  // Применяем фильтр по классу, с небольшим шансом на "не свой" предмет
+  if (playerClass && Math.random() > 0.1) { // 10% шанс на "не свой" предмет
+    pool = pool.filter(it => !it.class || it.class === playerClass);
+  }
+
+  // 3. Определяем редкость предмета
+  const rarityRates = getLevelRarityRates(level);
+  const rarityRoll = Math.random();
+  let rarity;
+  let acc = 0;
+
+  // Учитываем систему Pity Timer для эпических и легендарных предметов
+  if (PityTimerSystem.failedAttempts > 0) {
+    const epicChance = PityTimerSystem.getAdjustedRareChance(LOOT_CONFIG.PITY_TIMER.BASE_EPIC_CHANCE);
+    const legendaryChance = PityTimerSystem.getAdjustedRareChance(LOOT_CONFIG.PITY_TIMER.BASE_LEGENDARY_CHANCE);
+    
+    if (Math.random() < legendaryChance) {
+      rarity = RARITIES.find(r => r.key === 'legendary');
+      PityTimerSystem.reset();
+    } else if (Math.random() < epicChance) {
+      rarity = RARITIES.find(r => r.key === 'epic');
+      PityTimerSystem.reset();
+    }
+  }
+
+  // Если Pity Timer не сработал, используем обычную систему редкости
+  if (!rarity) {
+    for (const [rarityKey, chance] of Object.entries(rarityRates)) {
+      acc += chance;
+      if (rarityRoll < acc) {
+        rarity = RARITIES.find(r => r.key.toUpperCase() === rarityKey);
+        break;
+      }
+    }
+    // Увеличиваем счетчик неудач
+    if (rarity.key !== 'epic' && rarity.key !== 'legendary') {
+      PityTimerSystem.registerFailedAttempt();
+    }
+  }
+
   const base = pool[Math.floor(Math.random() * pool.length)];
   
-  // 2. Редкость
-  let rarity = RARITIES[0];
-  const roll = Math.random();
-  let acc = 0;
-  for (const r of RARITIES) {
-    acc += r.chance + level * 0.01; // шанс растёт с уровнем
-    if (roll < acc) { rarity = r; break; }
+  // Проверяем, что base определен
+  if (!base) {
+    console.error('❌ Base item is undefined! Pool length:', pool.length);
+    return null;
   }
   
-  // 3. Аффиксы
+  // 4. Проверяем на особые/джокерные предметы
+  if (Math.random() < LOOT_CONFIG.SPECIAL_ITEMS.UNIQUE_ITEM_CHANCE) {
+    // Заменяем на уникальный предмет, если выпал шанс
+    // TODO: Добавить пул уникальных предметов
+    rarity = RARITIES.find(r => r.key === 'legendary');
+  }
+
+  // 5. Генерируем аффиксы
   const affixCount = rarity.key === 'legendary' ? 3 : rarity.key === 'epic' ? 2 : rarity.key === 'rare' ? 1 : 0;
   const affixes = {};
   let used = new Set();
+  
+  // Подбираем аффиксы с учетом класса персонажа
   for (let i = 0; i < affixCount; ++i) {
-    let aff;
-    do { aff = AFFIXES[Math.floor(Math.random() * AFFIXES.length)]; } while (used.has(aff.key));
+    let compatibleAffixes = AFFIXES.filter(aff => 
+      !used.has(aff.key) && (!aff.class || aff.class === playerClass)
+    );
+    
+    if (compatibleAffixes.length === 0) {
+      compatibleAffixes = AFFIXES.filter(aff => !used.has(aff.key));
+    }
+    
+    const aff = compatibleAffixes[Math.floor(Math.random() * compatibleAffixes.length)];
     used.add(aff.key);
-    let value = Math.floor(aff.min + (aff.max - aff.min) * (0.5 + 0.5 * Math.random()) * (0.7 + 0.3 * level/20));
+    
+    // Значение аффикса растет с уровнем и имеет небольшой рандомный разброс
+    const levelScale = 0.7 + 0.3 * (level / 20); // От 0.7 до 1.0 в зависимости от уровня
+    const randomScale = 0.8 + 0.4 * Math.random(); // От 0.8 до 1.2
+    let value = Math.floor(aff.min + (aff.max - aff.min) * levelScale * randomScale);
+    
+    // Для легендарных предметов усиливаем бонусы
+    if (rarity.key === 'legendary') {
+      value = Math.floor(value * 1.2); // +20% к значению
+    }
+    
     affixes[aff.key] = value;
   }
   
-  // 4. Бонусы по типу
+  // 6. Базовые бонусы в зависимости от уровня и редкости
   let bonus = { ...affixes };
+
+  if (base.stats) {
+    for (const [key, value] of Object.entries(base.stats)) {
+      // Базовое значение + прогрессия от уровня
+      let scaledValue = value * (1 + (level - 1) * 0.2);
+      
+      // Бонус от редкости
+      scaledValue *= rarity.key === 'legendary' ? 1.5 :
+                     rarity.key === 'epic' ? 1.3 :
+                     rarity.key === 'rare' ? 1.15 : 1;
+      
+      bonus[key] = Math.floor(scaledValue);
+    }
+  }
+
+  // 7. Дополнительные бонусы в зависимости от типа предмета
   if (base.type === 'weapon') {
     bonus.damage = (bonus.damage || 0) + Math.floor(8 + level * 2 + (rarity.key === 'legendary' ? 10 : 0));
     if (base.base === 'staff' || base.base === 'wand') bonus.crit = (bonus.crit || 0) + Math.floor(level/2);

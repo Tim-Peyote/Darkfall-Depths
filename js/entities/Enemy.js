@@ -9,6 +9,7 @@ export class Enemy extends Entity {
   constructor(x, y, type) {
     super(x, y);
     const enemyData = ENEMY_TYPES.find(e => e.type === type) || ENEMY_TYPES[0];
+    this.enemyData = enemyData; // Сохраняем ссылку на данные врага
     Object.assign(this, enemyData);
     this.maxHp = this.hp;
     this.attackCooldown = 0;
@@ -315,7 +316,7 @@ export class Enemy extends Entity {
     return this.stunned || false;
   }
   
-  takeDamage(damage) {
+  async takeDamage(damage) {
     // Проверяем отражение урона для Crystal Golem
     if (this.canReflect && Math.random() < this.reflectChance) {
       const player = gameState.player;
@@ -325,26 +326,22 @@ export class Enemy extends Entity {
         player.takeDamage(reflectedDamage);
         
         // Создаем эффект отражения
-        (async () => {
-          const { createParticle } = await import('../effects/Particle.js');
-          for (let i = 0; i < 6; i++) {
-            createParticle(
-              this.x + Utils.random(-15, 15),
-              this.y + Utils.random(-15, 15),
-              Utils.randomFloat(-80, 80),
-              Utils.randomFloat(-80, 80),
-              '#e67e22',
-              0.8,
-              1.5
-            );
-          }
-        })();
+        const { createParticle } = await import('../effects/Particle.js');
+        for (let i = 0; i < 6; i++) {
+          createParticle(
+            this.x + Utils.random(-15, 15),
+            this.y + Utils.random(-15, 15),
+            Utils.randomFloat(-80, 80),
+            Utils.randomFloat(-80, 80),
+            '#e67e22',
+            0.8,
+            1.5
+          );
+        }
         
         // Воспроизводим звук отражения
-        (async () => {
-          const { audioManager } = await import('../audio/AudioManager.js');
-          audioManager.playEnemyHit(); // Используем звук попадания как звук отражения
-        })();
+        const { audioManager } = await import('../audio/AudioManager.js');
+        audioManager.playEnemyHit(); // Используем звук попадания как звук отражения
         
         return; // Не получаем урон
       }
@@ -375,26 +372,42 @@ export class Enemy extends Entity {
       this.isDead = true;
       
       // Используем RecordsManager для правильного подсчета статистики
-      (async () => {
-        const { RecordsManager } = await import('../ui/RecordsManager.js');
-        RecordsManager.addSessionKill();
-      })();
+      const { RecordsManager } = await import('../ui/RecordsManager.js');
+      RecordsManager.addSessionKill();
       
-      // Воспроизводим звук смерти врага (асинхронно)
-      (async () => {
-        const { audioManager } = await import('../audio/AudioManager.js');
-        audioManager.playEnemyDie();
-      })();
+      // Воспроизводим звук смерти врага
+      const { audioManager } = await import('../audio/AudioManager.js');
+      audioManager.playEnemyDie();
       
-      // Шанс выпадения предмета (30%)
-      if (Math.random() < 0.3) {
-        this.dropItem();
+      // Используем новую систему дропа с врагов (15-25% в зависимости от уровня)
+      const { getEnemyDropChance } = await import('../config/lootConfig.js');
+      let dropChance = getEnemyDropChance(gameState.level);
+      
+      // Бонус к дропу для элитных врагов (с levelRequirement)
+      if (this.enemyData.levelRequirement) {
+        dropChance *= 1.5; // +50% к шансу дропа
+      }
+      
+      // Бонус к дропу для врагов с особыми способностями
+      if (this.enemyData.canStun || this.enemyData.canTeleport || this.enemyData.canReflect) {
+        dropChance *= 1.3; // +30% к шансу дропа
+      }
+      
+      if (Math.random() < dropChance) {
+        await this.dropItem();
       }
     }
   }
   
   async dropItem() {
-    const item = generateRandomItem(gameState.level, gameState.selectedCharacter?.class || null);
+    const item = await generateRandomItem(gameState.level, gameState.selectedCharacter?.class || null);
+    
+    // Проверяем, что предмет сгенерирован корректно
+    if (!item) {
+      console.error('❌ Failed to generate item for enemy');
+      return;
+    }
+    
     // Создаем предмет
     const { DroppedItem } = await import('./DroppedItem.js');
     const droppedItem = new DroppedItem(this.x, this.y, item);

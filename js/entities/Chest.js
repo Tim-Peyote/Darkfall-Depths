@@ -16,10 +16,12 @@ export class Chest extends Entity {
     this.maxSlots = 12; // Максимум 12 слотов в сундуке
     
     // Генерируем содержимое сундука
-    this.generateContents();
+    this.generateContents().catch(err => {
+      console.error('❌ Error generating chest contents:', err);
+    });
   }
   
-  generateContents() {
+  async generateContents() {
     // Редкость количества предметов - больше предметов = реже
     const rarityRoll = Math.random();
     let maxItems;
@@ -58,9 +60,16 @@ export class Chest extends Entity {
       const randomSlotIndex = Math.floor(Math.random() * availableSlots.length);
       const slotIndex = availableSlots.splice(randomSlotIndex, 1)[0];
       
-      const item = generateRandomItem(this.level, gameState.player?.class);
-      if (item) {
-        this.inventory[slotIndex] = item;
+      try {
+        const item = await generateRandomItem(this.level, gameState.player?.class);
+        if (item) {
+          console.log('✅ Generated item for chest:', item.name, item.type, item.rarity);
+          this.inventory[slotIndex] = item;
+        } else {
+          console.error('❌ Failed to generate item for chest');
+        }
+      } catch (error) {
+        console.error('❌ Error generating item for chest:', error);
       }
     }
   }
