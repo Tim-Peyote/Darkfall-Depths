@@ -66,6 +66,16 @@ export class GameEngine {
     
     // Инициализация ввода
     InputManager.init();
+
+    // Предзагружаем менеджер баффов, чтобы избежать импорта в игровом цикле
+    try {
+      if (!this.buffManager) {
+        const { BuffManager } = await import('../core/BuffManager.js');
+        this.buffManager = BuffManager;
+      }
+    } catch (e) {
+      Logger.warn('Ошибка инициализации BuffManager:', e);
+    }
     
     // Инициализация менеджера сундуков
     try {
@@ -289,11 +299,7 @@ export class GameEngine {
     }
     
     // Обновление временных баффов (оптимизированная версия)
-    if (!this.buffManager) {
-      import('../core/BuffManager.js').then(module => {
-        this.buffManager = module.BuffManager;
-      });
-    } else {
+    if (this.buffManager) {
       this.buffManager.update(dt);
     }
   }
@@ -1167,13 +1173,16 @@ export class GameEngine {
     
     // Применяем эффекты зелья (оптимизированная версия)
     if (!this.buffManager) {
-      import('../core/BuffManager.js').then(async module => {
-        this.buffManager = module.BuffManager;
-        await this.buffManager.applyConsumableEffects(potion);
-      });
-    } else {
-      await this.buffManager.applyConsumableEffects(potion);
+      try {
+        const { BuffManager } = await import('../core/BuffManager.js');
+        this.buffManager = BuffManager;
+      } catch (error) {
+        Logger.error('❌ Не удалось загрузить BuffManager для зелий:', error);
+        return;
+      }
     }
+
+    await this.buffManager.applyConsumableEffects(potion);
     
     // Удаляем зелье из рюкзака
     gameState.inventory.backpack[potionIndex] = null;
