@@ -54,9 +54,14 @@ export class ScreenManager {
     const targetScreen = document.getElementById(screenName + 'Screen');
     if (targetScreen) {
       targetScreen.classList.remove('hidden');
-      targetScreen.classList.add('active');
+      targetScreen.classList.add('active', 'screen-fade-in');
       targetScreen.style.display = 'flex';
       gameState.screen = screenName;
+
+      // Убираем класс анимации после завершения
+      targetScreen.addEventListener('animationend', () => {
+        targetScreen.classList.remove('screen-fade-in');
+      }, { once: true });
       
       // Дополнительная проверка - убеждаемся, что только один экран активен
       setTimeout(() => {

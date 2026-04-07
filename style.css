@@ -799,6 +799,184 @@ select.form-control {
   background-image: url('Assets/Characters.png');
 }
 
+/* ===== BOSS HEALTH BAR ===== */
+.boss-health-bar {
+  position: fixed;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1500;
+  text-align: center;
+  width: 320px;
+  max-width: 80vw;
+}
+
+.boss-health-bar.hidden {
+  display: none;
+}
+
+.boss-name {
+  font-family: var(--font-gothic);
+  font-size: var(--font-size-lg);
+  color: #e74c3c;
+  text-shadow: 0 0 10px rgba(231, 76, 60, 0.6), 1px 1px 2px rgba(0,0,0,0.8);
+  margin-bottom: 4px;
+}
+
+.boss-hp-bar {
+  height: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(231, 76, 60, 0.5);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.boss-hp-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #c0392b, #e74c3c, #ff6b6b);
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease;
+}
+
+/* ===== МАГАЗИН ===== */
+.shop-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.shop-container {
+  background: linear-gradient(135deg, rgba(30, 30, 40, 0.95), rgba(20, 20, 30, 0.98));
+  border: 2px solid rgba(243, 156, 18, 0.4);
+  border-radius: var(--radius-lg);
+  padding: var(--space-24);
+  max-width: 520px;
+  width: 90%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 0 40px rgba(243, 156, 18, 0.15), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+.shop-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-20);
+  padding-bottom: var(--space-12);
+  border-bottom: 1px solid rgba(243, 156, 18, 0.3);
+}
+
+.shop-title {
+  font-family: var(--font-gothic);
+  font-size: var(--font-size-2xl);
+  color: #f39c12;
+  text-shadow: 0 0 12px rgba(243, 156, 18, 0.5);
+  margin: 0;
+}
+
+.shop-gold {
+  font-size: var(--font-size-lg);
+  color: #f39c12;
+  font-weight: var(--font-weight-bold);
+}
+
+.shop-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-10);
+  margin-bottom: var(--space-20);
+}
+
+.shop-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  padding: var(--space-12);
+  transition: border-color var(--duration-fast), background var(--duration-fast);
+}
+
+.shop-item:hover {
+  border-color: rgba(243, 156, 18, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.shop-item--disabled {
+  opacity: 0.5;
+}
+
+.shop-item--maxed {
+  opacity: 0.4;
+  border-color: rgba(100, 100, 100, 0.3);
+}
+
+.shop-item__icon {
+  font-size: var(--font-size-2xl);
+  min-width: 40px;
+  text-align: center;
+}
+
+.shop-item__info {
+  flex: 1;
+}
+
+.shop-item__name {
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.shop-item__desc {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  margin-top: 2px;
+}
+
+.shop-item__count {
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  margin-top: 2px;
+}
+
+.shop-item__buy {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: var(--space-8) var(--space-12);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform var(--duration-fast), box-shadow var(--duration-fast);
+}
+
+.shop-item__buy:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(243, 156, 18, 0.4);
+}
+
+.shop-item__buy--disabled,
+.shop-item__buy--maxed {
+  background: rgba(100, 100, 100, 0.4);
+  cursor: not-allowed;
+}
+
+.shop-continue {
+  width: 100%;
+  padding: var(--space-14) var(--space-20);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+}
+
 /* Фоновые изображения для экранов настроек и рекордов */
 .settings-background,
 .records-background {
@@ -842,6 +1020,15 @@ select.form-control {
 
 .screen.active {
   display: flex;
+}
+
+.screen-fade-in {
+  animation: screenFadeIn 0.3s ease-out;
+}
+
+@keyframes screenFadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 /* Menu Styles */
@@ -1243,6 +1430,7 @@ select.form-control {
   border: 2px solid var(--color-error);
   border-radius: var(--radius-full);
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5), inset 0 1px 3px rgba(0,0,0,0.6);
 }
 
 .stat-fill {
@@ -1253,7 +1441,16 @@ select.form-control {
 
 .hp-fill {
   background: linear-gradient(90deg, var(--color-error), #ff6666);
-  box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.2), 0 0 6px rgba(192, 21, 48, 0.4);
+}
+
+.hp-fill.hp-low {
+  animation: hpPulse 1s ease-in-out infinite;
+}
+
+@keyframes hpPulse {
+  0%, 100% { box-shadow: inset 0 2px 4px rgba(255,255,255,0.2), 0 0 6px rgba(192, 21, 48, 0.4); }
+  50% { box-shadow: inset 0 2px 4px rgba(255,255,255,0.2), 0 0 16px rgba(231, 76, 60, 0.8); }
 }
 
 .stat-text {
@@ -1275,6 +1472,16 @@ select.form-control {
   background: rgba(0,0,0,0.5);
   padding: var(--space-4) var(--space-8);
   border-radius: var(--radius-sm);
+}
+
+.gold-display {
+  color: #f39c12;
+  font-weight: var(--font-weight-bold);
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.5);
+  padding: var(--space-4) var(--space-8);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
 }
 
 .player-detailed-stats {
@@ -2163,6 +2370,14 @@ select.form-control {
   z-index: 2000;
   background: var(--color-surface);
   border: 2px solid var(--color-primary);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  animation: overlaySlideIn 0.35s ease-out;
+}
+
+@keyframes overlaySlideIn {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 }
 
 .level-complete-overlay {
@@ -4645,17 +4860,20 @@ html, body {
 .custom-tooltip {
   position: fixed;
   z-index: 9999;
-  background: #222;
+  background: rgba(20, 20, 30, 0.95);
   color: #fff;
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6), 0 0 1px rgba(255,255,255,0.1);
+  backdrop-filter: blur(8px);
   white-space: pre-line;
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.4;
   pointer-events: none;
-  max-width: 220px;
+  max-width: 240px;
   opacity: 0.97;
-  transition: opacity 0.1s;
+  transition: opacity 0.15s;
 }
 
 /* ==================== ЭКРАН ЗАГРУЗКИ ==================== */
@@ -5100,6 +5318,19 @@ html, body {
 
 .active-buff.critical::after {
   background: var(--color-error);
+}
+
+.active-buff.critical {
+  animation: buffExpiring 0.6s ease-in-out infinite;
+}
+
+.active-debuff.critical {
+  animation: buffExpiring 0.6s ease-in-out infinite;
+}
+
+@keyframes buffExpiring {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 .active-debuff {

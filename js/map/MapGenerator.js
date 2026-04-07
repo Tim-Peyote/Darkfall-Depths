@@ -111,7 +111,61 @@ export class MapGenerator {
     
     return { map, rooms, lightSources, chests };
   }
-  
+
+  static generateBossRoom() {
+    const roomSize = 22;
+    const mapSize = roomSize + 8; // Отступы
+    const map = Array.from({ length: mapSize }, () => Array(mapSize).fill(1));
+
+    // Одна большая комната по центру
+    const startX = 4;
+    const startY = 4;
+    for (let y = startY; y < startY + roomSize; y++) {
+      for (let x = startX; x < startX + roomSize; x++) {
+        map[y][x] = 0;
+      }
+    }
+
+    // Колонны для укрытия (4 штуки)
+    const pillarPositions = [
+      [startX + 5, startY + 5],
+      [startX + roomSize - 6, startY + 5],
+      [startX + 5, startY + roomSize - 6],
+      [startX + roomSize - 6, startY + roomSize - 6]
+    ];
+    for (const [px, py] of pillarPositions) {
+      map[py][px] = 1;
+      map[py + 1][px] = 1;
+      map[py][px + 1] = 1;
+      map[py + 1][px + 1] = 1;
+    }
+
+    const room = {
+      x: startX,
+      y: startY,
+      width: roomSize,
+      height: roomSize,
+      centerX: startX + Math.floor(roomSize / 2),
+      centerY: startY + Math.floor(roomSize / 2)
+    };
+
+    // Источники света по периметру
+    const lightSources = [];
+    const lightPositions = [
+      [startX + 1, startY + 1], [startX + roomSize - 2, startY + 1],
+      [startX + 1, startY + roomSize - 2], [startX + roomSize - 2, startY + roomSize - 2],
+      [startX + Math.floor(roomSize / 2), startY + 1],
+      [startX + Math.floor(roomSize / 2), startY + roomSize - 2]
+    ];
+    for (const [lx, ly] of lightPositions) {
+      lightSources.push(LightSourceFactory.createTorch(
+        (lx + 0.5) * TILE_SIZE, (ly + 0.5) * TILE_SIZE
+      ));
+    }
+
+    return { map, rooms: [room], lightSources, chests: [] };
+  }
+
   static splitPartition(partition) {
     const { x, y, width, height } = partition;
     

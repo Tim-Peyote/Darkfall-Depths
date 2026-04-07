@@ -896,10 +896,31 @@ export class GameEngine {
       if (hpFillEl && hpTextEl) {
         const healthPercent = gameState.player.hp / gameState.player.maxHp;
         hpFillEl.style.width = `${healthPercent * 100}%`;
-        hpTextEl.textContent = `${gameState.player.hp}/${gameState.player.maxHp}`;
+        hpTextEl.textContent = `${Math.ceil(gameState.player.hp)}/${gameState.player.maxHp}`;
+        // Пульсация при низком здоровье
+        hpFillEl.classList.toggle('hp-low', healthPercent < 0.25);
       }
     }
     
+    // Обновляем отображение золота
+    const goldTextEl = document.getElementById('goldText');
+    if (goldTextEl) {
+      goldTextEl.textContent = gameState.player?.gold || 0;
+    }
+
+    // Обновляем HP бар босса
+    if (gameState.currentBoss && !gameState.currentBoss.isDead) {
+      const bossHpFill = document.getElementById('bossHpFill');
+      if (bossHpFill) {
+        const bossHpPercent = Math.max(0, gameState.currentBoss.hp / gameState.currentBoss.maxHp);
+        bossHpFill.style.width = `${bossHpPercent * 100}%`;
+      }
+    } else if (gameState.currentBoss?.isDead) {
+      const bossBar = document.getElementById('bossHealthBar');
+      if (bossBar) bossBar.classList.add('hidden');
+      gameState.currentBoss = null;
+    }
+
     // Обновляем банки здоровья
     this.updateHealthPotions();
     

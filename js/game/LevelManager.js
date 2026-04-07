@@ -122,7 +122,11 @@ export class LevelManager {
       return;
     }
     
-    const { map, rooms, lightSources, chests } = MapGenerator.generateDungeon();
+    // Босс-уровень каждые 10 уровней
+    const isBossLevel = gameState.level % 10 === 0 && gameState.level > 0;
+    const { map, rooms, lightSources, chests } = isBossLevel
+      ? MapGenerator.generateBossRoom()
+      : MapGenerator.generateDungeon();
     
     if (!rooms || rooms.length === 0) {
       Logger.error('❌ No rooms generated!');
@@ -308,6 +312,44 @@ export class LevelManager {
       }
     }
     
+    // Босс-уровень: спавним только босса, без портала
+    if (isBossLevel) {
+      const { Boss } = await import('../entities/Boss.js');
+      const { BOSS_TYPES } = await import('../config/constants.js');
+      const bossRoom = rooms[0];
+
+      // Выбираем босса по тиру (циклически)
+      const tier = Math.floor(gameState.level / 10);
+      const bossIndex = (tier - 1) % BOSS_TYPES.length;
+      const bossData = { ...BOSS_TYPES[bossIndex] };
+
+      // Масштабируем статы босса по уровню
+      const levelScale = 1 + (gameState.level - 10) * 0.08;
+      bossData.hp = Math.floor(bossData.hp * levelScale);
+      bossData.damage = Math.floor(bossData.damage * levelScale);
+
+      const bossX = (bossRoom.centerX + 0.5) * TILE_SIZE;
+      const bossY = (bossRoom.centerY + 0.5) * TILE_SIZE + 80; // Чуть ниже центра
+      const boss = new Boss(bossX, bossY, bossData);
+      gameState.entities.push(boss);
+      gameState.currentBoss = boss;
+
+      // Показываем босс-бар
+      const bossBar = document.getElementById('bossHealthBar');
+      if (bossBar) {
+        bossBar.classList.remove('hidden');
+        const bossNameEl = document.getElementById('bossName');
+        if (bossNameEl) bossNameEl.textContent = bossData.type;
+      }
+
+      Logger.info(`🏆 Boss Level ${gameState.level}: ${bossData.type} (HP: ${bossData.hp}, DMG: ${bossData.damage})`);
+      return; // Не спавним обычных врагов и портал
+    }
+
+    gameState.currentBoss = null;
+    const bossBar = document.getElementById('bossHealthBar');
+    if (bossBar) bossBar.classList.add('hidden');
+
     // Спавн врагов в остальных комнатах (с учётом уровня сложности)
     for (let i = 1; i < rooms.length; i++) {
       const room = rooms[i];
@@ -570,11 +612,14 @@ export class LevelManager {
       RecordsManager.resetLevelKills();
     })();
     
-    // В рогалике НЕ восстанавливаем здоровье автоматически - игрок должен сам лечиться
-          // Logger.debug(`🎮 Level ${gameState.level} - Player HP: ${gameState.player?.hp}/${gameState.player?.maxHp} (no auto-heal)`);
-    
-    // Временные баффы сохраняются между уровнями - они сами истекают по времени
-    
+    // В рогалике НЕ восстанавливаем здоровье автоматически
+
+    // Каждые 3 уровня (после 3, 6, 9...) показываем магазин
+    if (gameState.level > 1 && (gameState.level - 1) % 3 === 0) {
+      const { ShopManager } = await import('../ui/ShopManager.js');
+      await ShopManager.show();
+    }
+
     // Перезапускаем музыку stage1 для нового уровня
     (async () => {
       const { audioManager } = await import('../audio/AudioManager.js');
@@ -713,6 +758,12 @@ export class LevelManager {
       const { BuffManager } = await import('../core/BuffManager.js');
       BuffManager.clearAllBuffs();
       BuffManager.clearAllDebuffs();
+    })();
+
+    // Сбрасываем счётчики магазина для нового забега
+    (async () => {
+      const { ShopManager } = await import('../ui/ShopManager.js');
+      ShopManager.reset();
     })();
   }
 

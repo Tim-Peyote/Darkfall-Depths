@@ -232,7 +232,13 @@ export class Player extends Entity {
       }
       
       closestEnemy.takeDamage(totalDamage);
-      
+
+      // Вампиризм — лечение при атаке
+      if (this.vampirism) {
+        const healAmount = Math.floor(totalDamage * 0.3);
+        this.hp = Math.min(this.maxHp, this.hp + healAmount);
+      }
+
       // Воспроизводим звук атаки в зависимости от персонажа
       if (this.id === 'andre') {
         audioManager.playSwordAttack();
@@ -401,13 +407,25 @@ export class Player extends Entity {
   
   takeDamage(damage) {
     if (this.isInvulnerable) return;
-    
-    // Если активен щит, уменьшаем урон
+
     let actualDamage = damage;
+
+    // Применяем защиту (defense из экипировки и баффов)
     if (this.isShieldActive) {
-      actualDamage = Math.max(1, damage - this.shieldDefenseBonus);
+      actualDamage = Math.max(1, actualDamage - this.shieldDefenseBonus);
+    } else {
+      actualDamage = Math.max(1, actualDamage - (this.defense || 0));
     }
-    
+
+    // Барьер от свитка поглощает урон
+    if (this.barrier && this.barrier.remainingAbsorb > 0) {
+      const absorbed = Math.min(actualDamage, this.barrier.remainingAbsorb);
+      this.barrier.remainingAbsorb -= absorbed;
+      actualDamage -= absorbed;
+      if (this.barrier.remainingAbsorb <= 0) this.barrier = null;
+      if (actualDamage <= 0) return;
+    }
+
     this.hp -= actualDamage;
     this.isInvulnerable = true;
     this.invulnerabilityTime = 1.0;

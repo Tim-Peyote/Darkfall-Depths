@@ -232,6 +232,28 @@ export const ENEMY_TYPES = [
   }
 ];
 
+// ==================== БОССЫ ====================
+export const BOSS_TYPES = [
+  {
+    type: 'Skeleton King', hp: 500, damage: 40, speed: 35, attackRange: 64,
+    color: '#fff', reward: 200, sprite: '💀', levelTier: 1,
+    abilities: ['summon', 'charge'],
+    summonCount: 3, chargeDistance: 120, chargeDamage: 60
+  },
+  {
+    type: 'Dragon', hp: 800, damage: 55, speed: 30, attackRange: 200,
+    color: '#e74c3c', reward: 350, sprite: '🐉', levelTier: 2,
+    abilities: ['firebreath', 'stomp'],
+    projectileSpeed: 300, firebreathDamage: 35, stompRadius: 100, stompDamage: 45
+  },
+  {
+    type: 'Lich', hp: 600, damage: 45, speed: 40, attackRange: 180,
+    color: '#8e44ad', reward: 300, sprite: '👻', levelTier: 3,
+    abilities: ['teleport', 'curse', 'summon'],
+    projectileSpeed: 250, summonCount: 2, curseDuration: 5
+  }
+];
+
 // ==================== СИСТЕМА ПРЕДМЕТОВ ====================
 export const BASE_ITEMS = [
   // Оружие

@@ -73,34 +73,73 @@ export class Enemy extends Entity {
     
     const player = gameState.player;
     if (!player) return;
-    
+
     // Обновление анимации
     this.animationTime += dt;
-    
+
     // Обновление кулдауна атаки
     if (this.attackCooldown > 0) {
       this.attackCooldown -= dt;
     }
-    
+
+    // Страх — враг убегает от игрока
+    if (this.isAfraid) {
+      const angle = Utils.angle(player, this);
+      const newX = this.x + Math.cos(angle) * this.speed * dt;
+      const newY = this.y + Math.sin(angle) * this.speed * dt;
+      if (!this.checkCollisionWithWalls(newX, this.y)) this.x = newX;
+      if (!this.checkCollisionWithWalls(this.x, newY)) this.y = newY;
+      return;
+    }
+
+    // Хаос — враг атакует ближайшего другого врага
+    if (this.isChaotic) {
+      const otherEnemies = gameState.entities.filter(e =>
+        e.constructor.name === 'Enemy' && !e.isDead && e !== this
+      );
+      if (otherEnemies.length > 0) {
+        let closest = null;
+        let closestDist = Infinity;
+        for (const e of otherEnemies) {
+          const d = Utils.distance(this, e);
+          if (d < closestDist) { closest = e; closestDist = d; }
+        }
+        if (closest) {
+          if (closestDist > this.attackRange) {
+            const angle = Utils.angle(this, closest);
+            const newX = this.x + Math.cos(angle) * this.speed * dt;
+            const newY = this.y + Math.sin(angle) * this.speed * dt;
+            if (!this.checkCollisionWithWalls(newX, this.y)) this.x = newX;
+            if (!this.checkCollisionWithWalls(this.x, newY)) this.y = newY;
+          } else if (this.attackCooldown <= 0) {
+            closest.takeDamage(this.damage);
+            this.attackCooldown = 1.5 + Math.random() * 0.5;
+          }
+        }
+      }
+      return;
+    }
+
+    // Невидимость — враг не преследует игрока
+    if (player.isInvisible) return;
+
     // Проверяем телепортацию для Void Wraith
     if (this.canTeleport && this.attackCooldown <= 0) {
       this.teleport();
     }
-    
+
     // Движение к игроку
     const distance = Utils.distance(this, player);
-    
+
     if (distance > this.attackRange) {
       // Движение к игроку
       this.targetX = player.x;
       this.targetY = player.y;
-      
+
       const angle = Utils.angle(this, { x: this.targetX, y: this.targetY });
       const newX = this.x + Math.cos(angle) * this.speed * dt;
       const newY = this.y + Math.sin(angle) * this.speed * dt;
-      
 
-      
       if (!this.checkCollisionWithWalls(newX, this.y)) {
         this.x = newX;
       }
@@ -370,7 +409,26 @@ export class Enemy extends Entity {
     
     if (this.hp <= 0) {
       this.isDead = true;
-      
+
+      // Начисляем золото за убийство
+      if (gameState.player) {
+        const goldReward = Math.floor((this.reward || 10) * (1 + (gameState.level - 1) * 0.15));
+        gameState.player.gold += goldReward;
+        gameState.gold = gameState.player.gold;
+        // Золотые частицы
+        for (let i = 0; i < 4; i++) {
+          createParticle(
+            this.x + Utils.random(-10, 10),
+            this.y + Utils.random(-10, 10),
+            Utils.randomFloat(-40, 40),
+            Utils.randomFloat(-80, -20),
+            '#f39c12',
+            1.0,
+            3
+          );
+        }
+      }
+
       // Используем RecordsManager для правильного подсчета статистики
       const { RecordsManager } = await import('../ui/RecordsManager.js');
       RecordsManager.addSessionKill();

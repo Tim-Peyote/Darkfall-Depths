@@ -519,23 +519,35 @@ export class ChestManager {
     
     const item = this.currentChest.takeItem(itemIndex);
     if (item) {
+      // Золото начисляется напрямую, не в инвентарь
+      if (item.base === 'gold_pouch' && item.goldValue) {
+        if (gameState.player) {
+          gameState.player.gold += item.goldValue;
+          gameState.gold = gameState.player.gold;
+        }
+        await this.updateChestDisplay();
+        const overlay = document.getElementById('chestOverlay');
+        const header = overlay?.querySelector('.chest-header h3');
+        if (header) {
+          const itemCount = this.currentChest.inventory.filter(i => i !== null).length;
+          header.textContent = `Сундук (${itemCount}/${this.currentChest.maxSlots})`;
+        }
+        this.playTakeItemSound();
+        return;
+      }
+
       // Добавляем предмет в инвентарь игрока
       try {
         const { InventoryManager } = await import('./InventoryManager.js');
         const success = InventoryManager.addItemToInventory(item);
         if (success) {
-          // Обновляем отображение
           await this.updateChestDisplay();
-          
-          // Обновляем заголовок сундука
           const overlay = document.getElementById('chestOverlay');
-          const header = overlay.querySelector('.chest-header h3');
+          const header = overlay?.querySelector('.chest-header h3');
           if (header) {
-            const itemCount = this.currentChest.inventory.filter(item => item !== null).length;
+            const itemCount = this.currentChest.inventory.filter(i => i !== null).length;
             header.textContent = `Сундук (${itemCount}/${this.currentChest.maxSlots})`;
           }
-          
-          // Звуковой эффект
           this.playTakeItemSound();
         }
       } catch (e) {

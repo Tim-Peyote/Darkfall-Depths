@@ -147,6 +147,14 @@
     <div id="gameScreen" class="screen hidden">
         <canvas id="gameCanvas"></canvas>
         
+        <!-- Boss Health Bar -->
+        <div id="bossHealthBar" class="boss-health-bar hidden">
+            <div class="boss-name" id="bossName"></div>
+            <div class="boss-hp-bar">
+                <div class="boss-hp-fill" id="bossHpFill"></div>
+            </div>
+        </div>
+
         <!-- UI Overlay -->
         <div class="ui-overlay">
             <div class="ui-left">
@@ -157,6 +165,7 @@
                         <div id="hpText" class="stat-text">120/120</div>
                     </div>
                     <div class="level-info">Уровень: <span id="levelText">1</span></div>
+                    <div class="gold-display" id="goldDisplay">🪙 <span id="goldText">0</span></div>
                 </div>
                 
                 <!-- Controls -->
@@ -227,6 +236,20 @@
             <div class="hint-content">
                 <span class="hint-key">E</span>
                 <span class="hint-text">Открыть сундук</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ЭКРАН МАГАЗИНА -->
+    <div id="shopScreen" class="screen hidden flex flex-col items-center justify-center">
+        <div class="shop-overlay">
+            <div class="shop-container">
+                <div class="shop-header">
+                    <h2 class="shop-title">Торговец подземелья</h2>
+                    <div class="shop-gold">🪙 <span id="shopGold">0</span></div>
+                </div>
+                <div class="shop-items" id="shopItems"></div>
+                <button id="shopContinueBtn" class="btn btn--primary shop-continue">Продолжить путь ➜</button>
             </div>
         </div>
     </div>

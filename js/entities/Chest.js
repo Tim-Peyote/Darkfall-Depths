@@ -1,7 +1,7 @@
 /* Darkfall Depths - Сундук */
 
 import { Entity } from './Entity.js';
-import { gameState, ctx } from '../core/GameState.js';
+import { gameState, ctx, Utils } from '../core/GameState.js';
 import { Logger } from '../utils/Logger.js';
 import { TILE_SIZE, IS_MOBILE } from '../config/constants.js';
 import { generateRandomItem } from '../config/constants.js';
@@ -60,11 +60,10 @@ export class Chest extends Entity {
     for (let i = 0; i < itemCount && availableSlots.length > 0; i++) {
       const randomSlotIndex = Math.floor(Math.random() * availableSlots.length);
       const slotIndex = availableSlots.splice(randomSlotIndex, 1)[0];
-      
+
       try {
         const item = await generateRandomItem(this.level, gameState.player?.class);
         if (item) {
-          // Сводим отладочное логирование к минимуму в продакшене
           Logger.debug('✅ Generated item for chest:', item.name, item.type, item.rarity);
           this.inventory[slotIndex] = item;
         } else {
@@ -73,6 +72,22 @@ export class Chest extends Entity {
       } catch (error) {
         Logger.error('❌ Error generating item for chest:', error);
       }
+    }
+
+    // 40% шанс на золото в сундуке
+    if (Math.random() < 0.4 && availableSlots.length > 0) {
+      const goldSlotIndex = availableSlots.splice(Math.floor(Math.random() * availableSlots.length), 1)[0];
+      const goldAmount = (Math.floor(Math.random() * 16) + 5) * this.level;
+      this.inventory[goldSlotIndex] = {
+        name: `Золото (${goldAmount})`,
+        base: 'gold_pouch',
+        type: 'misc',
+        icon: '🪙',
+        color: '#f39c12',
+        rarity: 'common',
+        goldValue: goldAmount,
+        bonus: {}
+      };
     }
   }
   
