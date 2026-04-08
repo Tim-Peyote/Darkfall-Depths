@@ -5,43 +5,99 @@ import { Utils } from '../utils/Utils.js';
 
 export class BuffManager {
   static addBuff(type, value, duration, icon = null) {
-    
+    // Проверяем, нет ли уже такого баффа — если есть, обновляем длительность вместо стака
+    const existingBuff = gameState.buffs.active.find(b => b.type === type);
+    if (existingBuff) {
+      // Снимаем старый бафф перед обновлением
+      this.removeBuffFromPlayer(existingBuff);
+      existingBuff.duration = duration;
+      existingBuff.remainingTime = duration;
+      existingBuff.value = value;
+      existingBuff.startTime = gameState.gameTime;
+      // Применяем обновлённый бафф
+      this.applyBuffToPlayer(existingBuff);
+      return;
+    }
+
     const buff = {
       type,
       value,
       duration,
       remainingTime: duration,
-      icon: icon || gameState.buffs.icons[type] || '✨',
+      icon: icon || gameState.buffs.icons[type] || '???',
       startTime: gameState.gameTime
     };
-    
+
     gameState.buffs.active.push(buff);
-    
+
     // Применяем бафф к игроку
     this.applyBuffToPlayer(buff);
   }
-  
+
   static addDebuff(type, value, duration, icon = null) {
-    
+    // Проверяем, нет ли уже такого дебаффа — если есть, обновляем длительность
+    const existingDebuff = gameState.debuffs.active.find(d => d.type === type);
+    if (existingDebuff) {
+      // Снимаем старый дебафф перед обновлением
+      this.removeDebuffFromPlayer(existingDebuff);
+      existingDebuff.duration = duration;
+      existingDebuff.remainingTime = duration;
+      existingDebuff.value = value;
+      existingDebuff.startTime = gameState.gameTime;
+      // Применяем обновлённый дебафф
+      this.applyDebuffToPlayer(existingDebuff);
+      return;
+    }
+
     const debuff = {
       type,
       value,
       duration,
       remainingTime: duration,
-      icon: icon || gameState.debuffs.icons[type] || 'x',
+      icon: icon || gameState.debuffs.icons[type] || '✗',
       startTime: gameState.gameTime,
       isDebuff: true
     };
-    
+
     gameState.debuffs.active.push(debuff);
-    
+
     // Применяем дебаф к игроку
     this.applyDebuffToPlayer(debuff);
   }
-  
+
+  // Рассчитывает итоговое значение стата из base + активные баффы (кроме удаляемого)
+  static recalcStatFromBuffs(excludedBuffType = null, excludedDebuffType = null) {
+    if (!gameState.player) return;
+    const p = gameState.player;
+    const baseMove = p.baseMoveSpeed || p.moveSpeed;
+    const baseDamage = p.baseDamage || p.damage;
+    const baseDefense = p.baseDefense || p.defense;
+    const baseAttackSpeed = p.baseAttackSpeed || p.attackSpeed;
+
+    // Сбрасываем к базовым
+    p.moveSpeed = baseMove;
+    p.damage = baseDamage;
+    p.defense = baseDefense;
+    p.attackSpeed = baseAttackSpeed;
+    p.crit = p.crit || 0;
+    p.attackRadius = p.attackRadius || 30;
+
+    // Переприменяем все активные баффы (кроме excluded)
+    for (const buff of gameState.buffs.active) {
+      if (buff.type === excludedBuffType) continue;
+      this.applyBuffToPlayer(buff);
+    }
+
+    // Переприменяем все активные дебаффы (кроме excluded)
+    for (const debuff of gameState.debuffs.active) {
+      if (debuff.type === excludedDebuffType) continue;
+      this.applyDebuffToPlayer(debuff);
+    }
+  }
+
   static applyBuffToPlayer(buff) {
     if (!gameState.player) return;
-    
+
     switch (buff.type) {
       case 'damage':
         gameState.player.damage += buff.value;
@@ -64,31 +120,47 @@ export class BuffManager {
       case 'fire':
         // Огненный перк: увеличивает урон и добавляет шанс поджечь врагов
         gameState.player.damage += buff.value;
-        gameState.player.fireChance = (gameState.player.fireChance || 0) + 0.08; // 8% вместо 15%
-        gameState.player.fireDamage = (gameState.player.fireDamage || 0) + Math.floor(buff.value * 0.3); // 30% вместо 50%
+        gameState.player.fireChance = (gameState.player.fireChance || 0) + 0.08;
+        gameState.player.fireDamage = (gameState.player.fireDamage || 0) + Math.floor(buff.value * 0.3);
         break;
       case 'ice':
         // Ледяной перк: увеличивает урон и добавляет шанс заморозить врагов
         gameState.player.damage += buff.value;
-        gameState.player.iceChance = (gameState.player.iceChance || 0) + 0.06; // 6% вместо 12%
-        gameState.player.iceSlow = (gameState.player.iceSlow || 0) + 0.2; // 20% вместо 30%
+        gameState.player.iceChance = (gameState.player.iceChance || 0) + 0.06;
+        gameState.player.iceSlow = (gameState.player.iceSlow || 0) + 0.2;
+        break;
+      case 'invisibility':
+        // Невидимость — скрывает от врагов
+        if (gameState.player) gameState.player.isInvisible = true;
+        break;
+      case 'rage':
+        // Ярость — удваивает урон
+        if (gameState.player) gameState.player.rageMode = true;
+        break;
+      case 'invulnerability':
+        // Неуязвимость — полный иммунитет к урону
+        if (gameState.player) gameState.player.isInvulnerable = true;
+        break;
+      case 'vampirism':
+        // Вампиризм — лечение при атаке
+        if (gameState.player) gameState.player.vampirism = true;
         break;
     }
   }
-  
+
   static applyDebuffToPlayer(debuff) {
     if (!gameState.player) return;
-    
+
     switch (debuff.type) {
       case 'poison':
         // Яд наносит урон каждый тик
         debuff.lastTick = 0;
-        debuff.tickInterval = 1.0; // Урон каждую секунду
+        debuff.tickInterval = 1.0;
         break;
       case 'burn':
         // Ожог наносит урон каждый тик
         debuff.lastTick = 0;
-        debuff.tickInterval = 0.8; // Урон каждые 0.8 секунды
+        debuff.tickInterval = 0.8;
         break;
       case 'freeze':
         // Заморозка замедляет движение и атаку
@@ -100,23 +172,23 @@ export class BuffManager {
         gameState.player.isStunned = true;
         break;
       case 'slow':
-        // Замедление
-        gameState.player.moveSpeed = Math.max(20, gameState.player.moveSpeed * 0.6);
+        // Замедление — снижает скорость передвижения
+        gameState.player.moveSpeed = Math.max(20, gameState.player.moveSpeed * (1 - debuff.value));
         break;
       case 'weakness':
-        // Слабость снижает урон
-        gameState.player.damage = Math.max(1, gameState.player.damage * 0.7);
+        // Слабость — снижает урон
+        gameState.player.damage = Math.max(1, gameState.player.damage * (1 - debuff.value));
         break;
       case 'vulnerability':
-        // Уязвимость снижает защиту
+        // Уязвимость — снижает защиту
         gameState.player.defense = Math.max(0, gameState.player.defense - debuff.value);
         break;
     }
   }
-  
+
   static removeBuffFromPlayer(buff) {
     if (!gameState.player) return;
-    
+
     switch (buff.type) {
       case 'damage':
         gameState.player.damage -= buff.value;
@@ -137,45 +209,39 @@ export class BuffManager {
         gameState.player.attackRadius -= buff.value;
         break;
       case 'fire':
-        // Убираем огненные эффекты
         gameState.player.damage -= buff.value;
         gameState.player.fireChance = Math.max(0, (gameState.player.fireChance || 0) - 0.08);
         gameState.player.fireDamage = Math.max(0, (gameState.player.fireDamage || 0) - Math.floor(buff.value * 0.3));
         break;
       case 'ice':
-        // Убираем ледяные эффекты
         gameState.player.damage -= buff.value;
         gameState.player.iceChance = Math.max(0, (gameState.player.iceChance || 0) - 0.06);
         gameState.player.iceSlow = Math.max(0, (gameState.player.iceSlow || 0) - 0.2);
         break;
+      case 'invisibility':
+        if (gameState.player) gameState.player.isInvisible = false;
+        break;
+      case 'rage':
+        if (gameState.player) gameState.player.rageMode = false;
+        break;
+      case 'invulnerability':
+        if (gameState.player) gameState.player.isInvulnerable = false;
+        break;
+      case 'vampirism':
+        if (gameState.player) gameState.player.vampirism = false;
+        break;
     }
   }
-  
+
   static removeDebuffFromPlayer(debuff) {
     if (!gameState.player) return;
-    
-    switch (debuff.type) {
-      case 'freeze':
-        // Восстанавливаем скорость движения и атаки
-        gameState.player.moveSpeed = gameState.player.baseMoveSpeed || gameState.player.moveSpeed;
-        gameState.player.attackSpeed = gameState.player.baseAttackSpeed || gameState.player.attackSpeed;
-        break;
-      case 'stun':
-        // Убираем стан
-        gameState.player.isStunned = false;
-        break;
-      case 'slow':
-        // Восстанавливаем скорость движения
-        gameState.player.moveSpeed = gameState.player.baseMoveSpeed || gameState.player.moveSpeed;
-        break;
-      case 'weakness':
-        // Восстанавливаем урон
-        gameState.player.damage = gameState.player.baseDamage || gameState.player.damage;
-        break;
-      case 'vulnerability':
-        // Восстанавливаем защиту
-        gameState.player.defense = gameState.player.baseDefense || gameState.player.defense;
-        break;
+
+    // Вместо прямого сброса в base, пересчитываем статы из активных баффов
+    this.recalcStatFromBuffs(null, debuff.type);
+
+    // Для статус-эффектов просто снимаем флаг
+    if (debuff.type === 'stun') {
+      gameState.player.isStunned = false;
     }
   }
   
@@ -370,7 +436,7 @@ export class BuffManager {
       value: healPerTick,
       duration,
       remainingTime: duration,
-      icon: '💚',
+      icon: 'REG',
       startTime: gameState.gameTime,
       tickInterval,
       lastTick: 0
@@ -449,10 +515,10 @@ export class BuffManager {
             this.addDebuff('weakness', effect.value, effect.duration, 'WKN');
             break;
           case 'defense_debuff':
-            this.addDebuff('vulnerability', effect.value, effect.duration, '🛡️');
+            this.addDebuff('vulnerability', effect.value, effect.duration, 'VUL');
             break;
           case 'moveSpeed_debuff':
-            this.addDebuff('slow', effect.value, effect.duration, '🐌');
+            this.addDebuff('slow', effect.value, effect.duration, 'SLW');
             break;
         }
       }

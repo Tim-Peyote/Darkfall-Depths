@@ -146,7 +146,7 @@ export class SettingsManager {
       
       const handleMuteToggle = () => {
         gameState.audio.enabled = !gameState.audio.enabled;
-        muteToggle.textContent = gameState.audio.enabled ? '🔇 Выключить звук' : '🔊 Включить звук';
+        muteToggle.textContent = gameState.audio.enabled ? 'MUTE' : 'SOUND';
         
         if (gameState.audio.enabled) {
           // Resume music if enabled
@@ -275,7 +275,7 @@ export class SettingsManager {
       
       const handlePauseMuteToggle = () => {
         gameState.audio.enabled = !gameState.audio.enabled;
-        pauseMuteToggle.textContent = gameState.audio.enabled ? '🔇 Выключить звук' : '🔊 Включить звук';
+        pauseMuteToggle.textContent = gameState.audio.enabled ? 'MUTE' : 'SOUND';
         
         if (gameState.audio.enabled) {
           // Resume music if enabled
@@ -631,7 +631,7 @@ export class SettingsManager {
         gameState.audio.enabled = !gameState.audio.enabled;
         
         // Обновляем текст кнопки
-        newMuteToggle.textContent = gameState.audio.enabled ? '🔇 Выключить звук' : '🔊 Включить звук';
+        newMuteToggle.textContent = gameState.audio.enabled ? 'MUTE' : 'SOUND';
         
         // Управляем музыкой
         if (gameState.audio.enabled) {
@@ -1121,7 +1121,7 @@ export class SettingsManager {
     }
 
     if (pauseMuteToggle) {
-      pauseMuteToggle.textContent = gameState.audio.enabled ? '🔇 Выключить звук' : '🔊 Включить звук';
+      pauseMuteToggle.textContent = gameState.audio.enabled ? 'MUTE' : 'SOUND';
     }
 
     // Настраиваем обработчики событий для паузы
@@ -1154,7 +1154,7 @@ export class SettingsManager {
     }
 
     if (muteToggle) {
-      muteToggle.textContent = gameState.audio.enabled ? '🔇 Выключить звук' : '🔊 Включить звук';
+      muteToggle.textContent = gameState.audio.enabled ? 'MUTE' : 'SOUND';
     }
 
     // Настраиваем обработчики событий

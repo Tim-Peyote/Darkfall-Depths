@@ -196,7 +196,7 @@ export class Player extends Entity {
       if (this.fireChance && Math.random() < this.fireChance) {
         totalDamage += this.fireDamage || 0;
         // Поджигаем врага
-        closestEnemy.addDebuff('burn', Math.floor((this.fireDamage || 0) * 0.3), 5.0, '🔥');
+        closestEnemy.addDebuff('burn', Math.floor((this.fireDamage || 0) * 0.3), 5.0, gameState.debuffs.icons.burn);
         
         // Создаем огненные частицы
         for (let i = 0; i < 6; i++) {
@@ -215,7 +215,7 @@ export class Player extends Entity {
       // Применяем ледяные эффекты
       if (this.iceChance && Math.random() < this.iceChance) {
         // Замораживаем врага
-        closestEnemy.addDebuff('freeze', 0, 3.0, '❄️');
+        closestEnemy.addDebuff('freeze', 0, 3.0, gameState.debuffs.icons.freeze);
         
         // Создаем ледяные частицы
         for (let i = 0; i < 6; i++) {
@@ -718,10 +718,13 @@ export class Player extends Entity {
         this.renderRogue(ctx, x, y, isMoving, isAttacking, isIdle, idleTime);
         break;
       default:
-        // Fallback на эмодзи
-        ctx.font = '24px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(this.sprite, x, y + 8);
+        // Fallback — простой силуэт персонажа
+        ctx.fillStyle = '#c9a84c';
+        ctx.beginPath();
+        ctx.arc(x, y - 8, 8, 0, Math.PI * 2); // голова
+        ctx.fill();
+        ctx.fillStyle = '#8a7a60';
+        ctx.fillRect(x - 6, y, 12, 14); // тело
     }
     
     // Визуализация щита

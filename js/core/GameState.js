@@ -28,14 +28,19 @@ export const gameState = {
   buffs: {
     active: [], // Активные временные баффы
     icons: {
-      damage: 'DMG',
+      damage: 'ATK',
       crit: 'CRT',
       defense: 'DEF',
       moveSpeed: 'SPD',
-      attackSpeed: 'ATK',
+      attackSpeed: 'HST',
       attackRadius: 'RNG',
       fire: 'FIR',
-      ice: 'ICE'
+      ice: 'ICE',
+      regen: 'REG',
+      invisibility: 'INV',
+      rage: 'RAG',
+      invulnerability: 'IMN',
+      vampirism: 'VMP'
     }
   },
   debuffs: {
@@ -47,7 +52,7 @@ export const gameState = {
       stun: 'STN',
       slow: 'SLW',
       weakness: 'WKN',
-      vulnerability: 'VLN'
+      vulnerability: 'VUL'
     }
   },
   stats: {

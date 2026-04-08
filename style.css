@@ -1192,7 +1192,7 @@ select.form-control {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: var(--space-8) var(--space-10);
+  padding: var(--space-8) var(--space-16);
   background: rgba(10, 9, 8, 0.7);
   border-radius: var(--radius-sm);
   border: 1px solid rgba(61, 51, 40, 0.5);
@@ -1217,6 +1217,8 @@ select.form-control {
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
   image-rendering: crisp-edges;
+  border: none;
+  outline: none;
 }
 
 /* Исправляем кнопки паузы и инвентаря для всех устройств */
@@ -2378,6 +2380,65 @@ select.form-control {
   font-weight: var(--font-weight-bold);
 }
 
+/* Стили для ползунков в настройках (form-control + range) */
+input[type="range"].form-control {
+  height: 6px;
+  background: var(--color-border-dark);
+  border: none;
+  border-radius: 3px;
+  padding: 0;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+input[type="range"].form-control::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  border: 2px solid #a08850;
+}
+
+input[type="range"].form-control::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  background: var(--color-primary);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid #a08850;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+input[type="range"].form-control::-webkit-slider-runnable-track {
+  height: 6px;
+  background: var(--color-border-dark);
+  border-radius: 3px;
+}
+
+input[type="range"].form-control::-moz-range-track {
+  height: 6px;
+  background: var(--color-border-dark);
+  border-radius: 3px;
+  border: none;
+}
+
+input[type="range"].form-control::-moz-range-progress {
+  height: 6px;
+  background: var(--color-primary);
+  border-radius: 3px;
+}
+
+input[type="range"].form-control:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(201, 168, 76, 0.4);
+}
+
 .volume-controls {
   display: flex;
   flex-direction: column;
@@ -2421,6 +2482,7 @@ select.form-control {
   border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  border: 2px solid #a08850;
 }
 
 .volume-slider::-moz-range-thumb {
@@ -2429,8 +2491,30 @@ select.form-control {
   background: var(--color-primary);
   border-radius: 50%;
   cursor: pointer;
-  border: none;
+  border: 2px solid #a08850;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* Стилизация трека (фона) ползунка */
+.volume-slider::-webkit-slider-runnable-track {
+  height: 6px;
+  background: var(--color-border-dark);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.volume-slider::-moz-range-track {
+  height: 6px;
+  background: var(--color-border-dark);
+  border-radius: 3px;
+  border: none;
+  cursor: pointer;
+}
+
+.volume-slider::-moz-range-progress {
+  height: 6px;
+  background: var(--color-primary);
+  border-radius: 3px;
 }
 
 .audio-actions {
@@ -3543,9 +3627,10 @@ select.form-control {
     border-radius: 50% !important;
     background: var(--color-primary) !important;
     cursor: pointer !important;
-    border: none !important;
+    border: 2px solid #a08850 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
   }
-  
+
   .settings-panel input[type="range"]::-moz-range-thumb,
   .pause-panel input[type="range"]::-moz-range-thumb {
     width: 20px !important;
@@ -3553,7 +3638,31 @@ select.form-control {
     border-radius: 50% !important;
     background: var(--color-primary) !important;
     cursor: pointer !important;
+    border: 2px solid #a08850 !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  }
+
+  /* Трек ползунка на мобильных */
+  .settings-panel input[type="range"]::-webkit-slider-runnable-track,
+  .pause-panel input[type="range"]::-webkit-slider-runnable-track {
+    height: 6px !important;
+    background: var(--color-border-dark) !important;
+    border-radius: 3px !important;
+  }
+
+  .settings-panel input[type="range"]::-moz-range-track,
+  .pause-panel input[type="range"]::-moz-range-track {
+    height: 6px !important;
+    background: var(--color-border-dark) !important;
+    border-radius: 3px !important;
     border: none !important;
+  }
+
+  .settings-panel input[type="range"]::-moz-range-progress,
+  .pause-panel input[type="range"]::-moz-range-progress {
+    height: 6px !important;
+    background: var(--color-primary) !important;
+    border-radius: 3px !important;
   }
   
   .settings-panel .btn {
@@ -4666,9 +4775,9 @@ body, canvas {
   }
   
   .stat-item {
-    padding: var(--space-3) var(--space-4);
+    padding: var(--space-6) var(--space-10);
     font-size: 11px;
-    min-height: 28px;
+    min-height: 32px;
   }
 
 
@@ -4684,6 +4793,8 @@ html, body {
   position: fixed;
   width: 100%;
   height: 100%;
+  margin: 0;
+  padding: 0;
   touch-action: none;
   overscroll-behavior: none;
 }

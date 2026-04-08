@@ -213,10 +213,11 @@ export class Chest extends Entity {
     ctx.fillStyle = '#FFD700';
     ctx.fillRect(screenX - 2, screenY - 2, 4, 4);
     
-    // Эмодзи сундука
-    ctx.font = '16px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('🗃️', screenX, screenY + 4);
+    // Сундук — простой прямоугольник с замком
+    ctx.fillStyle = '#8b5a2b';
+    ctx.fillRect(screenX - 10, screenY - 6, 20, 14);
+    ctx.fillStyle = '#c9a84c';
+    ctx.fillRect(screenX - 2, screenY - 2, 4, 4);
     
     // Мелкий индикатор если есть предметы
     if (this.inventory.some(item => item !== null)) {

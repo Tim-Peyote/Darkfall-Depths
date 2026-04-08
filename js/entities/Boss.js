@@ -408,11 +408,25 @@ export class Boss extends Enemy {
     ctx.lineWidth = 3;
     ctx.stroke();
 
-    // Спрайт-иконка
-    ctx.font = `${Math.floor(drawRadius * 1.2)}px serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(this.sprite, screenX, screenY);
+    // Кастомный спрайт босса — корона + силуэт
+    const crownColor = this.phase === 3 ? '#e74c3c' : this.phase === 2 ? '#f39c12' : '#c9a84c';
+    // Корона
+    ctx.fillStyle = crownColor;
+    ctx.beginPath();
+    ctx.moveTo(screenX - 8, screenY - 10);
+    ctx.lineTo(screenX - 10, screenY - 18);
+    ctx.lineTo(screenX - 4, screenY - 13);
+    ctx.lineTo(screenX, screenY - 20);
+    ctx.lineTo(screenX + 4, screenY - 13);
+    ctx.lineTo(screenX + 10, screenY - 18);
+    ctx.lineTo(screenX + 8, screenY - 10);
+    ctx.closePath();
+    ctx.fill();
+    // Тело
+    ctx.fillStyle = this.phase === 3 ? '#5a1a1a' : this.phase === 2 ? '#5a3a1a' : '#3d3328';
+    ctx.beginPath();
+    ctx.arc(screenX, screenY, drawRadius * 0.6, 0, Math.PI * 2);
+    ctx.fill();
 
     // Имя босса
     ctx.font = 'bold 12px sans-serif';

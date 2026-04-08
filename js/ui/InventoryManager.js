@@ -386,69 +386,68 @@ export class InventoryManager {
       
       if (potionType) {
         // Слот с назначенным типом зелья
-        let icon = '🧪';
+        let icon = 'POT';
         let color = '#ff6666';
         let name = 'Неизвестное зелье';
-        
+
         switch (potionType) {
           case 'potion':
-            icon = '❤️';
+            icon = 'HP';
             color = '#ff6666';
             name = 'Зелье здоровья';
             break;
           case 'speed_potion':
-            icon = '💨';
+            icon = 'SPD';
             color = '#66ff66';
             name = 'Зелье скорости';
             break;
           case 'strength_potion':
-            icon = '⚔️';
+            icon = 'STR';
             color = '#ffaa66';
             name = 'Зелье силы';
             break;
           case 'defense_potion':
-            icon = '🛡️';
+            icon = 'DEF';
             color = '#6666ff';
             name = 'Зелье защиты';
             break;
           case 'regen_potion':
-            icon = '💚';
+            icon = 'REG';
             color = '#ff66ff';
             name = 'Зелье регенерации';
             break;
           case 'combo_potion':
-            icon = '✨';
+            icon = 'CMB';
             color = '#ffff66';
             name = 'Комбо зелье';
             break;
           case 'mystery_potion':
-            icon = '❓';
+            icon = 'MYS';
             color = '#8e44ad';
             name = 'Тайная банка';
             break;
           case 'purification_potion':
-            icon = '✨';
+            icon = 'PUR';
             color = '#f39c12';
             name = 'Зелье очищения';
             break;
-          // Добавляем поддержку свитков
           case 'scroll_fire':
-            icon = '🔥';
+            icon = 'FIR';
             color = '#e74c3c';
             name = 'Свиток огня';
             break;
           case 'scroll_ice':
-            icon = '❄️';
+            icon = 'ICE';
             color = '#3498db';
             name = 'Свиток льда';
             break;
           case 'scroll_teleport':
-            icon = '🌀';
+            icon = 'TLP';
             color = '#9b59b6';
             name = 'Свиток телепортации';
             break;
           case 'scroll_mystery':
-            icon = '🔮';
+            icon = '???';
             color = '#34495e';
             name = 'Тайный свиток';
             break;

@@ -33,38 +33,30 @@ export class LightSource extends Entity {
   
   getSpriteForType(type) {
     const sprites = {
-      'TORCH': '🔥',
-      'MAGIC_ORB': '🌟', // Звезда для магического свечения
-      'CRYSTAL': '💫', // Сверкающая звезда для кристалла
-      'FIRE': '🔥',
-      'PLAYER_LIGHT': '✨'
+      'TORCH': '\u2606',       // звезда
+      'MAGIC_ORB': '\u272F',   // магический символ
+      'CRYSTAL': '\u2736',     // шестиконечная звезда
+      'FIRE': '\u2606',
+      'PLAYER_LIGHT': '\u2727'
     };
-    return sprites[type] || '✨';
+    return sprites[type] || '\u2727';
   }
-  
+
   getDisplaySprite() {
-    // Возвращаем правильный спрайт в зависимости от типа и контекста
     if (this.lightType === 'TORCH' && this.wallSide) {
-      // Факел на стене - используем символ факела
-      return '🔥';
+      return '\u2606';
     } else if (this.lightType === 'FIRE' && this.isFireBowl) {
-      // Чаша с огнем - используем символ чаши
-      return '🕯️';
+      return '\u2606';
     } else if (this.lightType === 'TORCH' && this.isCorridorTorch) {
-      // Факел в коридоре - используем символ факела
-      return '🔥';
+      return '\u2606';
     } else if (this.lightType === 'MAGIC_ORB') {
-      // Магическое свечение - используем звезду
-      return '🌟';
+      return '\u272F';
     } else if (this.lightType === 'CRYSTAL') {
-      // Кристалл - используем сверкающую звезду
-      return '💫';
+      return '\u2736';
     } else if (this.lightType === 'MAGIC_ORB' && this.isDecorative) {
-      // Декоративная магическая сфера - более яркая звезда
-      return '⭐';
+      return '\u2736';
     } else if (this.lightType === 'CRYSTAL' && this.isDecorative) {
-      // Декоративный кристалл - более яркая сверкающая звезда
-      return '✨';
+      return '\u2736';
     } else {
       return this.sprite;
     }

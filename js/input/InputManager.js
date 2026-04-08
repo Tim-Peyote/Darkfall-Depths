@@ -250,13 +250,13 @@ export class InputManager {
           if (gameState.player.hasDash) {
             cooldown = gameState.player.dashCooldown;
             maxCooldown = 3.0;
-            abilityBtn.innerHTML = '💨';
+            abilityBtn.innerHTML = 'DASH';
             abilityBtn.title = 'Dash (Q)';
             abilityName = 'Dash';
           } else if (gameState.player.hasShield) {
             cooldown = gameState.player.shieldCooldown;
             maxCooldown = 8.0;
-            abilityBtn.innerHTML = '🛡️';
+            abilityBtn.innerHTML = 'SHLD';
             abilityBtn.title = 'Щит (Q)';
             abilityName = 'Shield';
           } else if (gameState.player.hasBlast) {

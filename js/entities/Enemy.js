@@ -193,12 +193,12 @@ export class Enemy extends Entity {
     
     if (this.canFreeze && Math.random() < this.freezeChance) {
       const { BuffManager } = await import('../core/BuffManager.js');
-      BuffManager.addDebuff('freeze', 0, this.freezeDuration, '❄️');
+      BuffManager.addDebuff('freeze', 0, this.freezeDuration, gameState.debuffs.icons.freeze);
     }
-    
+
     if (this.canPoison && Math.random() < this.poisonChance) {
       const { BuffManager } = await import('../core/BuffManager.js');
-      BuffManager.addDebuff('poison', this.poisonDamage, this.poisonDuration, '🦠');
+      BuffManager.addDebuff('poison', this.poisonDamage, this.poisonDuration, gameState.debuffs.icons.poison);
     }
   }
   
@@ -641,10 +641,17 @@ export class Enemy extends Entity {
         this.renderAncientGuardian(ctx, x, y, isMoving, isAttacking);
         break;
       default:
-        // Fallback на эмодзи
-        ctx.font = '20px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(this.sprite, x, y + 7);
+        // Fallback — тёмный силуэт врага
+        ctx.fillStyle = '#5a4d3a';
+        ctx.beginPath();
+        ctx.arc(x, y - 6, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#3d3328';
+        ctx.fillRect(x - 5, y, 10, 12);
+        // Красные глаза
+        ctx.fillStyle = '#8b1a1a';
+        ctx.fillRect(x - 3, y - 8, 2, 2);
+        ctx.fillRect(x + 1, y - 8, 2, 2);
     }
     
     ctx.restore();

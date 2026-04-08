@@ -42,7 +42,7 @@ export class Projectile extends Entity {
           if (gameState.player && gameState.player.fireChance && Math.random() < gameState.player.fireChance) {
             totalDamage += gameState.player.fireDamage || 0;
             // Поджигаем врага
-            entity.addDebuff('burn', Math.floor((gameState.player.fireDamage || 0) * 0.3), 5.0, '🔥');
+            entity.addDebuff('burn', Math.floor((gameState.player.fireDamage || 0) * 0.3), 5.0, gameState.debuffs.icons.burn);
             
             // Создаем огненные частицы
             for (let j = 0; j < 4; j++) {
@@ -61,7 +61,7 @@ export class Projectile extends Entity {
           // Применяем ледяные эффекты от игрока
           if (gameState.player && gameState.player.iceChance && Math.random() < gameState.player.iceChance) {
             // Замораживаем врага
-            entity.addDebuff('freeze', 0, 3.0, '❄️');
+            entity.addDebuff('freeze', 0, 3.0, gameState.debuffs.icons.freeze);
             
             // Создаем ледяные частицы
             for (let j = 0; j < 4; j++) {
@@ -367,12 +367,12 @@ export class EnemyProjectile extends Projectile {
       // Применяем дебафы если они есть
       if (this.canFreeze && Math.random() < this.freezeChance) {
         const { BuffManager } = await import('../core/BuffManager.js');
-        BuffManager.addDebuff('freeze', 0, this.freezeDuration, '❄️');
+        BuffManager.addDebuff('freeze', 0, this.freezeDuration, gameState.debuffs.icons.freeze);
       }
-      
+
       if (this.canPoison && Math.random() < this.poisonChance) {
         const { BuffManager } = await import('../core/BuffManager.js');
-        BuffManager.addDebuff('poison', this.poisonDamage, this.poisonDuration, '🦠');
+        BuffManager.addDebuff('poison', this.poisonDamage, this.poisonDuration, gameState.debuffs.icons.poison);
       }
       
       this.isDead = true;

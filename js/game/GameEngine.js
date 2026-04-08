@@ -1329,71 +1329,121 @@ export class GameEngine {
   static updateActiveBuffs() {
     const buffsContainer = document.getElementById('activeBuffsContainer');
     if (!buffsContainer) return;
-    
+
     const activeBuffs = gameState.buffs.active;
     const activeDebuffs = gameState.debuffs.active;
-    
 
-    
-    // Очищаем контейнер
-    buffsContainer.innerHTML = '';
-    
-    // Добавляем активные баффы
+    // Собираем все уникальные ключи (тип + startTime) для существующих элементов
+    const existingElements = new Map();
+    buffsContainer.querySelectorAll('.active-buff, .active-debuff').forEach(el => {
+      const key = el.dataset.buffKey;
+      if (key) existingElements.set(key, el);
+    });
+
+    // Собираем новые ключи
+    const newKeys = new Set();
+    const generateKey = (effect) => `${effect.type}_${effect.startTime}`;
+
     activeBuffs.forEach(buff => {
-      const buffElement = document.createElement('div');
+      const key = generateKey(buff);
+      newKeys.add(key);
+
+      let buffElement = existingElements.get(key);
+
+      if (!buffElement) {
+        // Создаём новый элемент
+        buffElement = document.createElement('div');
+        buffElement.className = 'active-buff';
+        buffElement.dataset.buffKey = key;
+
+        const iconElement = document.createElement('span');
+        iconElement.className = 'buff-icon';
+        iconElement.style.fontSize = '14px';
+
+        const timeElement = document.createElement('span');
+        timeElement.className = 'buff-time';
+        timeElement.style.fontSize = '12px';
+
+        buffElement.appendChild(iconElement);
+        buffElement.appendChild(timeElement);
+        buffsContainer.appendChild(buffElement);
+      }
+
+      // Обновляем классы предупреждения
       buffElement.className = 'active-buff';
-      
-      // Добавляем классы предупреждения
       if (buff.remainingTime < 3) {
         buffElement.classList.add('critical');
       } else if (buff.remainingTime < 6) {
         buffElement.classList.add('warning');
       }
-      
-      const iconElement = document.createElement('span');
-      iconElement.textContent = buff.icon;
-      iconElement.style.fontSize = '14px';
-      
-      const timeElement = document.createElement('span');
-      timeElement.textContent = `${Math.ceil(buff.remainingTime)}s`;
-      timeElement.style.color = buff.remainingTime < 3 ? '#ff4444' : '#ffffff';
-      
-      // Устанавливаем ширину прогресс-бара через CSS переменную
+
+      // Обновляем содержимое
+      const iconEl = buffElement.querySelector('.buff-icon');
+      if (iconEl) iconEl.textContent = buff.icon;
+
+      const timeEl = buffElement.querySelector('.buff-time');
+      if (timeEl) {
+        timeEl.textContent = `${Math.ceil(buff.remainingTime)}s`;
+        timeEl.style.color = buff.remainingTime < 3 ? '#ff4444' : '#ffffff';
+      }
+
+      // Обновляем прогресс-бар
       const progressPercent = (buff.remainingTime / buff.duration) * 100;
       buffElement.style.setProperty('--progress-width', `${progressPercent}%`);
-      
-      buffElement.appendChild(iconElement);
-      buffElement.appendChild(timeElement);
-      buffsContainer.appendChild(buffElement);
     });
-    
-    // Добавляем активные дебафы
+
     activeDebuffs.forEach(debuff => {
-      const debuffElement = document.createElement('div');
+      const key = generateKey(debuff);
+      newKeys.add(key);
+
+      let debuffElement = existingElements.get(key);
+
+      if (!debuffElement) {
+        debuffElement = document.createElement('div');
+        debuffElement.className = 'active-debuff';
+        debuffElement.dataset.buffKey = key;
+
+        const iconElement = document.createElement('span');
+        iconElement.className = 'debuff-icon';
+        iconElement.style.fontSize = '14px';
+
+        const timeElement = document.createElement('span');
+        timeElement.className = 'debuff-time';
+        timeElement.style.fontSize = '12px';
+
+        debuffElement.appendChild(iconElement);
+        debuffElement.appendChild(timeElement);
+        buffsContainer.appendChild(debuffElement);
+      }
+
+      // Обновляем классы предупреждения
       debuffElement.className = 'active-debuff';
-      
-      // Добавляем классы предупреждения для дебафов
       if (debuff.remainingTime < 3) {
         debuffElement.classList.add('critical');
       } else if (debuff.remainingTime < 6) {
         debuffElement.classList.add('warning');
       }
-      
-      const iconElement = document.createElement('span');
-      iconElement.textContent = debuff.icon;
-      iconElement.style.fontSize = '14px';
-      
-      const timeElement = document.createElement('span');
-      timeElement.textContent = `${Math.ceil(debuff.remainingTime)}s`;
-      timeElement.style.color = debuff.remainingTime < 3 ? '#ff4444' : '#ff6666';
-      
-      // Устанавливаем ширину прогресс-бара через CSS переменную
+
+      // Обновляем содержимое
+      const iconEl = debuffElement.querySelector('.debuff-icon');
+      if (iconEl) iconEl.textContent = debuff.icon;
+
+      const timeEl = debuffElement.querySelector('.debuff-time');
+      if (timeEl) {
+        timeEl.textContent = `${Math.ceil(debuff.remainingTime)}s`;
+        timeEl.style.color = debuff.remainingTime < 3 ? '#ff4444' : '#ff6666';
+      }
+
+      // Обновляем прогресс-бар
       const progressPercent = (debuff.remainingTime / debuff.duration) * 100;
       debuffElement.style.setProperty('--progress-width', `${progressPercent}%`);
-      
-      debuffElement.appendChild(iconElement);
-      debuffElement.appendChild(timeElement);
-      buffsContainer.appendChild(debuffElement);
+    });
+
+    // Удаляем элементы, которых больше нет
+    existingElements.forEach((el, key) => {
+      if (!newKeys.has(key)) {
+        el.remove();
+      }
     });
   }
   

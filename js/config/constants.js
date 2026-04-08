@@ -92,7 +92,7 @@ export const ENEMY_TYPES = [
     attackRange: 48, 
     color: '#bdc3c7', 
     reward: 10,
-    sprite: '💀'
+    sprite: '\u2620'
   },
   { 
     type: 'Skeleton Archer', 
@@ -102,7 +102,7 @@ export const ENEMY_TYPES = [
     attackRange: 180, 
     color: '#95a5a6', 
     reward: 15,
-    sprite: '🏹',
+    sprite: '\u27B5',
     projectileSpeed: 250,
     hasBow: true
   },
@@ -114,7 +114,7 @@ export const ENEMY_TYPES = [
     attackRange: 150, 
     color: '#8e44ad', 
     reward: 15,
-    sprite: '🧙‍♂️',
+    sprite: '\u2726',
     projectileSpeed: 200
   },
   { 
@@ -125,7 +125,7 @@ export const ENEMY_TYPES = [
     attackRange: 160, 
     color: '#3498db', 
     reward: 20,
-    sprite: '❄️',
+    sprite: '\u2744',
     projectileSpeed: 180,
     canFreeze: true,
     freezeChance: 0.3,
@@ -139,7 +139,7 @@ export const ENEMY_TYPES = [
     attackRange: 140, 
     color: '#27ae60', 
     reward: 18,
-    sprite: '🦎',
+    sprite: '\u25C8',
     projectileSpeed: 150,
     canPoison: true,
     poisonChance: 0.4,
@@ -154,7 +154,7 @@ export const ENEMY_TYPES = [
     attackRange: 48, 
     color: '#f39c12', 
     reward: 22,
-    sprite: '⚡',
+    sprite: '\u26A1',
     canStun: true,
     stunChance: 0.25,
     stunDuration: 2.5
@@ -167,7 +167,7 @@ export const ENEMY_TYPES = [
     attackRange: 48, 
     color: '#27ae60', 
     reward: 20,
-    sprite: '👹'
+    sprite: '\u2694'
   },
   { 
     type: 'Shadow Assassin', 
@@ -177,7 +177,7 @@ export const ENEMY_TYPES = [
     attackRange: 48, 
     color: '#2c3e50', 
     reward: 25,
-    sprite: '👤',
+    sprite: '\u25A0',
     levelRequirement: 5
   },
   { 
@@ -188,7 +188,7 @@ export const ENEMY_TYPES = [
     attackRange: 200, 
     color: '#e74c3c', 
     reward: 50,
-    sprite: '👿',
+    sprite: '\u262F',
     projectileSpeed: 250,
     levelRequirement: 10
   },
@@ -200,7 +200,7 @@ export const ENEMY_TYPES = [
     attackRange: 48, 
     color: '#f39c12', 
     reward: 40,
-    sprite: '🛡️',
+    sprite: '\u25C6',
     levelRequirement: 8
   },
   { 
@@ -211,7 +211,7 @@ export const ENEMY_TYPES = [
     attackRange: 120, 
     color: '#9b59b6', 
     reward: 35,
-    sprite: '👻',
+    sprite: '\u25A1',
     levelRequirement: 6,
     projectileSpeed: 220,
     canTeleport: true,
@@ -225,7 +225,7 @@ export const ENEMY_TYPES = [
     attackRange: 48, 
     color: '#e67e22', 
     reward: 45,
-    sprite: '💎',
+    sprite: '\u25C7',
     levelRequirement: 7,
     canReflect: true,
     reflectChance: 0.2
@@ -236,19 +236,19 @@ export const ENEMY_TYPES = [
 export const BOSS_TYPES = [
   {
     type: 'Skeleton King', hp: 500, damage: 40, speed: 35, attackRange: 64,
-    color: '#fff', reward: 200, sprite: '💀', levelTier: 1,
+    color: '#fff', reward: 200, sprite: '\u2620', levelTier: 1,
     abilities: ['summon', 'charge'],
     summonCount: 3, chargeDistance: 120, chargeDamage: 60
   },
   {
     type: 'Dragon', hp: 800, damage: 55, speed: 30, attackRange: 200,
-    color: '#e74c3c', reward: 350, sprite: '🐉', levelTier: 2,
+    color: '#e74c3c', reward: 350, sprite: '\u26E9', levelTier: 2,
     abilities: ['firebreath', 'stomp'],
     projectileSpeed: 300, firebreathDamage: 35, stompRadius: 100, stompDamage: 45
   },
   {
     type: 'Lich', hp: 600, damage: 45, speed: 40, attackRange: 180,
-    color: '#8e44ad', reward: 300, sprite: '👻', levelTier: 3,
+    color: '#8e44ad', reward: 300, sprite: '\u25A1', levelTier: 3,
     abilities: ['teleport', 'curse', 'summon'],
     projectileSpeed: 250, summonCount: 2, curseDuration: 5
   }
@@ -257,70 +257,70 @@ export const BOSS_TYPES = [
 // ==================== СИСТЕМА ПРЕДМЕТОВ ====================
 export const BASE_ITEMS = [
   // Оружие
-  { base: 'sword', name: 'Меч', class: 'warrior', icon: '⚔️', color: '#e67e22', type: 'weapon', slot: 'weapon', minRadius: 56, maxRadius: 72 },
-  { base: 'axe', name: 'Топор', class: 'warrior', icon: '🪓', color: '#b87333', type: 'weapon', slot: 'weapon', minRadius: 56, maxRadius: 72 },
-  { base: 'staff', name: 'Посох', class: 'mage', icon: '🪄', color: '#8e44ad', type: 'weapon', slot: 'weapon', minRadius: 120, maxRadius: 180 },
-  { base: 'wand', name: 'Жезл', class: 'mage', icon: '✨', color: '#9b59b6', type: 'weapon', slot: 'weapon', minRadius: 100, maxRadius: 160 },
-  { base: 'dagger', name: 'Кинжал', class: 'rogue', icon: '🗡️', color: '#27ae60', type: 'weapon', slot: 'weapon', minRadius: 40, maxRadius: 56 },
-  { base: 'crossbow', name: 'Арбалет', class: 'rogue', icon: '🏹', color: '#34495e', type: 'weapon', slot: 'weapon', minRadius: 80, maxRadius: 120 },
-  
+  { base: 'sword', name: 'Меч', class: 'warrior', icon: 'SWD', color: '#e67e22', type: 'weapon', slot: 'weapon', minRadius: 56, maxRadius: 72 },
+  { base: 'axe', name: 'Топор', class: 'warrior', icon: 'AXE', color: '#b87333', type: 'weapon', slot: 'weapon', minRadius: 56, maxRadius: 72 },
+  { base: 'staff', name: 'Посох', class: 'mage', icon: 'STF', color: '#8e44ad', type: 'weapon', slot: 'weapon', minRadius: 120, maxRadius: 180 },
+  { base: 'wand', name: 'Жезл', class: 'mage', icon: 'WND', color: '#9b59b6', type: 'weapon', slot: 'weapon', minRadius: 100, maxRadius: 160 },
+  { base: 'dagger', name: 'Кинжал', class: 'rogue', icon: 'DGR', color: '#27ae60', type: 'weapon', slot: 'weapon', minRadius: 40, maxRadius: 56 },
+  { base: 'crossbow', name: 'Арбалет', class: 'rogue', icon: 'CRB', color: '#34495e', type: 'weapon', slot: 'weapon', minRadius: 80, maxRadius: 120 },
+
   // Щиты
-  { base: 'shield', name: 'Щит', class: 'warrior', icon: '🛡️', color: '#95a5a6', type: 'shield', slot: 'shield' },
-  
+  { base: 'shield', name: 'Щит', class: 'warrior', icon: 'SHD', color: '#95a5a6', type: 'shield', slot: 'shield' },
+
   // Броня
-  { base: 'robe', name: 'Мантия', class: 'mage', icon: '🧥', color: '#6c3483', type: 'armor', slot: 'armor' },
-  { base: 'leather', name: 'Кожаная броня', class: 'rogue', icon: '🥋', color: '#d35400', type: 'armor', slot: 'armor' },
-  { base: 'plate', name: 'Латная броня', class: 'warrior', icon: '🥋', color: '#7f8c8d', type: 'armor', slot: 'armor' },
-  
+  { base: 'robe', name: 'Мантия', class: 'mage', icon: 'RBE', color: '#6c3483', type: 'armor', slot: 'armor' },
+  { base: 'leather', name: 'Кожаная броня', class: 'rogue', icon: 'LTH', color: '#d35400', type: 'armor', slot: 'armor' },
+  { base: 'plate', name: 'Латная броня', class: 'warrior', icon: 'PLT', color: '#7f8c8d', type: 'armor', slot: 'armor' },
+
   // Головные уборы
-  { base: 'helmet', name: 'Шлем', class: 'warrior', icon: '⛑️', color: '#95a5a6', type: 'head', slot: 'head' },
-  { base: 'hood', name: 'Капюшон', class: 'mage', icon: '👒', color: '#6c3483', type: 'head', slot: 'head' },
-  { base: 'cap', name: 'Кепка', class: 'rogue', icon: '🎩', color: '#34495e', type: 'head', slot: 'head' },
-  
+  { base: 'helmet', name: 'Шлем', class: 'warrior', icon: 'HLM', color: '#95a5a6', type: 'head', slot: 'head' },
+  { base: 'hood', name: 'Капюшон', class: 'mage', icon: 'HUD', color: '#6c3483', type: 'head', slot: 'head' },
+  { base: 'cap', name: 'Кепка', class: 'rogue', icon: 'CAP', color: '#34495e', type: 'head', slot: 'head' },
+
   // Перчатки
-  { base: 'gloves', name: 'Перчатки', class: null, icon: '🧤', color: '#95a5a6', type: 'gloves', slot: 'gloves' },
-  
+  { base: 'gloves', name: 'Перчатки', class: null, icon: 'GLV', color: '#95a5a6', type: 'gloves', slot: 'gloves' },
+
   // Пояса
-  { base: 'belt', name: 'Пояс', class: null, icon: '🎗️', color: '#d35400', type: 'belt', slot: 'belt' },
-  
+  { base: 'belt', name: 'Пояс', class: null, icon: 'BLT', color: '#d35400', type: 'belt', slot: 'belt' },
+
   // Обувь
-  { base: 'boots', name: 'Ботинки', class: null, icon: '👢', color: '#8b4513', type: 'boots', slot: 'boots' },
-  
+  { base: 'boots', name: 'Ботинки', class: null, icon: 'BTS', color: '#8b4513', type: 'boots', slot: 'boots' },
+
   // Украшения
-  { base: 'amulet', name: 'Амулет', class: null, icon: '📿', color: '#f39c12', type: 'accessory', slot: 'accessory' },
-  { base: 'ring', name: 'Кольцо', class: null, icon: '💍', color: '#e67e22', type: 'accessory', slot: 'accessory' },
-  
+  { base: 'amulet', name: 'Амулет', class: null, icon: 'AMT', color: '#f39c12', type: 'accessory', slot: 'accessory' },
+  { base: 'ring', name: 'Кольцо', class: null, icon: 'RNG', color: '#e67e22', type: 'accessory', slot: 'accessory' },
+
   // Зелья
-  { base: 'potion', name: 'Зелье здоровья', class: null, icon: '🧪', color: '#e74c3c', type: 'consumable', slot: 'consumable' },
-  { base: 'speed_potion', name: 'Зелье скорости', class: null, icon: '💨', color: '#3498db', type: 'consumable', slot: 'consumable' },
-  { base: 'strength_potion', name: 'Зелье силы', class: null, icon: '💪', color: '#e67e22', type: 'consumable', slot: 'consumable' },
-  { base: 'defense_potion', name: 'Зелье защиты', class: null, icon: '🛡️', color: '#95a5a6', type: 'consumable', slot: 'consumable' },
-  { base: 'regen_potion', name: 'Зелье регенерации', class: null, icon: '💚', color: '#27ae60', type: 'consumable', slot: 'consumable' },
-  { base: 'combo_potion', name: 'Комплексное зелье', class: null, icon: '🌈', color: '#9b59b6', type: 'consumable', slot: 'consumable' },
-  { base: 'purification_potion', name: 'Зелье очищения', class: null, icon: '✨', color: '#f39c12', type: 'consumable', slot: 'consumable' },
-  { base: 'mystery_potion', name: 'Тайная банка', class: null, icon: '❓', color: '#8e44ad', type: 'consumable', slot: 'consumable' },
-  
+  { base: 'potion', name: 'Зелье здоровья', class: null, icon: 'HP1', color: '#e74c3c', type: 'consumable', slot: 'consumable' },
+  { base: 'speed_potion', name: 'Зелье скорости', class: null, icon: 'SPD', color: '#3498db', type: 'consumable', slot: 'consumable' },
+  { base: 'strength_potion', name: 'Зелье силы', class: null, icon: 'STR', color: '#e67e22', type: 'consumable', slot: 'consumable' },
+  { base: 'defense_potion', name: 'Зелье защиты', class: null, icon: 'DEF', color: '#95a5a6', type: 'consumable', slot: 'consumable' },
+  { base: 'regen_potion', name: 'Зелье регенерации', class: null, icon: 'REG', color: '#27ae60', type: 'consumable', slot: 'consumable' },
+  { base: 'combo_potion', name: 'Комплексное зелье', class: null, icon: 'CMB', color: '#9b59b6', type: 'consumable', slot: 'consumable' },
+  { base: 'purification_potion', name: 'Зелье очищения', class: null, icon: 'PUR', color: '#f39c12', type: 'consumable', slot: 'consumable' },
+  { base: 'mystery_potion', name: 'Тайная банка', class: null, icon: 'MYS', color: '#8e44ad', type: 'consumable', slot: 'consumable' },
+
   // Свитки
-  { base: 'scroll_werewolf', name: 'Свиток оборотня', class: null, icon: '🐺', color: '#8b4513', type: 'consumable', slot: 'consumable', description: 'Превращает в волка: скорость +50%, урон +30%, защита -20% на 15 сек' },
-  { base: 'scroll_stone', name: 'Свиток камня', class: null, icon: '🗿', color: '#7f8c8d', type: 'consumable', slot: 'consumable', description: 'Превращает в голема: защита +100%, скорость -60% на 12 сек' },
-  { base: 'scroll_fire_explosion', name: 'Свиток огненного взрыва', class: null, icon: '🔥', color: '#e74c3c', type: 'consumable', slot: 'consumable', description: 'Взрывная волна огня: урон 40, радиус 120, поджигает врагов' },
-  { base: 'scroll_ice_storm', name: 'Свиток ледяной бури', class: null, icon: '❄️', color: '#3498db', type: 'consumable', slot: 'consumable', description: 'Замораживает всех врагов в радиусе 150 на 5 сек' },
-  { base: 'scroll_lightning', name: 'Свиток молнии', class: null, icon: '⚡', color: '#f1c40f', type: 'consumable', slot: 'consumable', description: 'Цепная молния между врагами: урон 25, до 5 целей' },
-  { base: 'scroll_earthquake', name: 'Свиток землетрясения', class: null, icon: '🌋', color: '#8b4513', type: 'consumable', slot: 'consumable', description: 'Создает трещины, замедляющие врагов на 8 сек' },
-  { base: 'scroll_clone', name: 'Свиток клонирования', class: null, icon: '👥', color: '#9b59b6', type: 'consumable', slot: 'consumable', description: 'Создает временного клона игрока: урон 50% на 20 сек' },
-  { base: 'scroll_teleport', name: 'Свиток телепортации', class: null, icon: '🌀', color: '#e67e22', type: 'consumable', slot: 'consumable', description: 'Случайный телепорт в пределах карты' },
-  { base: 'scroll_invisibility', name: 'Свиток невидимости', class: null, icon: '👁️', color: '#95a5a6', type: 'consumable', slot: 'consumable', description: 'Невидимость для врагов на 8 сек' },
-  { base: 'scroll_time', name: 'Свиток времени', class: null, icon: '⏰', color: '#34495e', type: 'consumable', slot: 'consumable', description: 'Замедляет всех врагов на 60% на 10 сек' },
-  { base: 'scroll_curse', name: 'Свиток проклятия', class: null, icon: '💀', color: '#2c3e50', type: 'consumable', slot: 'consumable', description: 'Накладывает случайный дебафф на всех врагов в радиусе 200' },
-  { base: 'scroll_chaos', name: 'Свиток хаоса', class: null, icon: '🎭', color: '#e74c3c', type: 'consumable', slot: 'consumable', description: 'Заставляет врагов атаковать друг друга на 15 сек' },
-  { base: 'scroll_fear', name: 'Свиток страха', class: null, icon: '😱', color: '#8e44ad', type: 'consumable', slot: 'consumable', description: 'Заставляет врагов убегать от игрока на 12 сек' },
-  { base: 'scroll_smoke', name: 'Свиток дыма', class: null, icon: '💨', color: '#7f8c8d', type: 'consumable', slot: 'consumable', description: 'Создает дымовую завесу, скрывающую игрока на 10 сек' },
-  { base: 'scroll_meteor', name: 'Свиток метеорита', class: null, icon: '☄️', color: '#e67e22', type: 'consumable', slot: 'consumable', description: 'Вызывает падение метеорита в случайную точку карты' },
-  { base: 'scroll_barrier', name: 'Свиток барьера', class: null, icon: '🛡️', color: '#3498db', type: 'consumable', slot: 'consumable', description: 'Создает энергетический щит, абсорбирующий 100 урона' },
-  { base: 'scroll_rage', name: 'Свиток ярости', class: null, icon: '😡', color: '#e74c3c', type: 'consumable', slot: 'consumable', description: 'Урон +100%, но игрок получает урон при атаке на 12 сек' },
-  { base: 'scroll_invulnerability', name: 'Свиток неуязвимости', class: null, icon: '💎', color: '#f1c40f', type: 'consumable', slot: 'consumable', description: 'Полная неуязвимость к урону на 5 сек' },
-  { base: 'scroll_vampirism', name: 'Свиток вампиризма', class: null, icon: '🦇', color: '#8e44ad', type: 'consumable', slot: 'consumable', description: '50% урона от атак восстанавливает здоровье на 15 сек' },
-  { base: 'mystery_scroll', name: 'Тайный свиток', class: null, icon: '📜', color: '#8e44ad', type: 'consumable', slot: 'consumable', description: 'Случайный эффект из всех возможных свитков' }
+  { base: 'scroll_werewolf', name: 'Свиток оборотня', class: null, icon: 'WRW', color: '#8b4513', type: 'consumable', slot: 'consumable', description: 'Превращает в волка: скорость +50%, урон +30%, защита -20% на 15 сек' },
+  { base: 'scroll_stone', name: 'Свиток камня', class: null, icon: 'STN', color: '#7f8c8d', type: 'consumable', slot: 'consumable', description: 'Превращает в голема: защита +100%, скорость -60% на 12 сек' },
+  { base: 'scroll_fire_explosion', name: 'Свиток огненного взрыва', class: null, icon: 'FIR', color: '#e74c3c', type: 'consumable', slot: 'consumable', description: 'Взрывная волна огня: урон 40, радиус 120, поджигает врагов' },
+  { base: 'scroll_ice_storm', name: 'Свиток ледяной бури', class: null, icon: 'ICE', color: '#3498db', type: 'consumable', slot: 'consumable', description: 'Замораживает всех врагов в радиусе 150 на 5 сек' },
+  { base: 'scroll_lightning', name: 'Свиток молнии', class: null, icon: 'LTN', color: '#f1c40f', type: 'consumable', slot: 'consumable', description: 'Цепная молния между врагами: урон 25, до 5 целей' },
+  { base: 'scroll_earthquake', name: 'Свиток землетрясения', class: null, icon: 'QKE', color: '#8b4513', type: 'consumable', slot: 'consumable', description: 'Создает трещины, замедляющие врагов на 8 сек' },
+  { base: 'scroll_clone', name: 'Свиток клонирования', class: null, icon: 'CLN', color: '#9b59b6', type: 'consumable', slot: 'consumable', description: 'Создает временного клона игрока: урон 50% на 20 сек' },
+  { base: 'scroll_teleport', name: 'Свиток телепортации', class: null, icon: 'TLP', color: '#e67e22', type: 'consumable', slot: 'consumable', description: 'Случайный телепорт в пределах карты' },
+  { base: 'scroll_invisibility', name: 'Свиток невидимости', class: null, icon: 'INV', color: '#95a5a6', type: 'consumable', slot: 'consumable', description: 'Невидимость для врагов на 8 сек' },
+  { base: 'scroll_time', name: 'Свиток времени', class: null, icon: 'TME', color: '#34495e', type: 'consumable', slot: 'consumable', description: 'Замедляет всех врагов на 60% на 10 сек' },
+  { base: 'scroll_curse', name: 'Свиток проклятия', class: null, icon: 'CRS', color: '#2c3e50', type: 'consumable', slot: 'consumable', description: 'Накладывает случайный дебафф на всех врагов в радиусе 200' },
+  { base: 'scroll_chaos', name: 'Свиток хаоса', class: null, icon: 'CHS', color: '#e74c3c', type: 'consumable', slot: 'consumable', description: 'Заставляет врагов атаковать друг друга на 15 сек' },
+  { base: 'scroll_fear', name: 'Свиток страха', class: null, icon: 'FEA', color: '#8e44ad', type: 'consumable', slot: 'consumable', description: 'Заставляет врагов убегать от игрока на 12 сек' },
+  { base: 'scroll_smoke', name: 'Свиток дыма', class: null, icon: 'SMK', color: '#7f8c8d', type: 'consumable', slot: 'consumable', description: 'Создает дымовую завесу, скрывающую игрока на 10 сек' },
+  { base: 'scroll_meteor', name: 'Свиток метеорита', class: null, icon: 'MET', color: '#e67e22', type: 'consumable', slot: 'consumable', description: 'Вызывает падение метеорита в случайную точку карты' },
+  { base: 'scroll_barrier', name: 'Свиток барьера', class: null, icon: 'BAR', color: '#3498db', type: 'consumable', slot: 'consumable', description: 'Создает энергетический щит, абсорбирующий 100 урона' },
+  { base: 'scroll_rage', name: 'Свиток ярости', class: null, icon: 'RAG', color: '#e74c3c', type: 'consumable', slot: 'consumable', description: 'Урон +100%, но игрок получает урон при атаке на 12 сек' },
+  { base: 'scroll_invulnerability', name: 'Свиток неуязвимости', class: null, icon: 'IMN', color: '#f1c40f', type: 'consumable', slot: 'consumable', description: 'Полная неуязвимость к урону на 5 сек' },
+  { base: 'scroll_vampirism', name: 'Свиток вампиризма', class: null, icon: 'VMP', color: '#8e44ad', type: 'consumable', slot: 'consumable', description: '50% урона от атак восстанавливает здоровье на 15 сек' },
+  { base: 'mystery_scroll', name: 'Тайный свиток', class: null, icon: 'TSC', color: '#8e44ad', type: 'consumable', slot: 'consumable', description: 'Случайный эффект из всех возможных свитков' }
 ];
 
 export const AFFIXES = [

@@ -2,6 +2,7 @@
 
 import { gameState } from './GameState.js';
 import { Enemy } from '../entities/Enemy.js';
+import { Utils } from '../utils/Utils.js';
 
 export class ScrollManager {
 
@@ -34,14 +35,16 @@ export class ScrollManager {
 
     switch (item.base) {
       case 'scroll_werewolf':
+        // Оборотень: +50% скорости, +30% урона, -20% защиты (слабость)
         await this.addBuff('moveSpeed', gameState.player.moveSpeed * 0.5, 15);
         await this.addBuff('damage', gameState.player.damage * 0.3, 15);
-        await this.addDebuff('defense', gameState.player.defense * 0.2, 15);
+        await this.addDebuff('weakness', 0.2, 15);
         break;
 
       case 'scroll_stone':
+        // Каменная кожа: +100% защиты, -60% скорости (замедление)
         await this.addBuff('defense', gameState.player.defense, 12);
-        await this.addDebuff('moveSpeed', gameState.player.moveSpeed * 0.6, 12);
+        await this.addDebuff('slow', 0.6, 12);
         break;
 
       case 'scroll_fire_explosion':
@@ -69,10 +72,8 @@ export class ScrollManager {
         break;
 
       case 'scroll_invisibility':
-        gameState.player.isInvisible = true;
-        setTimeout(() => {
-          if (gameState.player) gameState.player.isInvisible = false;
-        }, 8000);
+        // Невидимость — отображается в панели баффов с таймером
+        await this.addBuff('invisibility', 0, 8);
         break;
 
       case 'scroll_time':
@@ -104,25 +105,18 @@ export class ScrollManager {
         break;
 
       case 'scroll_rage':
-        this.addBuff('damage', gameState.player.damage, 12);
-        gameState.player.rageMode = true;
-        setTimeout(() => {
-          if (gameState.player) gameState.player.rageMode = false;
-        }, 12000);
+        // Ярость — бафф урона с отображением таймера
+        await this.addBuff('rage', 0, 12);
         break;
 
       case 'scroll_invulnerability':
-        gameState.player.isInvulnerable = true;
-        setTimeout(() => {
-          if (gameState.player) gameState.player.isInvulnerable = false;
-        }, 5000);
+        // Неуязвимость — бафф с отображением таймера
+        await this.addBuff('invulnerability', 0, 5);
         break;
 
       case 'scroll_vampirism':
-        gameState.player.vampirism = true;
-        setTimeout(() => {
-          if (gameState.player) gameState.player.vampirism = false;
-        }, 15000);
+        // Вампиризм — бафф с отображением таймера
+        await this.addBuff('vampirism', 0, 15);
         break;
 
       case 'mystery_scroll':
@@ -303,17 +297,40 @@ export class ScrollManager {
     if (!gameState.player) return;
 
     const { MAP_SIZE, TILE_SIZE } = await import('../config/constants.js');
-    const maxX = MAP_SIZE * TILE_SIZE - 50;
-    const maxY = MAP_SIZE * TILE_SIZE - 50;
+    const mapWidth = MAP_SIZE * TILE_SIZE;
+    const mapHeight = MAP_SIZE * TILE_SIZE;
+    const playerRadius = gameState.player.radius || 14;
+    const margin = playerRadius + 10; // отступ от краёв карты
 
-    const newX = Math.random() * maxX + 25;
-    const newY = Math.random() * maxY + 25;
+    // Пробуем найти свободное место (до 20 попыток)
+    let attempts = 0;
+    const maxAttempts = 20;
 
-    if (!gameState.player.checkCollisionWithWalls(newX, newY)) {
-      gameState.player.x = newX;
-      gameState.player.y = newY;
+    while (attempts < maxAttempts) {
+      const newX = Utils.random(margin, mapWidth - margin);
+      const newY = Utils.random(margin, mapHeight - margin);
+
+      // Проверяем коллизию по 4 углам bounding box персонажа
+      const checkPoints = [
+        { x: newX - playerRadius, y: newY - playerRadius },
+        { x: newX + playerRadius, y: newY - playerRadius },
+        { x: newX - playerRadius, y: newY + playerRadius },
+        { x: newX + playerRadius, y: newY + playerRadius },
+        { x: newX, y: newY } // центр
+      ];
+
+      const isClear = checkPoints.every(p => !gameState.player.checkCollisionWithWalls(p.x, p.y));
+
+      if (isClear) {
+        gameState.player.x = newX;
+        gameState.player.y = newY;
+        break;
+      }
+
+      attempts++;
     }
 
+    // Визуальный эффект телепортации
     (async () => {
       const { Utils } = await import('../utils/Utils.js');
       const { createParticle } = await import('../effects/Particle.js');
