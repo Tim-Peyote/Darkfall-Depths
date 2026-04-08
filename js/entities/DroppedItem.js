@@ -207,6 +207,13 @@ export class DroppedItem extends Entity {
             // Свитки отрисовываются через renderConsumable
             DroppedItem.renderConsumable(ctx, x, y, rotation, this.radius, this.itemData, this.sparkleTime);
             break;
+          case 'gold_pouch':
+            DroppedItem.renderGoldPouch(ctx, x, y, rotation, this.radius);
+            break;
+          case 'health_potion':
+          case 'mana_potion':
+            DroppedItem.renderConsumable(ctx, x, y, rotation, this.radius, this.itemData, this.sparkleTime);
+            break;
           default:
             // Улучшенный fallback - круглая иконка с цветом предмета
             ctx.fillStyle = this.itemData.color;
@@ -255,6 +262,9 @@ export class DroppedItem extends Entity {
                 case 'combo_potion': symbol = '\u2617'; break;
                 case 'mystery_potion': symbol = '?'; break;
                 case 'purification_potion': symbol = '\u2617'; break;
+                case 'health_potion': symbol = '\u2617'; break;
+                case 'mana_potion': symbol = '\u2617'; break;
+                case 'gold_pouch': symbol = 'G'; break;
                 // Свитки
                 case 'scroll_werewolf': symbol = '\u2625'; break;
                 case 'scroll_stone': symbol = '\u2625'; break;
@@ -1074,7 +1084,59 @@ export class DroppedItem extends Entity {
       ctx.fillRect(particleX - particleSize, particleY - particleSize, particleSize * 2, particleSize * 2);
     }
     ctx.globalAlpha = 1.0;
-    
+
+    ctx.restore();
+  }
+
+  static renderGoldPouch(ctx, x, y, rotation, radius) {
+    const size = radius * 1.0;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+
+    // Мешочек — округлая форма
+    ctx.fillStyle = '#8b6914';
+    ctx.beginPath();
+    ctx.ellipse(0, 0, size * 0.6, size * 0.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Верхняя часть — завязка
+    ctx.fillStyle = '#a07818';
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.3, -size * 0.5);
+    ctx.lineTo(0, -size * 0.8);
+    ctx.lineTo(size * 0.3, -size * 0.5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Блик
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.beginPath();
+    ctx.ellipse(-size * 0.15, -size * 0.1, size * 0.25, size * 0.4, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Символ G в центре
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = `bold ${size * 0.6}px -apple-system, sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+    ctx.shadowBlur = 2;
+    ctx.fillText('G', 0, 0);
+
+    // Золотые частицы
+    ctx.fillStyle = '#f1c40f';
+    ctx.globalAlpha = 0.5;
+    for (let i = 0; i < 5; i++) {
+      const angle = (i / 5) * Math.PI * 2;
+      const px = Math.cos(angle) * size * 0.7;
+      const py = Math.sin(angle) * size * 0.7;
+      const ps = size * 0.03;
+      ctx.fillRect(px - ps, py - ps, ps * 2, ps * 2);
+    }
+    ctx.globalAlpha = 1.0;
+
     ctx.restore();
   }
 }

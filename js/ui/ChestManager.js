@@ -372,20 +372,23 @@ export class ChestManager {
           try {
             const { InventorySpriteRenderer } = await import('./InventorySpriteRenderer.js');
             const spriteElement = InventorySpriteRenderer.createSpriteElement(item, 48);
-            
+
             if (spriteElement) {
               slot.innerHTML = '';
               slot.appendChild(spriteElement);
             } else {
               Logger.warn('Не удалось создать спрайт для предмета:', item);
-              slot.innerHTML = `<div class="item-icon">${item.icon || '📦'}</div>`;
+              const iconText = item.icon || item.base.substring(0, 3).toUpperCase();
+              slot.innerHTML = `<div class="item-icon" style="display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${iconText}</div>`;
             }
           } catch (e) {
             Logger.warn('Не удалось загрузить спрайт предмета:', e);
-            slot.innerHTML = `<div class="item-icon">${item.icon || '📦'}</div>`;
+            const iconText = item.icon || item.base.substring(0, 3).toUpperCase();
+            slot.innerHTML = `<div class="item-icon" style="display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${iconText}</div>`;
           }
         } else {
-          slot.innerHTML = `<div class="item-icon">${item.icon || '📦'}</div>`;
+          const iconText = item.icon || '?';
+          slot.innerHTML = `<div class="item-icon" style="display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${iconText}</div>`;
         }
         
         // Добавляем тултип

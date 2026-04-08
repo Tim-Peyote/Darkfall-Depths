@@ -99,8 +99,13 @@ export class InventorySpriteRenderer {
       case 'scroll_invulnerability': color = '#f1c40f'; break;
       case 'scroll_vampirism': color = '#8e44ad'; break;
       case 'mystery_scroll': color = '#8e44ad'; break;
+      // Дополнительные зелья
+      case 'health_potion': color = '#e74c3c'; break;
+      case 'mana_potion': color = '#3498db'; break;
+      // Мешочки и прочее
+      case 'gold_pouch': color = '#f1c40f'; break;
     }
-    
+
     // Рисуем предмет в зависимости от типа
     if (['sword', 'axe', 'staff', 'wand', 'dagger', 'crossbow'].includes(base)) {
       this.renderWeaponSprite(ctx, centerX, centerY, itemSize, base, color);
@@ -116,10 +121,15 @@ export class InventorySpriteRenderer {
       this.renderBootsSprite(ctx, centerX, centerY, itemSize, base, color);
     } else if (['amulet', 'ring'].includes(base)) {
       this.renderAccessorySprite(ctx, centerX, centerY, itemSize, base, color, rarity);
-    } else if (['potion', 'speed_potion', 'strength_potion', 'defense_potion', 'regen_potion', 'combo_potion', 'purification_potion', 'mystery_potion'].includes(base)) {
+    } else if (['potion', 'speed_potion', 'strength_potion', 'defense_potion', 'regen_potion', 'combo_potion', 'purification_potion', 'mystery_potion', 'health_potion', 'mana_potion'].includes(base)) {
       this.renderConsumableSprite(ctx, centerX, centerY, itemSize, base, color);
     } else if (base && base.startsWith('scroll_')) {
       this.renderScrollSprite(ctx, centerX, centerY, itemSize, base, color);
+    } else if (base === 'gold_pouch') {
+      this.renderGoldPouchSprite(ctx, centerX, centerY, itemSize, color);
+    } else {
+      // Универсальный fallback для неизвестных типов
+      this.renderGenericItemSprite(ctx, centerX, centerY, itemSize, base, color);
     }
     
     return canvas;
@@ -809,7 +819,90 @@ export class InventorySpriteRenderer {
      
           ctx.restore();
    }
-  
+
+   static renderGoldPouchSprite(ctx, x, y, size, color) {
+     ctx.save();
+
+     // Мешочек — округлая форма
+     ctx.fillStyle = '#8b6914';
+     ctx.beginPath();
+     ctx.ellipse(x, y + size * 0.05, size * 0.3, size * 0.35, 0, 0, Math.PI * 2);
+     ctx.fill();
+
+     // Верхняя часть — завязка
+     ctx.fillStyle = '#a07818';
+     ctx.beginPath();
+     ctx.moveTo(x - size * 0.15, y - size * 0.25);
+     ctx.lineTo(x, y - size * 0.4);
+     ctx.lineTo(x + size * 0.15, y - size * 0.25);
+     ctx.closePath();
+     ctx.fill();
+
+     // Блик
+     ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+     ctx.beginPath();
+     ctx.ellipse(x - size * 0.08, y - size * 0.05, size * 0.12, size * 0.2, -0.2, 0, Math.PI * 2);
+     ctx.fill();
+
+     // Символ G в центре
+     ctx.fillStyle = '#f1c40f';
+     ctx.font = `bold ${size * 0.35}px -apple-system, sans-serif`;
+     ctx.textAlign = 'center';
+     ctx.textBaseline = 'middle';
+     ctx.fillText('G', x, y + size * 0.05);
+
+     // Золотые частицы
+     ctx.fillStyle = color;
+     ctx.globalAlpha = 0.5;
+     for (let i = 0; i < 5; i++) {
+       const angle = (i / 5) * Math.PI * 2;
+       const px = x + Math.cos(angle) * size * 0.35;
+       const py = y + Math.sin(angle) * size * 0.35;
+       const ps = size * 0.015;
+       ctx.fillRect(px - ps, py - ps, ps * 2, ps * 2);
+     }
+     ctx.globalAlpha = 1.0;
+
+     ctx.restore();
+   }
+
+   static renderGenericItemSprite(ctx, x, y, size, base, color) {
+     ctx.save();
+
+     // Универсальный предмет — стилизованный квадрат с инициалами
+     const bgColor = color || '#666';
+
+     // Основа
+     ctx.fillStyle = bgColor;
+     const halfSize = size * 0.35;
+     ctx.beginPath();
+     ctx.roundRect(x - halfSize, y - halfSize, halfSize * 2, halfSize * 2, size * 0.08);
+     ctx.fill();
+
+     // Обводка
+     ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+     ctx.lineWidth = size * 0.03;
+     ctx.stroke();
+
+     // Блик
+     ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+     ctx.beginPath();
+     ctx.roundRect(x - halfSize + size * 0.05, y - halfSize + size * 0.05, halfSize * 0.8, halfSize * 0.6, size * 0.04);
+     ctx.fill();
+
+     // Текст — инициалы типа (первые 2-3 символа)
+     const label = base ? base.substring(0, 3).toUpperCase() : '???';
+     ctx.fillStyle = '#fff';
+     ctx.font = `bold ${size * 0.22}px -apple-system, sans-serif`;
+     ctx.textAlign = 'center';
+     ctx.textBaseline = 'middle';
+     ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+     ctx.shadowBlur = 2;
+     ctx.fillText(label, x, y);
+
+     ctx.restore();
+   }
+
   static getItemSprite(item) {
     if (!item) return null;
     

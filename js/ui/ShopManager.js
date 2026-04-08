@@ -114,7 +114,7 @@ export class ShopManager {
     });
   }
 
-  static buyItem(offerIndex) {
+  static async buyItem(offerIndex) {
     const upgrade = this.currentOffers[offerIndex];
     if (!upgrade || !gameState.player) return;
 
@@ -137,9 +137,13 @@ export class ShopManager {
     Logger.info(`🛒 Куплено: ${upgrade.name} за ${price} золота`);
 
     // Обновляем UI статы если инвентарь открыт
-    const { InventoryManager } = await import('./InventoryManager.js');
-    if (InventoryManager.isOpen) {
-      InventoryManager.renderInventory();
+    try {
+      const { InventoryManager } = await import('./InventoryManager.js');
+      if (InventoryManager.isOpen) {
+        InventoryManager.renderInventory();
+      }
+    } catch (e) {
+      // Игнорируем ошибки обновления инвентаря
     }
 
     // Воспроизводим звук покупки
