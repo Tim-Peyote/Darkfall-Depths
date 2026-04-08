@@ -23,6 +23,7 @@ let contextMenuShown = false; // Флаг для предотвращения п
 let contextMenuShownTime = 0; // Время показа контекстного меню
 
 export class InventoryManager {
+  static isOpen = false;
   static init() {
     // Настраиваем обработчик кнопки закрытия инвентаря
     this.setupCloseButton();
@@ -142,6 +143,7 @@ export class InventoryManager {
       }
       
       this.renderInventory();
+      this.isOpen = true;
       overlay.classList.remove('hidden');
       
       // Снимаем флаг "новый предмет" со всех предметов при первом открытии
@@ -169,6 +171,7 @@ export class InventoryManager {
     } else {
       // Закрываем инвентарь в любом случае (даже в паузе)
       overlay.classList.add('hidden');
+      this.isOpen = false;
       // Скрываем тултипы при закрытии инвентаря
       this.hideTooltip();
       // Удаляем все элементы перетаскивания
@@ -266,23 +269,23 @@ export class InventoryManager {
     }
     
     if (gameState.player) {
-      // Вычисляем общие статы с учетом экипировки
+      // Вычисляем общие статы с учетом экипировки и магазинных апгрейдов
       const totalFireChance = Math.round((gameState.player.fireChance || 0) * 100);
       const totalFireDamage = gameState.player.fireDamage || 0;
       const totalIceChance = Math.round((gameState.player.iceChance || 0) * 100);
       const totalIceSlow = Math.round((gameState.player.iceSlow || 0) * 100);
-      
+
       statsBlock.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
-          <div style="color: #a83030; font-weight: bold;">HP: ${gameState.player.hp}/${gameState.player.maxHp}</div>
-          <div style="color: #c9a84c; font-weight: bold;">Урон: ${gameState.player.damage}</div>
-          <div style="color: #8a7a60; font-weight: bold;">Защита: ${gameState.player.defense||0}</div>
-          <div style="color: #a08850; font-weight: bold;">Крит: ${gameState.player.crit||0}%</div>
-          <div style="color: #4a7a2a; font-weight: bold;">Скорость: ${gameState.player.moveSpeed}</div>
-          <div style="color: #a08850; font-weight: bold;">Атака: ${gameState.player.attackSpeed}с</div>
-          <div style="color: #8a7a60; font-weight: bold; grid-column: 1 / -1;">Дальность: ${gameState.player.attackRadius}px</div>
-          ${totalFireChance > 0 ? `<div style="color: #b87830; font-weight: bold;">Огонь: ${totalFireChance}% (${totalFireDamage})</div>` : ''}
-          ${totalIceChance > 0 ? `<div style="color: #4a7a9e; font-weight: bold;">Лед: ${totalIceChance}% (${totalIceSlow}%)</div>` : ''}
+          <div style="color: var(--color-error, #a83030); font-weight: bold;">HP: ${gameState.player.hp}/${gameState.player.maxHp}</div>
+          <div style="color: var(--color-primary, #c9a84c); font-weight: bold;">Урон: ${gameState.player.damage}</div>
+          <div style="color: var(--color-text-secondary, #8a7a60); font-weight: bold;">Защита: ${gameState.player.defense||0}</div>
+          <div style="color: var(--color-border-ornate, #a08850); font-weight: bold;">Крит: ${gameState.player.crit||0}%</div>
+          <div style="color: var(--color-rarity-uncommon, #4a7a2a); font-weight: bold;">Скорость: ${gameState.player.moveSpeed}</div>
+          <div style="color: var(--color-border-ornate, #a08850); font-weight: bold;">Атака: ${gameState.player.attackSpeed}с</div>
+          <div style="color: var(--color-text-secondary, #8a7a60); font-weight: bold; grid-column: 1 / -1;">Дальность: ${gameState.player.attackRadius}px</div>
+          ${totalFireChance > 0 ? `<div style="color: var(--color-orange-400, #b87830); font-weight: bold;">Огонь: ${totalFireChance}% (${totalFireDamage})</div>` : ''}
+          ${totalIceChance > 0 ? `<div style="color: var(--color-rarity-rare, #4a7a9e); font-weight: bold;">Лед: ${totalIceChance}% (${totalIceSlow}%)</div>` : ''}
         </div>
       `;
     } else {

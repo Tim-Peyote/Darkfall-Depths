@@ -20,6 +20,13 @@ export class Player extends Entity {
     this.baseDefense = this.defense;
     this.baseMaxHp = this.maxHp;
     
+    // Сохраняем значения класса для сравнения с магазинными апгрейдами
+    this.classMoveSpeed = this.moveSpeed;
+    this.classAttackSpeed = this.attackSpeed;
+    this.classDamage = this.damage;
+    this.classDefense = this.defense;
+    this.classMaxHp = this.maxHp;
+    
     // Устанавливаем полное здоровье при создании игрока (ПОСЛЕ Object.assign)
     this.hp = this.maxHp;
     
