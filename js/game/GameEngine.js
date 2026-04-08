@@ -388,7 +388,7 @@ export class GameEngine {
   
   static renderCanvas2D() {
     // Очистка экрана
-    ctx.fillStyle = '#0a0a0a';
+    ctx.fillStyle = '#0a0908';
     ctx.fillRect(0, 0, canvas.width / DPR, canvas.height / DPR);
     
     if (!gameState.map) {
@@ -556,11 +556,11 @@ export class GameEngine {
       ctx.drawImage(this.wallTileCanvas, x, y);
     } else {
       // Fallback на простой тайл если кеш не инициализирован
-      ctx.fillStyle = '#0f0f0f';
+      ctx.fillStyle = '#0d0b09';
       ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
     }
   }
-  
+
   // УЛЬТРАБЫСТРЫЙ рендеринг пола через кеш (в 10-20 раз быстрее!)
   static renderFloorTile(ctx, x, y, tileX, tileY) {
     // Используем предрендеренный тайл из кеша - одна операция drawImage вместо 15+ операций
@@ -568,7 +568,7 @@ export class GameEngine {
       ctx.drawImage(this.floorTileCanvas, x, y);
     } else {
       // Fallback на простой тайл если кеш не инициализирован
-      ctx.fillStyle = '#1a1a1a';
+      ctx.fillStyle = '#1a1612';
       ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
     }
   }
@@ -576,11 +576,11 @@ export class GameEngine {
   // Рендеринг стилизованной стены на миникарте
   static renderMinimapWallTile(ctx, x, y, size, tileX, tileY) {
     // Базовый цвет стены
-    ctx.fillStyle = '#0f0f0f';
+    ctx.fillStyle = '#3d3328';
     ctx.fillRect(x, y, size, size);
-    
+
     // Добавляем простую текстуру
-    ctx.strokeStyle = '#080808';
+    ctx.strokeStyle = '#2a2218';
     ctx.lineWidth = 0.5;
     
     // Центральная линия
@@ -599,11 +599,11 @@ export class GameEngine {
   // Рендеринг стилизованного пола на миникарте
   static renderMinimapFloorTile(ctx, x, y, size, tileX, tileY) {
     // Базовый цвет пола
-    ctx.fillStyle = '#1a1a1a';
+    ctx.fillStyle = '#1a1612';
     ctx.fillRect(x, y, size, size);
-    
+
     // Добавляем простой узор
-    ctx.strokeStyle = '#151515';
+    ctx.strokeStyle = '#151210';
     ctx.lineWidth = 0.3;
     
     // Диагональные линии для эффекта плитки
@@ -762,7 +762,7 @@ export class GameEngine {
     const minimapSize = this.getMinimapSize();
     const scale = minimapSize / maxMapSize;
     
-    minimapCtx.fillStyle = '#000';
+    minimapCtx.fillStyle = '#0a0908';
     minimapCtx.fillRect(0, 0, minimapSize, minimapSize);
     
     // Отрисовка карты только в исследованных областях
@@ -791,7 +791,7 @@ export class GameEngine {
     if (gameState.player) {
       const playerX = Math.floor(gameState.player.x / TILE_SIZE);
       const playerY = Math.floor(gameState.player.y / TILE_SIZE);
-      minimapCtx.fillStyle = '#00ff00';
+      minimapCtx.fillStyle = '#c9a84c';
       minimapCtx.fillRect(playerX * scale, playerY * scale, scale, scale);
     }
     
@@ -804,7 +804,7 @@ export class GameEngine {
         
         // Показываем врага только если область исследована игроком
         if (gameState.fogOfWar && gameState.fogOfWar.explored[enemyY] && gameState.fogOfWar.explored[enemyY][enemyX]) {
-          minimapCtx.fillStyle = '#ff0000';
+          minimapCtx.fillStyle = '#8b1a1a';
           minimapCtx.fillRect(enemyX * scale, enemyY * scale, scale, scale);
         }
       }
@@ -858,13 +858,13 @@ export class GameEngine {
     ctx.fillRect(fpsX - 5, fpsY - 15, fpsWidth, fpsHeight);
     
     // Рамка
-    ctx.strokeStyle = isLowMode ? '#ff4444' : '#00ff00';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = isLowMode ? '#8b1a1a' : '#2d5a1e';
+    ctx.lineWidth = 1;
     ctx.strokeRect(fpsX - 5, fpsY - 15, fpsWidth, fpsHeight);
-    
+
     // Текст
     ctx.font = `bold ${fontSize}px Arial`;
-    ctx.fillStyle = isLowMode ? '#ff4444' : '#00ff00';
+    ctx.fillStyle = isLowMode ? '#8b1a1a' : '#2d5a1e';
     ctx.textAlign = 'left';
     
     const fpsText = `FPS: ${fps}`;
@@ -1133,7 +1133,7 @@ export class GameEngine {
         }
       } else {
         // Пустой слот
-        potionIcon.textContent = '🧪';
+        potionIcon.textContent = '';
         potionCount.textContent = '0';
         potionSlot.classList.add('empty');
         potionSlot.style.borderColor = '#666666';
@@ -1241,23 +1241,23 @@ export class GameEngine {
     
     let cooldown = 0;
     let maxCooldown = 1;
-    let abilityIcon = '⚡';
+    let abilityIcon = 'Q';
     let abilityName = '';
-    
+
     if (gameState.player.hasDash && gameState.player.dashCooldown > 0) {
       cooldown = gameState.player.dashCooldown;
       maxCooldown = 3.0;
-      abilityIcon = '💨';
+      abilityIcon = 'Q';
       abilityName = 'Dash';
     } else if (gameState.player.hasShield && gameState.player.shieldCooldown > 0) {
       cooldown = gameState.player.shieldCooldown;
       maxCooldown = 8.0;
-      abilityIcon = '🛡️';
+      abilityIcon = 'Q';
       abilityName = 'Shield';
     } else if (gameState.player.hasBlast && gameState.player.blastCooldown > 0) {
       cooldown = gameState.player.blastCooldown;
       maxCooldown = 12.0;
-      abilityIcon = '💥';
+      abilityIcon = 'Q';
       abilityName = 'Blast';
     }
     
@@ -1521,58 +1521,57 @@ export class GameEngine {
   
   // Вспомогательная функция для fallback иконок зелий
   static setPotionIconFallback(potionIcon, potionType) {
-    let icon = '🧪';
+    let icon = 'P';
     switch (potionType) {
-      case 'potion': icon = '❤️'; break;
-      case 'speed_potion': icon = '💨'; break;
-      case 'strength_potion': icon = '⚔️'; break;
-      case 'defense_potion': icon = '🛡️'; break;
-      case 'regen_potion': icon = '💚'; break;
-      case 'combo_potion': icon = '✨'; break;
-      case 'mystery_potion': icon = '❓'; break;
-      case 'purification_potion': icon = '✨'; break;
+      case 'potion': icon = 'HP'; break;
+      case 'speed_potion': icon = 'SP'; break;
+      case 'strength_potion': icon = 'ST'; break;
+      case 'defense_potion': icon = 'DF'; break;
+      case 'regen_potion': icon = 'RG'; break;
+      case 'combo_potion': icon = 'CB'; break;
+      case 'mystery_potion': icon = '?'; break;
+      case 'purification_potion': icon = 'PR'; break;
       // Свитки
-      case 'scroll_werewolf': icon = '🐺'; break;
-      case 'scroll_stone': icon = '🗿'; break;
-      case 'scroll_fire_explosion': icon = '🔥'; break;
-      case 'scroll_ice_storm': icon = '❄️'; break;
-      case 'scroll_lightning': icon = '⚡'; break;
-      case 'scroll_earthquake': icon = '🌋'; break;
-      case 'scroll_clone': icon = '👥'; break;
-      case 'scroll_teleport': icon = '🌀'; break;
-      case 'scroll_invisibility': icon = '👁️'; break;
-      case 'scroll_time': icon = '⏰'; break;
-      case 'scroll_curse': icon = '💀'; break;
-      case 'scroll_chaos': icon = '🎭'; break;
-      case 'scroll_fear': icon = '😱'; break;
-      case 'scroll_smoke': icon = '💨'; break;
-      case 'scroll_meteor': icon = '☄️'; break;
-      case 'scroll_barrier': icon = '🛡️'; break;
-      case 'scroll_rage': icon = '😡'; break;
-      case 'scroll_invulnerability': icon = '💎'; break;
-      case 'scroll_vampirism': icon = '🦇'; break;
-      case 'mystery_scroll': icon = '📜'; break;
+      case 'scroll_werewolf': icon = 'W'; break;
+      case 'scroll_stone': icon = 'S'; break;
+      case 'scroll_fire_explosion': icon = 'F'; break;
+      case 'scroll_ice_storm': icon = 'I'; break;
+      case 'scroll_lightning': icon = 'L'; break;
+      case 'scroll_earthquake': icon = 'E'; break;
+      case 'scroll_clone': icon = 'C'; break;
+      case 'scroll_teleport': icon = 'T'; break;
+      case 'scroll_invisibility': icon = 'V'; break;
+      case 'scroll_time': icon = 'TM'; break;
+      case 'scroll_curse': icon = 'CR'; break;
+      case 'scroll_chaos': icon = 'CH'; break;
+      case 'scroll_fear': icon = 'FR'; break;
+      case 'scroll_smoke': icon = 'SM'; break;
+      case 'scroll_meteor': icon = 'MT'; break;
+      case 'scroll_barrier': icon = 'BR'; break;
+      case 'scroll_rage': icon = 'RG'; break;
+      case 'scroll_invulnerability': icon = 'IV'; break;
+      case 'scroll_vampirism': icon = 'VA'; break;
+      case 'mystery_scroll': icon = '?'; break;
     }
     potionIcon.textContent = icon;
   }
   
   // Предрендеринг тайла стены в кеш
   static renderWallTileToCache(ctx, x, y) {
-    // Создаем градиент для эффекта камня
+    // Градиент — тёмный камень с коричневым оттенком
     const gradient = ctx.createLinearGradient(x, y, x + TILE_SIZE, y + TILE_SIZE);
-    gradient.addColorStop(0, '#0a0a0a');
-    gradient.addColorStop(0.3, '#151515');
-    gradient.addColorStop(0.7, '#1f1f1f');
-    gradient.addColorStop(1, '#151515');
-    
+    gradient.addColorStop(0, '#0d0b09');
+    gradient.addColorStop(0.3, '#181410');
+    gradient.addColorStop(0.7, '#1e1a14');
+    gradient.addColorStop(1, '#151210');
+
     ctx.fillStyle = gradient;
     ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
-    
-    // Добавляем текстуру камня
-    ctx.strokeStyle = '#080808';
+
+    // Текстура камня
+    ctx.strokeStyle = '#0a0908';
     ctx.lineWidth = 1;
-    
-    // Горизонтальные линии
+
     for (let i = 0; i < 2; i++) {
       const lineY = y + (i + 1) * TILE_SIZE / 3;
       ctx.beginPath();
@@ -1580,8 +1579,7 @@ export class GameEngine {
       ctx.lineTo(x + TILE_SIZE, lineY);
       ctx.stroke();
     }
-    
-    // Вертикальные линии
+
     for (let i = 0; i < 2; i++) {
       const lineX = x + (i + 1) * TILE_SIZE / 3;
       ctx.beginPath();
@@ -1589,44 +1587,41 @@ export class GameEngine {
       ctx.lineTo(lineX, y + TILE_SIZE);
       ctx.stroke();
     }
-    
-    // Добавляем случайные точки для текстуры
-    ctx.fillStyle = '#0d0d0d';
+
+    ctx.fillStyle = '#0a0908';
     for (let i = 0; i < 3; i++) {
       const pointX = x + (i * 7) % TILE_SIZE;
       const pointY = y + (i * 11) % TILE_SIZE;
       ctx.fillRect(pointX, pointY, 1, 1);
     }
   }
-  
+
   // Предрендеринг тайла пола в кеш
   static renderFloorTileToCache(ctx, x, y) {
-    // Создаем градиент для эффекта каменного пола
+    // Градиент — тёплый каменный пол
     const gradient = ctx.createLinearGradient(x, y, x + TILE_SIZE, y + TILE_SIZE);
-    gradient.addColorStop(0, '#1a1a1a');
-    gradient.addColorStop(0.5, '#222222');
-    gradient.addColorStop(1, '#2a2a2a');
-    
+    gradient.addColorStop(0, '#1a1612');
+    gradient.addColorStop(0.5, '#201c16');
+    gradient.addColorStop(1, '#2a2218');
+
     ctx.fillStyle = gradient;
     ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
-    
-    // Добавляем тонкие линии для текстуры пола
-    ctx.strokeStyle = '#181818';
+
+    // Линии текстуры
+    ctx.strokeStyle = '#151210';
     ctx.lineWidth = 0.5;
-    
-    // Диагональные линии для эффекта плитки
+
     ctx.beginPath();
     ctx.moveTo(x, y + TILE_SIZE / 2);
     ctx.lineTo(x + TILE_SIZE, y + TILE_SIZE / 2);
     ctx.stroke();
-    
+
     ctx.beginPath();
     ctx.moveTo(x + TILE_SIZE / 2, y);
     ctx.lineTo(x + TILE_SIZE / 2, y + TILE_SIZE);
     ctx.stroke();
-    
-    // Добавляем точки для текстуры
-    ctx.fillStyle = '#1e1e1e';
+
+    ctx.fillStyle = '#1e1a14';
     for (let i = 0; i < 2; i++) {
       const pointX = x + (i * 13) % TILE_SIZE;
       const pointY = y + (i * 17) % TILE_SIZE;

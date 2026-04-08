@@ -74,15 +74,15 @@ export class Chest extends Entity {
       }
     }
 
-    // 40% шанс на золото в сундуке
-    if (Math.random() < 0.4 && availableSlots.length > 0) {
+    // 25% шанс на золото в сундуке
+    if (Math.random() < 0.25 && availableSlots.length > 0) {
       const goldSlotIndex = availableSlots.splice(Math.floor(Math.random() * availableSlots.length), 1)[0];
-      const goldAmount = (Math.floor(Math.random() * 16) + 5) * this.level;
+      const goldAmount = (Math.floor(Math.random() * 10) + 3) * this.level;
       this.inventory[goldSlotIndex] = {
         name: `Золото (${goldAmount})`,
         base: 'gold_pouch',
         type: 'misc',
-        icon: '🪙',
+        icon: 'G',
         color: '#f39c12',
         rarity: 'common',
         goldValue: goldAmount,

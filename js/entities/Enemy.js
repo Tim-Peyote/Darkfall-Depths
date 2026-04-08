@@ -188,7 +188,7 @@ export class Enemy extends Entity {
     // Проверяем специальные эффекты
     if (this.canStun && Math.random() < this.stunChance) {
       const { BuffManager } = await import('../core/BuffManager.js');
-      BuffManager.addDebuff('stun', 0, this.stunDuration, '⚡');
+      BuffManager.addDebuff('stun', 0, this.stunDuration, '!');
     }
     
     if (this.canFreeze && Math.random() < this.freezeChance) {
@@ -260,6 +260,11 @@ export class Enemy extends Entity {
         debuff.lastTick = 0;
         debuff.tickInterval = 1.2; // Медленнее
         break;
+      case 'poison':
+        // Яд наносит урон каждый тик (слабее ожога, но длится дольше)
+        debuff.lastTick = 0;
+        debuff.tickInterval = 1.5;
+        break;
       case 'freeze':
         // Заморозка замедляет движение и атаку (менее мощно)
         this.speed = Math.max(15, this.debuffs.baseSpeed * 0.5); // 50% вместо 30%
@@ -307,13 +312,13 @@ export class Enemy extends Entity {
       const debuff = this.debuffs.active[i];
       debuff.remainingTime -= dt;
       
-      // Обрабатываем ожог
-      if (debuff.type === 'burn') {
+      // Обрабатываем периодический урон (ожог и яд)
+      if (debuff.type === 'burn' || debuff.type === 'poison') {
         debuff.lastTick += dt;
-        
+
         if (debuff.lastTick >= debuff.tickInterval) {
           this.takeDamage(debuff.value);
-          // Создаем огненные частицы
+          const particleColor = debuff.type === 'burn' ? '#e67e22' : '#2ecc71';
           (async () => {
             const { createParticle } = await import('../effects/Particle.js');
             for (let j = 0; j < 3; j++) {
@@ -322,7 +327,7 @@ export class Enemy extends Entity {
                 this.y + Utils.random(-10, 10),
                 Utils.randomFloat(-30, 30),
                 Utils.randomFloat(-30, 30),
-                '#e67e22',
+                particleColor,
                 0.8,
                 1.5
               );
@@ -342,13 +347,14 @@ export class Enemy extends Entity {
   
   getDebuffIcon(type) {
     const icons = {
-      burn: '🔥',
-      freeze: '❄️',
-      slow: '🐌',
-      stun: '⚡',
-      weakness: '💀'
+      burn: '*',
+      poison: '+',
+      freeze: '#',
+      slow: '~',
+      stun: '!',
+      weakness: 'x'
     };
-    return icons[type] || '💀';
+    return icons[type] || 'x';
   }
   
   isStunned() {
@@ -410,22 +416,25 @@ export class Enemy extends Entity {
     if (this.hp <= 0) {
       this.isDead = true;
 
-      // Начисляем золото за убийство
+      // Начисляем золото за убийство (вероятностный дроп)
       if (gameState.player) {
-        const goldReward = Math.floor((this.reward || 10) * (1 + (gameState.level - 1) * 0.15));
-        gameState.player.gold += goldReward;
-        gameState.gold = gameState.player.gold;
-        // Золотые частицы
-        for (let i = 0; i < 4; i++) {
-          createParticle(
-            this.x + Utils.random(-10, 10),
-            this.y + Utils.random(-10, 10),
-            Utils.randomFloat(-40, 40),
-            Utils.randomFloat(-80, -20),
-            '#f39c12',
-            1.0,
-            3
-          );
+        const dropChance = this.isBoss ? 1.0 : (this.reward >= 30 ? 0.6 : 0.3);
+        if (Math.random() < dropChance) {
+          const goldReward = Math.floor((this.reward || 10) * (1 + (gameState.level - 1) * 0.08));
+          gameState.player.gold += goldReward;
+          gameState.gold = gameState.player.gold;
+          // Золотые частицы
+          for (let i = 0; i < 4; i++) {
+            createParticle(
+              this.x + Utils.random(-10, 10),
+              this.y + Utils.random(-10, 10),
+              Utils.randomFloat(-40, 40),
+              Utils.randomFloat(-80, -20),
+              '#f39c12',
+              1.0,
+              3
+            );
+          }
         }
       }
 

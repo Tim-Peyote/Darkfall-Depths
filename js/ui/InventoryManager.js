@@ -274,15 +274,15 @@ export class InventoryManager {
       
       statsBlock.innerHTML = `
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px;">
-          <div style="color: #e74c3c; font-weight: bold;">❤️ HP: ${gameState.player.hp}/${gameState.player.maxHp}</div>
-          <div style="color: #e67e22; font-weight: bold;">⚔️ Урон: ${gameState.player.damage}</div>
-          <div style="color: #7f8c8d; font-weight: bold;">🛡️ Защита: ${gameState.player.defense||0}</div>
-          <div style="color: #3498db; font-weight: bold;">💥 Крит: ${gameState.player.crit||0}%</div>
-          <div style="color: #27ae60; font-weight: bold;">💨 Скорость: ${gameState.player.moveSpeed}</div>
-          <div style="color: #3498db; font-weight: bold;">⚡ Атака: ${gameState.player.attackSpeed}с</div>
-          <div style="color: #9b59b6; font-weight: bold; grid-column: 1 / -1;">🎯 Дальность: ${gameState.player.attackRadius}px</div>
-          ${totalFireChance > 0 ? `<div style="color: #e67e22; font-weight: bold;">🔥 Огонь: ${totalFireChance}% (${totalFireDamage})</div>` : ''}
-          ${totalIceChance > 0 ? `<div style="color: #3498db; font-weight: bold;">❄️ Лед: ${totalIceChance}% (${totalIceSlow}%)</div>` : ''}
+          <div style="color: #a83030; font-weight: bold;">HP: ${gameState.player.hp}/${gameState.player.maxHp}</div>
+          <div style="color: #c9a84c; font-weight: bold;">Урон: ${gameState.player.damage}</div>
+          <div style="color: #8a7a60; font-weight: bold;">Защита: ${gameState.player.defense||0}</div>
+          <div style="color: #a08850; font-weight: bold;">Крит: ${gameState.player.crit||0}%</div>
+          <div style="color: #4a7a2a; font-weight: bold;">Скорость: ${gameState.player.moveSpeed}</div>
+          <div style="color: #a08850; font-weight: bold;">Атака: ${gameState.player.attackSpeed}с</div>
+          <div style="color: #8a7a60; font-weight: bold; grid-column: 1 / -1;">Дальность: ${gameState.player.attackRadius}px</div>
+          ${totalFireChance > 0 ? `<div style="color: #b87830; font-weight: bold;">Огонь: ${totalFireChance}% (${totalFireDamage})</div>` : ''}
+          ${totalIceChance > 0 ? `<div style="color: #4a7a9e; font-weight: bold;">Лед: ${totalIceChance}% (${totalIceSlow}%)</div>` : ''}
         </div>
       `;
     } else {
@@ -291,15 +291,15 @@ export class InventoryManager {
     
     // Слоты экипировки - правильная компоновка
     const equipmentStructure = [
-      { type: 'head', label: 'Голова', icon: '👑', allowedTypes: ['head'], row: 1, col: 2 },
-      { type: 'weapon1', label: 'Оружие 1', icon: '⚔️', allowedTypes: ['weapon'], row: 2, col: 1 },
-      { type: 'chest', label: 'Броня', icon: '🥋', allowedTypes: ['armor'], row: 2, col: 2 },
-      { type: 'weapon2', label: 'Оружие 2', icon: '🛡️', allowedTypes: ['weapon', 'shield'], row: 2, col: 3 },
-      { type: 'accessory1', label: 'Украшение 1', icon: '💍', allowedTypes: ['accessory'], row: 3, col: 1 },
-      { type: 'gloves', label: 'Перчатки', icon: '🧤', allowedTypes: ['gloves'], row: 3, col: 2 },
-      { type: 'accessory2', label: 'Украшение 2', icon: '📿', allowedTypes: ['accessory'], row: 3, col: 3 },
-      { type: 'belt', label: 'Ремень', icon: '🎗️', allowedTypes: ['belt'], row: 4, col: 2 },
-      { type: 'boots', label: 'Ботинки', icon: '👢', allowedTypes: ['boots'], row: 5, col: 2 }
+      { type: 'head', label: 'Голова', icon: '\u2302', allowedTypes: ['head'], row: 1, col: 2 },
+      { type: 'weapon1', label: 'Оружие 1', icon: '\u2694', allowedTypes: ['weapon'], row: 2, col: 1 },
+      { type: 'chest', label: 'Броня', icon: '\u2261', allowedTypes: ['armor'], row: 2, col: 2 },
+      { type: 'weapon2', label: 'Оружие 2', icon: '\u25C6', allowedTypes: ['weapon', 'shield'], row: 2, col: 3 },
+      { type: 'accessory1', label: 'Украшение 1', icon: '\u25CB', allowedTypes: ['accessory'], row: 3, col: 1 },
+      { type: 'gloves', label: 'Перчатки', icon: '\u270B', allowedTypes: ['gloves'], row: 3, col: 2 },
+      { type: 'accessory2', label: 'Украшение 2', icon: '\u25C8', allowedTypes: ['accessory'], row: 3, col: 3 },
+      { type: 'belt', label: 'Ремень', icon: '\u2550', allowedTypes: ['belt'], row: 4, col: 2 },
+      { type: 'boots', label: 'Ботинки', icon: '\u2229', allowedTypes: ['boots'], row: 5, col: 2 }
     ];
     
     equipmentStructure.forEach((slotConfig, index) => {
