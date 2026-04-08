@@ -28,7 +28,7 @@ export class BuffManager {
       value,
       duration,
       remainingTime: duration,
-      icon: icon || gameState.debuffs.icons[type] || '💀',
+      icon: icon || gameState.debuffs.icons[type] || 'x',
       startTime: gameState.gameTime,
       isDebuff: true
     };
@@ -446,7 +446,7 @@ export class BuffManager {
             this.addDebuff(effect.type, effect.value, effect.duration);
             break;
           case 'damage_debuff':
-            this.addDebuff('weakness', effect.value, effect.duration, '💀');
+            this.addDebuff('weakness', effect.value, effect.duration, 'WKN');
             break;
           case 'defense_debuff':
             this.addDebuff('vulnerability', effect.value, effect.duration, '🛡️');

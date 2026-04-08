@@ -28,26 +28,26 @@ export const gameState = {
   buffs: {
     active: [], // Активные временные баффы
     icons: {
-      damage: '⚔️',
-      crit: '💥',
-      defense: '🛡️',
-      moveSpeed: '💨',
-      attackSpeed: '⚡',
-      attackRadius: '🎯',
-      fire: '🔥',
-      ice: '❄️'
+      damage: 'DMG',
+      crit: 'CRT',
+      defense: 'DEF',
+      moveSpeed: 'SPD',
+      attackSpeed: 'ATK',
+      attackRadius: 'RNG',
+      fire: 'FIR',
+      ice: 'ICE'
     }
   },
   debuffs: {
-    active: [], // Активные временные дебафы
+    active: [],
     icons: {
-      poison: '🦠',
-      burn: '🔥',
-      freeze: '❄️',
-      stun: '⚡',
-      slow: '🐌',
-      weakness: '💀',
-      vulnerability: '🩸'
+      poison: 'PSN',
+      burn: 'BRN',
+      freeze: 'FRZ',
+      stun: 'STN',
+      slow: 'SLW',
+      weakness: 'WKN',
+      vulnerability: 'VLN'
     }
   },
   stats: {

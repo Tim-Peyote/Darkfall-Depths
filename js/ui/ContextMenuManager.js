@@ -184,7 +184,7 @@ export class ContextMenuManager {
     }
 
     // Пункт "Удалить"
-    const deleteItem = this.createMenuItem('🗑️ Удалить', () => {
+    const deleteItem = this.createMenuItem('Удалить', () => {
       this.showDeleteConfirmation();
     });
     contextMenu.appendChild(deleteItem);

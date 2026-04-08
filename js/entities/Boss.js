@@ -305,8 +305,8 @@ export class Boss extends Enemy {
 
   async cursePlayer() {
     const { BuffManager } = await import('../core/BuffManager.js');
-    BuffManager.addDebuff('weakness', 0, this.curseDuration || 5, '💀');
-    BuffManager.addDebuff('slow', 0, this.curseDuration || 5, '🐌');
+    BuffManager.addDebuff('weakness', 0, this.curseDuration || 5, 'x');
+    BuffManager.addDebuff('slow', 0, this.curseDuration || 5, '~');
   }
 
   async takeDamage(damage) {

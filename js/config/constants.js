@@ -32,7 +32,7 @@ export const CHARACTERS = [
     type: 'ranged',
     projectileSpeed: 300,
     color: '#9b59b6',
-    sprite: '🔮',
+    sprite: '\u2726',
     // Уникальная способность: Взрывная волна
     hasBlast: true,
     blastCooldown: 12.0,
@@ -54,7 +54,7 @@ export const CHARACTERS = [
     crit: 0,
     type: 'melee',
     color: '#e74c3c',
-    sprite: '⚔️',
+    sprite: '\u2694',
     // Уникальная способность: Щит
     hasShield: true,
     shieldCooldown: 8.0,
@@ -79,7 +79,7 @@ export const CHARACTERS = [
     dashCooldown: 3.0,
     dashDistance: 80,
     color: '#27ae60',
-    sprite: '🗡️'
+    sprite: '\u2020'
   }
 ];
 

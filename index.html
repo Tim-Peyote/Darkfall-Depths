@@ -12,7 +12,7 @@
     <!-- Gothic Font Import -->
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="style.css?v=39">
+    <link rel="stylesheet" href="style.css?v=41">
     
     <!-- iOS Safari optimizations -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -104,9 +104,9 @@
         <div class="menu-content">
             <h1 class="logo">Darkfall Depths</h1>
             <div class="menu-buttons mt-16">
-                <button id="startBtn" class="btn btn--primary gothic-btn">⚔️ Начать игру</button>
-                <button id="recordsBtn" class="btn btn--outline gothic-btn">📊 Рекорды</button>
-                <button id="settingsBtn" class="btn btn--outline gothic-btn">⚙️ Настройки</button>
+                <button id="startBtn" class="btn btn--primary gothic-btn">Начать игру</button>
+                <button id="recordsBtn" class="btn btn--outline gothic-btn">Рекорды</button>
+                <button id="settingsBtn" class="btn btn--outline gothic-btn">Настройки</button>
             </div>
         </div>
     </div>
@@ -138,7 +138,7 @@
             
             <div class="select-buttons">
                 <button id="backToMenuFromSelect" class="btn btn--outline">← Назад в меню</button>
-                <button id="startGameBtn" class="btn btn--primary" style="display: none;">🎮 Начать игру</button>
+                <button id="startGameBtn" class="btn btn--primary" style="display: none;">Начать игру</button>
             </div>
         </div>
     </div>
@@ -165,26 +165,26 @@
                         <div id="hpText" class="stat-text">120/120</div>
                     </div>
                     <div class="level-info">Уровень: <span id="levelText">1</span></div>
-                    <div class="gold-display" id="goldDisplay">🪙 <span id="goldText">0</span></div>
+                    <div class="gold-display" id="goldDisplay"><span class="gold-icon">G</span> <span id="goldText">0</span></div>
                 </div>
                 
                 <!-- Controls -->
                 <div class="flex gap-8">
-                    <button id="pauseBtn" class="btn btn--outline">⏸️</button>
-                    <button id="inventoryToggle" class="btn btn--outline">🎒</button>
+                    <button id="pauseBtn" class="btn btn--outline hud-btn">II</button>
+                    <button id="inventoryToggle" class="btn btn--outline hud-btn">INV</button>
                 </div>
                 
                 <!-- Desktop Ability Button -->
                 <div class="desktop-ability-container">
                     <button id="desktopAbilityBtn" class="btn btn--primary desktop-ability-btn">
-                        <span class="ability-icon">⚡</span>
+                        <span class="ability-icon">Q</span>
                         <span class="cooldown-text">0s</span>
                     </button>
                 </div>
-                
+
                 <!-- Ability Cooldown -->
                 <div id="abilityCooldownUI" class="ability-cooldown-ui hidden">
-                    <div class="ability-icon">⚡</div>
+                    <div class="ability-icon">Q</div>
                     <div class="cooldown-text">0s</div>
                 </div>
                 
@@ -201,17 +201,17 @@
         <!-- Quick Potion Slots (Bottom Left) -->
         <div class="quick-potions-container health-potions-bottom">
             <div id="quickPotionSlot1" class="potion-slot" data-slot="1">
-                <div class="potion-icon">🧪</div>
+                <div class="potion-icon"></div>
                 <div class="potion-count">0</div>
                 <div class="potion-hotkey">1</div>
             </div>
             <div id="quickPotionSlot2" class="potion-slot" data-slot="2">
-                <div class="potion-icon">🧪</div>
+                <div class="potion-icon"></div>
                 <div class="potion-count">0</div>
                 <div class="potion-hotkey">2</div>
             </div>
             <div id="quickPotionSlot3" class="potion-slot" data-slot="3">
-                <div class="potion-icon">🧪</div>
+                <div class="potion-icon"></div>
                 <div class="potion-count">0</div>
                 <div class="potion-hotkey">3</div>
             </div>
@@ -224,11 +224,11 @@
             </div>
             
             <div class="mobile-buttons">
-                <button id="abilityBtn" class="ctrl-btn btn--primary" title="Уникальная способность">⚡</button>
+                <button id="abilityBtn" class="ctrl-btn btn--primary" title="Уникальная способность">Q</button>
             </div>
             
             <!-- Мобильная кнопка инвентаря - отдельно от других кнопок -->
-            <button id="mobileInventoryBtn" class="ctrl-btn btn--inventory" title="Инвентарь">🎒</button>
+            <button id="mobileInventoryBtn" class="ctrl-btn btn--inventory" title="Инвентарь">INV</button>
         </div>
         
         <!-- Interaction Hint -->
@@ -246,10 +246,10 @@
             <div class="shop-container">
                 <div class="shop-header">
                     <h2 class="shop-title">Торговец подземелья</h2>
-                    <div class="shop-gold">🪙 <span id="shopGold">0</span></div>
+                    <div class="shop-gold"><span class="gold-icon">G</span> <span id="shopGold">0</span></div>
                 </div>
                 <div class="shop-items" id="shopItems"></div>
-                <button id="shopContinueBtn" class="btn btn--primary shop-continue">Продолжить путь ➜</button>
+                <button id="shopContinueBtn" class="btn btn--primary shop-continue">Продолжить путь</button>
             </div>
         </div>
     </div>
@@ -260,14 +260,14 @@
         <div class="records-content">
             <div class="card">
                 <div class="card__header">
-                    <h3>📊 Ваши рекорды</h3>
+                    <h3>Ваши рекорды</h3>
                 </div>
                 <div class="card__body">
                     <div id="recordsData"></div>
                 </div>
                 <div class="card__footer">
                     <div class="flex gap-8 justify-between">
-                        <button id="clearRecords" class="btn btn--outline">🗑️ Очистить</button>
+                        <button id="clearRecords" class="btn btn--outline">Очистить</button>
                         <button id="backToMenuFromRecords" class="btn btn--primary">← Назад</button>
                     </div>
                 </div>
@@ -281,7 +281,7 @@
         <div class="settings-content">
             <div class="settings-panel card">
             <div class="card__header">
-                <h3>⚙️ Настройки</h3>
+                <h3>Настройки</h3>
             </div>
             <div class="card__body">
                 <div class="form-group">
@@ -303,7 +303,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <button id="muteToggle" class="btn btn--secondary btn--full-width">🔇 Выключить звук</button>
+                    <button id="muteToggle" class="btn btn--secondary btn--full-width">Выключить звук</button>
                 </div>
             </div>
             <div class="card__footer">
@@ -319,7 +319,7 @@
         <div class="pause-content">
             <div class="pause-panel card">
                 <div class="card__header">
-                    <h3>⏸️ Игра приостановлена</h3>
+                    <h3>Игра приостановлена</h3>
                     <button id="closePause" class="close-btn">×</button>
                 </div>
                 <div class="card__body">
@@ -333,7 +333,7 @@
                     
                     <!-- Настройки звука -->
                     <div class="audio-settings">
-                        <h5 class="audio-settings-title">🎵 Настройки звука</h5>
+                        <h5 class="audio-settings-title">Настройки звука</h5>
                         
                         <div class="volume-controls">
                             <div class="form-group">
@@ -362,12 +362,12 @@
                         </div>
                         
                         <div class="audio-actions">
-                            <button id="pauseMuteToggle" class="btn btn--secondary btn--full-width">🔇 Выключить звук</button>
+                            <button id="pauseMuteToggle" class="btn btn--secondary btn--full-width">Выключить звук</button>
                         </div>
                     </div>
                 </div>
                 <div class="card__footer">
-                    <button id="quitBtn" class="btn btn--outline btn--full-width">🏠 В главное меню</button>
+                    <button id="quitBtn" class="btn btn--outline btn--full-width">В главное меню</button>
                 </div>
             </div>
         </div>
@@ -392,7 +392,7 @@
                 
                 <!-- Секция быстрых слотов -->
                 <div class="inventory-section">
-                    <h5>⚡ БЫСТРЫЕ СЛОТЫ</h5>
+                    <h5>БЫСТРЫЕ СЛОТЫ</h5>
                     <div id="quickSlotsContainer" class="quick-slots-grid">
                         <!-- Быстрые слоты будут созданы динамически -->
                     </div>
@@ -419,7 +419,7 @@
                 <div class="inventory-section">
                     <h5>ВАЛЮТА</h5>
                     <div id="currencyDisplay" class="currency-display">
-                        <span class="currency-icon">🪙</span>
+                        <span class="currency-icon gold-icon">G</span>
                         <span id="playerGold" class="currency-amount">0</span>
                     </div>
                 </div>
@@ -430,14 +430,14 @@
     <!-- ОВЕРЛЕЙ ЗАВЕРШЕНИЯ УРОВНЯ -->
     <div id="levelCompleteOverlay" class="level-complete-overlay card hidden">
         <div class="card__header">
-            <h4>🎉 Уровень пройден!</h4>
+            <h4>Уровень пройден!</h4>
         </div>
         <div class="card__body">
             <p>Уровень <span id="completedLevel">1</span> завершён!</p>
             <p>Убито врагов: <span id="enemiesKilled">0</span></p>
         </div>
         <div class="card__footer">
-            <button id="nextLevelBtn" class="btn btn--primary btn--full-width">⬇️ Следующий уровень</button>
+            <button id="nextLevelBtn" class="btn btn--primary btn--full-width">Следующий уровень</button>
         </div>
     </div>
 
@@ -447,10 +447,9 @@
     </div>
 
     <!-- Добавляем pop-up корзину для удаления предметов -->
-    <div id="deletePopup" class="hidden" style="position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:20000;background:#222;padding:24px 32px;border-radius:16px;box-shadow:0 4px 32px #000a;color:#fff;display:flex;flex-direction:column;align-items:center;gap:16px;min-width:220px;">
-      <div style="font-size:2.2rem;">🗑️</div>
-      <div style="font-size:1.1rem;">Удалить предмет?</div>
-      <div style="display:flex;gap:16px;">
+    <div id="deletePopup" class="delete-popup hidden">
+      <div class="delete-popup-title">Удалить предмет?</div>
+      <div class="delete-popup-actions">
         <button id="confirmDeleteBtn" class="btn btn--primary">Удалить</button>
         <button id="cancelDeleteBtn" class="btn btn--outline">Отмена</button>
       </div>

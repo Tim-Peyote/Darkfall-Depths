@@ -101,7 +101,7 @@ export class ShopManager {
         </div>
         <button class="shop-item__buy${maxed ? ' shop-item__buy--maxed' : !canAfford ? ' shop-item__buy--disabled' : ''}"
                 ${maxed || !canAfford ? 'disabled' : ''}>
-          ${maxed ? 'МАКС' : `🪙 ${price}`}
+          ${maxed ? 'МАКС' : `${price}G`}
         </button>
       `;
 

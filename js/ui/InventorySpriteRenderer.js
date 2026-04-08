@@ -767,28 +767,28 @@ export class InventorySpriteRenderer {
      ctx.textAlign = 'center';
      ctx.textBaseline = 'middle';
      
-     let symbol = '📜';
+     let symbol = '\u2625';
      switch (base) {
-       case 'scroll_werewolf': symbol = '🐺'; break;
-       case 'scroll_stone': symbol = '🗿'; break;
-       case 'scroll_fire_explosion': symbol = '🔥'; break;
-       case 'scroll_ice_storm': symbol = '❄️'; break;
-       case 'scroll_lightning': symbol = '⚡'; break;
-       case 'scroll_earthquake': symbol = '🌋'; break;
-       case 'scroll_clone': symbol = '👥'; break;
-       case 'scroll_teleport': symbol = '🌀'; break;
-       case 'scroll_invisibility': symbol = '👁️'; break;
-       case 'scroll_time': symbol = '⏰'; break;
-       case 'scroll_curse': symbol = '💀'; break;
-       case 'scroll_chaos': symbol = '🎭'; break;
-       case 'scroll_fear': symbol = '😱'; break;
-       case 'scroll_smoke': symbol = '💨'; break;
-       case 'scroll_meteor': symbol = '☄️'; break;
-       case 'scroll_barrier': symbol = '🛡️'; break;
-       case 'scroll_rage': symbol = '😡'; break;
-       case 'scroll_invulnerability': symbol = '💎'; break;
-       case 'scroll_vampirism': symbol = '🦇'; break;
-       case 'mystery_scroll': symbol = '📜'; break;
+       case 'scroll_werewolf': symbol = '\u2625'; break;
+       case 'scroll_stone': symbol = '\u2625'; break;
+       case 'scroll_fire_explosion': symbol = '\u2625'; break;
+       case 'scroll_ice_storm': symbol = '\u2625'; break;
+       case 'scroll_lightning': symbol = '\u2625'; break;
+       case 'scroll_earthquake': symbol = '\u2625'; break;
+       case 'scroll_clone': symbol = '\u2625'; break;
+       case 'scroll_teleport': symbol = '\u2625'; break;
+       case 'scroll_invisibility': symbol = '\u2625'; break;
+       case 'scroll_time': symbol = '\u2625'; break;
+       case 'scroll_curse': symbol = '\u2625'; break;
+       case 'scroll_chaos': symbol = '\u2625'; break;
+       case 'scroll_fear': symbol = '\u2625'; break;
+       case 'scroll_smoke': symbol = '\u2625'; break;
+       case 'scroll_meteor': symbol = '\u2625'; break;
+       case 'scroll_barrier': symbol = '\u2625'; break;
+       case 'scroll_rage': symbol = '\u2625'; break;
+       case 'scroll_invulnerability': symbol = '\u2625'; break;
+       case 'scroll_vampirism': symbol = '\u2625'; break;
+       case 'mystery_scroll': symbol = '?'; break;
      }
      
      // Символ в центре

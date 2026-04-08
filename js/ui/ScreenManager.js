@@ -299,13 +299,13 @@ export class ScreenManager {
       // Определяем иконку способности
       let abilityIcon = '';
       if (char.hasDash) {
-        abilityIcon = '💨';
+        abilityIcon = 'DASH';
       } else if (char.hasShield) {
-        abilityIcon = '🛡️';
+        abilityIcon = 'DEF';
       } else if (char.hasBlast) {
-        abilityIcon = '💥';
+        abilityIcon = 'AOE';
       }
-      
+
       // Создаем контейнер аватара
       const avatarContainer = document.createElement('div');
       avatarContainer.className = 'character-avatar-container';
@@ -430,13 +430,13 @@ export class ScreenManager {
       let abilityIcon = '';
       let abilityName = '';
       if (char.hasDash) {
-        abilityIcon = '💨';
+        abilityIcon = 'DASH';
         abilityName = 'Dash';
       } else if (char.hasShield) {
-        abilityIcon = '🛡️';
+        abilityIcon = 'DEF';
         abilityName = 'Щит';
       } else if (char.hasBlast) {
-        abilityIcon = '💥';
+        abilityIcon = 'AOE';
         abilityName = 'Взрыв';
       }
       
@@ -519,13 +519,13 @@ export class ScreenManager {
     let abilityIcon = '';
     let abilityName = '';
     if (char.hasDash) {
-      abilityIcon = '💨';
+      abilityIcon = 'DASH';
       abilityName = 'Dash';
     } else if (char.hasShield) {
-      abilityIcon = '🛡️';
+      abilityIcon = 'DEF';
       abilityName = 'Щит';
     } else if (char.hasBlast) {
-      abilityIcon = '💥';
+      abilityIcon = 'AOE';
       abilityName = 'Взрыв';
     }
     

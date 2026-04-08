@@ -44,6 +44,6 @@ export class Portal extends Entity {
     ctx.fillStyle = '#fff';
     ctx.font = '30px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('⬇', this.x - gameState.camera.x, this.y - gameState.camera.y + 10);
+    ctx.fillText('\u25BC', this.x - gameState.camera.x, this.y - gameState.camera.y + 10);
   }
 } 

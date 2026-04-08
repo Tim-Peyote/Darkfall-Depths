@@ -219,7 +219,7 @@ export class RecordsManager {
     
     const sessionStats = `
       <div class="death-stats">
-        <h2>💀 Игра окончена</h2>
+        <h2>Игра окончена</h2>
         <div class="session-summary">
           <h3>Статистика сессии</h3>
           <div class="stat-row">
@@ -266,8 +266,8 @@ export class RecordsManager {
         
         <div class="card__footer">
           <div class="flex gap-8">
-            <button id="restartBtn" class="btn btn--primary">🔄 Снова</button>
-            <button id="menuBtn" class="btn btn--outline">🏠 Меню</button>
+            <button id="restartBtn" class="btn btn--primary">Снова</button>
+            <button id="menuBtn" class="btn btn--outline">Меню</button>
           </div>
         </div>
       </div>
