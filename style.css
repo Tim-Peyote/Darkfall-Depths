@@ -635,11 +635,12 @@ select.form-control {
   left: 0;
 }
 
-/* Убираем градиент для экранов с фоновыми изображениями */
+/* Убираем градиент для экранов с фоновыми изображениями и игрового экрана */
 #menuScreen,
 #selectScreen,
 #settingsScreen,
-#recordsScreen {
+#recordsScreen,
+#gameScreen {
   background: none;
 }
 

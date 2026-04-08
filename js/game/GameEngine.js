@@ -253,7 +253,7 @@ export class GameEngine {
       const cameraSpeed = 3; // Уменьшили с 5 до 3
       gameState.camera.x = Utils.lerp(gameState.camera.x, targetX, dt * cameraSpeed);
       gameState.camera.y = Utils.lerp(gameState.camera.y, targetY, dt * cameraSpeed);
-      
+
       // Ограничиваем минимальное движение камеры для устранения дрожания
       const minMovement = 0.1;
       if (Math.abs(gameState.camera.x - targetX) < minMovement) {
@@ -262,6 +262,14 @@ export class GameEngine {
       if (Math.abs(gameState.camera.y - targetY) < minMovement) {
         gameState.camera.y = targetY;
       }
+
+      // Ограничиваем камеру размерами карты чтобы не было видно фон за пределами
+      const mapWidth = gameState.map[0] ? gameState.map[0].length * TILE_SIZE : MAP_SIZE * TILE_SIZE;
+      const mapHeight = gameState.map.length * TILE_SIZE;
+      const viewWidth = canvas.width / DPR;
+      const viewHeight = canvas.height / DPR;
+      gameState.camera.x = Utils.clamp(gameState.camera.x, 0, Math.max(0, mapWidth - viewWidth));
+      gameState.camera.y = Utils.clamp(gameState.camera.y, 0, Math.max(0, mapHeight - viewHeight));
       
       // Обновляем область видимости в системе освещения для оптимизации
       if (this.lightingSystem) {
