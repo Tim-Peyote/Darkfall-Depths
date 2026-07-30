@@ -4,6 +4,7 @@ import { Entity } from './Entity.js';
 import { gameState, ctx, Utils } from '../core/GameState.js';
 import { audioManager } from '../audio/AudioManager.js';
 import { BASE_ITEMS } from '../config/constants.js';
+import { ArtAssets } from '../core/ArtAssets.js';
 
 export class DroppedItem extends Entity {
   constructor(x, y, itemData) {
@@ -52,6 +53,10 @@ export class DroppedItem extends Entity {
   }
   
   renderCustomItem(ctx, x, y) {
+    if (ArtAssets.drawItem(ctx, this.itemData, x, y, this.radius, this.sparkleTime)) {
+      return;
+    }
+
     ctx.save();
     
     // Анимация вращения для некоторых предметов

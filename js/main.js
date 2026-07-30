@@ -5,6 +5,7 @@ import { TILE_SIZE, MAP_SIZE, CHARACTERS, ENEMY_TYPES, generateRandomItem } from
 
 // Импорты ядра
 import { gameState, setCanvasElements } from './core/GameState.js';
+import { ArtAssets } from './core/ArtAssets.js';
 
 // Импорты аудио
 import { audioManager } from './audio/AudioManager.js';
@@ -47,6 +48,7 @@ import { PerformanceMonitor } from './core/PerformanceMonitor.js';
 
 // Глобальные переменные для совместимости
 window.gameState = gameState;
+window.ArtAssets = ArtAssets;
 window.TILE_SIZE = TILE_SIZE;
 window.MAP_SIZE = MAP_SIZE;
 window.CHARACTERS = CHARACTERS;
@@ -77,6 +79,7 @@ window.InventorySpriteRenderer = InventorySpriteRenderer;
 // Экспортируем все для использования в других модулях
 export {
   gameState,
+  ArtAssets,
   TILE_SIZE,
   MAP_SIZE,
   CHARACTERS,

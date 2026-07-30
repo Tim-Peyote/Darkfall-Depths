@@ -12,7 +12,7 @@
     <!-- Gothic Font Import -->
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="style.css?v=41">
+    <link rel="stylesheet" href="style.css?v=42">
     
     <!-- iOS Safari optimizations -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -174,14 +174,6 @@
                     <button id="inventoryToggle" class="btn btn--outline hud-btn">INV</button>
                 </div>
                 
-                <!-- Desktop Ability Button -->
-                <div class="desktop-ability-container">
-                    <button id="desktopAbilityBtn" class="btn btn--primary desktop-ability-btn">
-                        <span class="ability-icon">Q</span>
-                        <span class="cooldown-text">0s</span>
-                    </button>
-                </div>
-
                 <!-- Ability Cooldown -->
                 <div id="abilityCooldownUI" class="ability-cooldown-ui hidden">
                     <div class="ability-icon">Q</div>
@@ -196,6 +188,14 @@
                 <!-- Minimap -->
                 <canvas id="minimap" width="120" height="120"></canvas>
             </div>
+        </div>
+
+        <!-- Desktop ability lives outside the HUD flex layout so it cannot overlap stats. -->
+        <div class="desktop-ability-container">
+            <button id="desktopAbilityBtn" class="btn btn--primary desktop-ability-btn">
+                <span class="ability-icon">Q</span>
+                <span class="cooldown-text">0s</span>
+            </button>
         </div>
 
         <!-- Quick Potion Slots (Bottom Left) -->
@@ -455,6 +455,6 @@
       </div>
     </div>
 
-            <script type="module" src="js/main.js?v=122"></script>
+    <script type="module" src="js/main.js?v=125"></script>
 </body>
 </html>

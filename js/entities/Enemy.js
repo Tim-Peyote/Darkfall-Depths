@@ -4,6 +4,7 @@ import { Entity } from './Entity.js';
 import { gameState, ctx, Utils } from '../core/GameState.js';
 import { ENEMY_TYPES, generateRandomItem } from '../config/constants.js';
 import { createParticle } from '../effects/Particle.js';
+import { ArtAssets } from '../core/ArtAssets.js';
 
 export class Enemy extends Entity {
   constructor(x, y, type) {
@@ -487,36 +488,11 @@ export class Enemy extends Entity {
     
     const screenX = this.x - gameState.camera.x;
     const screenY = this.y - gameState.camera.y;
-    
-    // Эффект свечения при наличии дебафов
-    if (this.debuffs.active.length > 0) {
-      ctx.save();
-      const glowRadius = this.radius + 8;
-      const glowGradient = ctx.createRadialGradient(screenX, screenY, 0, screenX, screenY, glowRadius);
-      
-      // Определяем цвет свечения на основе типа дебафа
-      let glowColor = '#ffffff';
-      if (this.debuffs.active.some(d => d.type === 'burn')) {
-        glowColor = '#e67e22'; // Оранжевый для ожога
-      } else if (this.debuffs.active.some(d => d.type === 'freeze')) {
-        glowColor = '#3498db'; // Синий для заморозки
-      } else if (this.debuffs.active.some(d => d.type === 'stun')) {
-        glowColor = '#f1c40f'; // Желтый для стана
-      }
-      
-      glowGradient.addColorStop(0, `${glowColor}40`);
-      glowGradient.addColorStop(0.7, `${glowColor}20`);
-      glowGradient.addColorStop(1, 'transparent');
-      
-      ctx.fillStyle = glowGradient;
-      ctx.beginPath();
-      ctx.arc(screenX, screenY, glowRadius, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-    }
-    
-    // Рисуем стилизованный спрайт врага
-    this.renderCustomSprite(ctx, screenX, screenY);
+
+    ArtAssets.drawEnemy(ctx, this, screenX, screenY, {
+      isMoving: this.isMoving(),
+      isAttacking: this.isAttacking()
+    });
     
     // Индикатор здоровья (только если повреждён)
     if (this.hp < this.maxHp) {
@@ -533,7 +509,7 @@ export class Enemy extends Entity {
     const barWidth = 28; // Оптимальная ширина для противников
     const barHeight = 3; // Тонкие полоски
     const barSpacing = 2; // Минимальные отступы
-    const startY = y - this.radius - 12; // Под HP баром
+    const startY = y + this.radius + 12; // Под мобом, чтобы не закрывать силуэт
     
     this.debuffs.active.forEach((debuff, index) => {
       const barY = startY + index * (barHeight + barSpacing);
@@ -1339,7 +1315,7 @@ export class Enemy extends Entity {
     const barWidth = 24;
     const barHeight = 4;
     const barX = x - barWidth / 2;
-    const barY = y - this.radius - 10;
+    const barY = y + this.radius + 6;
     
     // Фон полоски здоровья
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';

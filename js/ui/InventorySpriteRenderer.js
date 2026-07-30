@@ -1,5 +1,7 @@
 /* Darkfall Depths - Отрисовка спрайтов предметов в инвентаре */
 
+import { ArtAssets } from '../core/ArtAssets.js';
+
 export class InventorySpriteRenderer {
   static canvas = null;
   static ctx = null;
@@ -14,6 +16,7 @@ export class InventorySpriteRenderer {
     
     // Предварительно рендерим все базовые спрайты
     this.preRenderSprites();
+    ArtAssets.onAtlasesReady(() => this.preRenderSprites());
   }
   
   static preRenderSprites() {
@@ -25,9 +28,9 @@ export class InventorySpriteRenderer {
       'sword', 'axe', 'shield', 'staff', 'wand', 'dagger', 'crossbow',
       'robe', 'leather', 'plate', 'helmet', 'hood', 'cap', 'gloves', 'belt', 'boots',
       'amulet', 'ring',
-      'potion', 'speed_potion', 'strength_potion', 'defense_potion', 'regen_potion', 'combo_potion', 'purification_potion', 'mystery_potion',
+      'potion', 'health_potion', 'mana_potion', 'speed_potion', 'strength_potion', 'defense_potion', 'regen_potion', 'combo_potion', 'purification_potion', 'mystery_potion',
       // Свитки
-      'scroll_werewolf', 'scroll_stone', 'scroll_fire_explosion', 'scroll_ice_storm', 'scroll_lightning', 'scroll_earthquake', 'scroll_clone', 'scroll_teleport', 'scroll_invisibility', 'scroll_time', 'scroll_curse', 'scroll_chaos', 'scroll_fear', 'scroll_smoke', 'scroll_meteor', 'scroll_barrier', 'scroll_rage', 'scroll_invulnerability', 'scroll_vampirism', 'mystery_scroll'
+      'scroll_fire', 'scroll_ice', 'scroll_mystery', 'scroll_werewolf', 'scroll_stone', 'scroll_fire_explosion', 'scroll_ice_storm', 'scroll_lightning', 'scroll_earthquake', 'scroll_clone', 'scroll_teleport', 'scroll_invisibility', 'scroll_time', 'scroll_curse', 'scroll_chaos', 'scroll_fear', 'scroll_smoke', 'scroll_meteor', 'scroll_barrier', 'scroll_rage', 'scroll_invulnerability', 'scroll_vampirism', 'mystery_scroll'
     ];
     
     baseItems.forEach(base => {
@@ -48,6 +51,10 @@ export class InventorySpriteRenderer {
     const centerX = size / 2;
     const centerY = size / 2;
     const itemSize = size * 0.6;
+
+    if (ArtAssets.drawInventoryItem(ctx, { base, rarity }, centerX, centerY, size * 0.92)) {
+      return canvas;
+    }
     
     // Определяем цвет предмета
     let color = '#95a5a6'; // базовый серый
@@ -78,7 +85,12 @@ export class InventorySpriteRenderer {
       case 'combo_potion': color = '#9b59b6'; break;
       case 'purification_potion': color = '#f39c12'; break;
       case 'mystery_potion': color = '#8e44ad'; break;
+      case 'health_potion': color = '#e74c3c'; break;
+      case 'mana_potion': color = '#3498db'; break;
       // Свитки
+      case 'scroll_fire': color = '#e74c3c'; break;
+      case 'scroll_ice': color = '#3498db'; break;
+      case 'scroll_mystery': color = '#8e44ad'; break;
       case 'scroll_werewolf': color = '#8b4513'; break;
       case 'scroll_stone': color = '#7f8c8d'; break;
       case 'scroll_fire_explosion': color = '#e74c3c'; break;
@@ -99,9 +111,6 @@ export class InventorySpriteRenderer {
       case 'scroll_invulnerability': color = '#f1c40f'; break;
       case 'scroll_vampirism': color = '#8e44ad'; break;
       case 'mystery_scroll': color = '#8e44ad'; break;
-      // Дополнительные зелья
-      case 'health_potion': color = '#e74c3c'; break;
-      case 'mana_potion': color = '#3498db'; break;
       // Мешочки и прочее
       case 'gold_pouch': color = '#f1c40f'; break;
     }

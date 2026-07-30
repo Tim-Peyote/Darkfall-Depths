@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Darkfall Depths - Art Preview</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 32%, rgba(142, 68, 35, 0.18), transparent 34%),
+        radial-gradient(circle at 15% 75%, rgba(201, 168, 76, 0.08), transparent 28%),
+        #050403;
+      color: #d4c4a0;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    canvas {
+      width: min(1180px, 96vw);
+      height: auto;
+      border: 3px solid #a08850;
+      border-radius: 18px 6px 18px 6px;
+      background: #080605;
+      box-shadow: 0 28px 90px rgba(0, 0, 0, 0.75);
+    }
+  </style>
+</head>
+<body>
+  <canvas id="preview" width="1180" height="720"></canvas>
+  <script type="module">
+    import { ArtAssets } from './js/core/ArtAssets.js?v=125';
+
+    function renderPreview() {
+    const canvas = document.getElementById('preview');
+    const ctx = canvas.getContext('2d');
+
+    const bg = ctx.createRadialGradient(590, 260, 40, 590, 260, 720);
+    bg.addColorStop(0, 'rgba(120, 61, 28, 0.24)');
+    bg.addColorStop(0.55, 'rgba(26, 18, 12, 0.96)');
+    bg.addColorStop(1, '#050403');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.fillStyle = '#e2c46f';
+    ctx.font = '700 28px Georgia, serif';
+    ctx.fillText('Darkfall Depths - cohesive painted runtime art', 36, 48);
+    ctx.font = '700 18px Georgia, serif';
+    ctx.fillText('Dungeon tiles', 36, 94);
+    ctx.fillText('Heroes', 450, 94);
+    ctx.fillText('Items, scrolls, currency', 760, 94);
+    ctx.fillText('Enemies and bosses', 36, 360);
+
+    for (let y = 120; y < 295; y += 32) {
+      for (let x = 38; x < 360; x += 32) {
+        const type = x === 38 || y === 120 || x > 300 || (x + y) % 128 === 0 ? 'wall' : 'floor';
+        ArtAssets.drawTile(ctx, type, x, y, 32, x + y);
+      }
+    }
+
+    [
+      { class: 'mage', hasBlast: true, blastCooldown: 4, animationTime: 0.2 },
+      { class: 'warrior', hasShield: true, shieldCooldown: 2, isShieldActive: true, rageMode: true, animationTime: 0.8 },
+      { class: 'rogue', hasDash: true, dashCooldown: 1, animationTime: 1.4 }
+    ].forEach((hero, index) => {
+      ArtAssets.drawHero(ctx, hero, 488 + index * 96, 205, {
+        isMoving: index === 2,
+        isAttacking: index === 1
+      });
+    });
+
+    const items = [
+      { base: 'sword', type: 'weapon', rarity: 'rare', color: '#cfd6d1' },
+      { base: 'staff', type: 'weapon', rarity: 'epic', color: '#b25cff' },
+      { base: 'shield', type: 'shield', rarity: 'rare', color: '#95a5a6' },
+      { base: 'robe', type: 'armor', rarity: 'epic', color: '#6c3483' },
+      { base: 'amulet', type: 'accessory', rarity: 'legendary', color: '#f0c96a' },
+      { base: 'potion', type: 'consumable', rarity: 'common', color: '#e74c3c' },
+      { base: 'health_potion', type: 'consumable', rarity: 'common', color: '#e74c3c' },
+      { base: 'mana_potion', type: 'consumable', rarity: 'common', color: '#3498db' },
+      { base: 'speed_potion', type: 'consumable', rarity: 'rare', color: '#3498db' },
+      { base: 'scroll_fire_explosion', type: 'consumable', rarity: 'epic', color: '#e74c3c' },
+      { base: 'scroll_fire', type: 'consumable', rarity: 'rare', color: '#e74c3c' },
+      { base: 'scroll_ice_storm', type: 'consumable', rarity: 'rare', color: '#66bde8' },
+      { base: 'scroll_ice', type: 'consumable', rarity: 'rare', color: '#66bde8' },
+      { base: 'scroll_mystery', type: 'consumable', rarity: 'epic', color: '#8e44ad' },
+      { base: 'gold_pouch', type: 'gold', rarity: 'common', color: '#f0c96a' }
+    ];
+    items.forEach((item, index) => {
+      ArtAssets.drawItem(ctx, item, 800 + (index % 3) * 92, 145 + Math.floor(index / 3) * 76, 18, index * 0.8);
+    });
+
+    const enemies = [
+      'Skeleton', 'Skeleton Archer', 'Dark Mage', 'Frost Mage', 'Poison Spitter',
+      'Stun Warrior', 'Orc Warrior', 'Shadow Assassin', 'Void Wraith', 'Crystal Golem',
+      'Demon Lord', 'Ancient Guardian', 'Skeleton King', 'Dragon', 'Lich'
+    ];
+    enemies.forEach((type, index) => {
+      ArtAssets.drawEnemy(ctx, {
+        type,
+        animationTime: index * 0.35,
+        isBoss: ['Skeleton King', 'Dragon', 'Lich'].includes(type),
+        isChaotic: type === 'Demon Lord',
+        isAfraid: type === 'Void Wraith',
+        canReflect: type === 'Ancient Guardian'
+      }, 76 + (index % 8) * 135, 450 + Math.floor(index / 8) * 135, {
+        isMoving: index % 3 === 0,
+        isAttacking: index % 4 === 0
+      });
+    });
+    }
+
+    renderPreview();
+    ArtAssets.onAtlasesReady(renderPreview);
+  </script>
+</body>
+</html>

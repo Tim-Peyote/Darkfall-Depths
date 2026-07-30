@@ -5536,3 +5536,303 @@ html, body {
   color: var(--color-text-primary);
 }
 
+/* === Cohesive Painted In-Game HUD Pass === */
+#gameScreen {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(149, 67, 32, 0.08), transparent 36%),
+    radial-gradient(circle at 14% 80%, rgba(201, 168, 76, 0.06), transparent 26%),
+    #050403;
+}
+
+.ui-overlay {
+  padding: 14px;
+  background:
+    linear-gradient(180deg, rgba(5, 4, 3, 0.62), rgba(5, 4, 3, 0)),
+    radial-gradient(circle at 8% 0%, rgba(201, 168, 76, 0.12), transparent 22%),
+    radial-gradient(circle at 95% 0%, rgba(139, 26, 26, 0.1), transparent 22%);
+}
+
+.ui-left,
+.ui-right {
+  gap: 10px;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.55));
+}
+
+.player-stats {
+  min-width: 254px;
+  padding: 10px 12px;
+  border: 1px solid rgba(160, 136, 80, 0.55);
+  border-radius: 14px 6px 14px 6px;
+  background:
+    linear-gradient(145deg, rgba(43, 31, 21, 0.92), rgba(10, 8, 7, 0.9)),
+    repeating-linear-gradient(90deg, rgba(255, 220, 150, 0.035) 0 1px, transparent 1px 9px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 229, 165, 0.08),
+    inset 0 -18px 32px rgba(0, 0, 0, 0.34),
+    0 12px 28px rgba(0, 0, 0, 0.55);
+}
+
+.stat-bar {
+  width: 230px;
+  height: 24px;
+  border: 2px solid rgba(61, 51, 40, 0.95);
+  border-radius: 12px 4px 12px 4px;
+  background:
+    linear-gradient(180deg, rgba(6, 5, 4, 0.96), rgba(28, 19, 13, 0.96));
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.78),
+    0 1px 0 rgba(255, 224, 160, 0.08);
+}
+
+.stat-bar::before {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  z-index: 1;
+  pointer-events: none;
+  border-radius: 9px 3px 9px 3px;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 205, 0.18), transparent 42%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0 1px, transparent 1px 18px);
+  mix-blend-mode: screen;
+}
+
+.stat-fill {
+  position: relative;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 231, 185, 0.18),
+    inset 0 -8px 12px rgba(0, 0, 0, 0.28),
+    0 0 10px rgba(201, 168, 76, 0.1);
+}
+
+.hp-fill {
+  background: linear-gradient(90deg, #4b0f0e, #9b2720 50%, #d46a32);
+}
+
+.exp-fill {
+  background: linear-gradient(90deg, #1d344d, #2f6898 52%, #86d2f0);
+}
+
+.stat-text,
+.level-info,
+.gold-display,
+.player-detailed-stats {
+  letter-spacing: 0.04em;
+}
+
+.level-info,
+.gold-display,
+.player-detailed-stats {
+  border: 1px solid rgba(160, 136, 80, 0.42);
+  background:
+    linear-gradient(145deg, rgba(38, 27, 18, 0.86), rgba(8, 7, 6, 0.82));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 225, 160, 0.08),
+    0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+.hud-btn {
+  min-width: 44px;
+  min-height: 34px;
+  color: #d9c799;
+  border: 1px solid rgba(160, 136, 80, 0.55);
+  border-radius: 12px 4px 12px 4px;
+  background:
+    linear-gradient(145deg, rgba(54, 35, 22, 0.94), rgba(10, 8, 7, 0.94)),
+    radial-gradient(circle at 45% 15%, rgba(201, 168, 76, 0.18), transparent 54%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 232, 170, 0.12),
+    inset 0 -10px 16px rgba(0, 0, 0, 0.35),
+    0 8px 18px rgba(0, 0, 0, 0.42);
+}
+
+.hud-btn:hover {
+  color: #ffe0a0;
+  border-color: rgba(217, 178, 88, 0.95);
+  background:
+    linear-gradient(145deg, rgba(74, 44, 24, 0.98), rgba(16, 11, 8, 0.96)),
+    radial-gradient(circle at 45% 15%, rgba(226, 169, 71, 0.28), transparent 58%);
+  transform: translateY(-1px);
+}
+
+#minimap {
+  border: 3px solid rgba(160, 136, 80, 0.82);
+  border-radius: 16px 4px 16px 4px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(52, 37, 25, 0.78), rgba(5, 4, 3, 0.98));
+  box-shadow:
+    inset 0 0 0 2px rgba(0, 0, 0, 0.58),
+    inset 0 0 24px rgba(0, 0, 0, 0.72),
+    0 10px 24px rgba(0, 0, 0, 0.55);
+}
+
+.quick-potions-container {
+  bottom: 22px;
+  left: 22px;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(160, 136, 80, 0.38);
+  border-radius: 16px 5px 16px 5px;
+  background:
+    linear-gradient(145deg, rgba(34, 24, 17, 0.72), rgba(6, 5, 4, 0.72));
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.5);
+}
+
+.potion-slot {
+  width: 54px;
+  height: 54px;
+  border: 2px solid rgba(61, 51, 40, 0.95);
+  border-radius: 15px 5px 15px 5px;
+  background:
+    radial-gradient(circle at 50% 30%, rgba(201, 168, 76, 0.15), transparent 34%),
+    linear-gradient(145deg, #2b1d14, #080706);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 231, 180, 0.1),
+    inset 0 -14px 18px rgba(0, 0, 0, 0.42),
+    0 8px 18px rgba(0, 0, 0, 0.45);
+}
+
+.potion-slot::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border: 1px solid rgba(201, 168, 76, 0.28);
+  border-radius: 10px 3px 10px 3px;
+  pointer-events: none;
+}
+
+.potion-slot:hover {
+  border-color: #c9a84c;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(231, 143, 60, 0.22), transparent 42%),
+    linear-gradient(145deg, #3a2418, #0e0906);
+}
+
+.potion-count,
+.potion-hotkey {
+  border: 1px solid rgba(255, 220, 150, 0.26);
+  background:
+    linear-gradient(145deg, #7b2119, #1a0806);
+  color: #f2d9a4;
+}
+
+.desktop-ability-container {
+  position: fixed !important;
+  left: 50% !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: 24px !important;
+  transform: translateX(-50%) !important;
+  z-index: 1150;
+  display: flex !important;
+  padding: 8px 10px;
+  border: 1px solid rgba(160, 136, 80, 0.42);
+  border-radius: 18px 6px 18px 6px;
+  background:
+    linear-gradient(145deg, rgba(38, 26, 18, 0.75), rgba(5, 4, 3, 0.75));
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.58);
+  pointer-events: auto;
+}
+
+.desktop-ability-btn {
+  width: 58px;
+  height: 58px;
+  border: 2px solid rgba(160, 136, 80, 0.72);
+  border-radius: 18px 6px 18px 6px;
+  background:
+    radial-gradient(circle at 50% 28%, rgba(232, 114, 50, 0.22), transparent 42%),
+    linear-gradient(145deg, #4a2115, #100907 65%, #070403);
+}
+
+.desktop-ability-btn::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  z-index: 1;
+  border: 1px solid rgba(240, 201, 106, 0.24);
+  border-radius: 12px 4px 12px 4px;
+  pointer-events: none;
+}
+
+.desktop-ability-btn::after {
+  background:
+    linear-gradient(to top, rgba(0, 0, 0, 0.82), rgba(0, 0, 0, 0.34));
+}
+
+.desktop-ability-btn .ability-icon {
+  color: #f0c96a;
+  font-size: 1.25rem;
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.9),
+    0 0 10px rgba(214, 96, 44, 0.44);
+}
+
+.desktop-ability-btn:not(:disabled) {
+  animation: abilityReady 1.8s ease-in-out infinite alternate;
+}
+
+.desktop-ability-btn:hover:not(:disabled) {
+  border-color: #f0c96a;
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.58),
+    0 0 18px rgba(214, 96, 44, 0.36),
+    inset 0 1px 0 rgba(255, 234, 180, 0.16);
+}
+
+.ui-left .desktop-ability-container {
+  position: fixed !important;
+  margin: 0 !important;
+  flex: none !important;
+}
+
+#gameScreen > .desktop-ability-container {
+  position: absolute !important;
+  left: 50% !important;
+  right: auto !important;
+  top: auto !important;
+  bottom: max(22px, env(safe-area-inset-bottom)) !important;
+  transform: translateX(-50%) !important;
+}
+
+@media (max-width: 768px) {
+  .desktop-ability-container {
+    display: none !important;
+  }
+}
+
+.boss-health-bar {
+  width: 420px;
+  padding: 8px 14px 12px;
+  border: 1px solid rgba(160, 136, 80, 0.48);
+  border-radius: 4px 4px 18px 18px;
+  background:
+    linear-gradient(180deg, rgba(8, 6, 5, 0.94), rgba(34, 20, 14, 0.84)),
+    radial-gradient(circle at 50% 0%, rgba(139, 26, 26, 0.24), transparent 60%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 232, 170, 0.08),
+    0 12px 30px rgba(0, 0, 0, 0.58);
+}
+
+.boss-name {
+  color: #e2c46f;
+  text-shadow:
+    0 1px 0 #000,
+    0 0 12px rgba(166, 44, 30, 0.62);
+}
+
+.boss-hp-bar {
+  height: 16px;
+  border: 2px solid rgba(160, 136, 80, 0.82);
+  border-radius: 10px 3px 10px 3px;
+  background:
+    linear-gradient(180deg, #060403, #1a0908);
+}
+
+.boss-hp-fill {
+  background:
+    linear-gradient(90deg, #3d0908, #9d201b 44%, #e37a31),
+    repeating-linear-gradient(90deg, rgba(255, 240, 190, 0.18) 0 1px, transparent 1px 28px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 230, 170, 0.18),
+    0 0 14px rgba(139, 26, 26, 0.52);
+}

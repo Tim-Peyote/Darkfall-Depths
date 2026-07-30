@@ -7,6 +7,7 @@ import { Projectile, FireballProjectile } from './Projectile.js';
 import { createParticle } from '../effects/Particle.js';
 import { Utils } from '../utils/Utils.js';
 import { TILE_SIZE } from '../config/constants.js';
+import { ArtAssets } from '../core/ArtAssets.js';
 
 export class Player extends Entity {
   constructor(charData, x, y) {
@@ -479,11 +480,16 @@ export class Player extends Entity {
     const isIdle = !isMoving && !isAttacking;
     const idleTime = this.getIdleTime();
     
-    // Рисуем стилизованного героя
-    this.renderCustomHero(ctx, screenX, screenY, isMoving, isAttacking, isIdle, idleTime);
+    ArtAssets.drawHero(ctx, this, screenX, screenY, {
+      isMoving,
+      isAttacking,
+      isIdle,
+      idleTime
+    });
+
+    this.renderDebuffs(ctx, screenX, screenY);
     
-    // Индикатор здоровья
-    this.drawHealthBar();
+    // HP игрока показывается в HUD; world-bar перекрывал лицо персонажа.
   }
   
   isMoving() {

@@ -17,6 +17,7 @@ import { WebGLFogOfWar } from '../map/WebGLFogOfWar.js';
 import { LightingSystem } from '../map/LightingSystem.js';
 import { Logger } from '../utils/Logger.js';
 import { PlayerLight } from '../entities/PlayerLight.js';
+import { ArtAssets } from '../core/ArtAssets.js';
 
 let lastFrameTime = 0;
 let gameLoopId = null;
@@ -1616,6 +1617,9 @@ export class GameEngine {
   
   // Предрендеринг тайла стены в кеш
   static renderWallTileToCache(ctx, x, y) {
+    ArtAssets.drawTile(ctx, 'wall', x, y, TILE_SIZE, 1);
+    return;
+
     // Градиент — тёмный камень с коричневым оттенком
     const gradient = ctx.createLinearGradient(x, y, x + TILE_SIZE, y + TILE_SIZE);
     gradient.addColorStop(0, '#0d0b09');
@@ -1656,6 +1660,9 @@ export class GameEngine {
 
   // Предрендеринг тайла пола в кеш
   static renderFloorTileToCache(ctx, x, y) {
+    ArtAssets.drawTile(ctx, 'floor', x, y, TILE_SIZE, 2);
+    return;
+
     // Градиент — тёплый каменный пол
     const gradient = ctx.createLinearGradient(x, y, x + TILE_SIZE, y + TILE_SIZE);
     gradient.addColorStop(0, '#1a1612');
