@@ -57,10 +57,13 @@ export class Enemy extends Entity {
     this.animationTime = 0;
     this.lastMoveTime = 0;
     this.lastAttackTime = 0;
+    this.hurtAnimation = 0;
+    this.direction = { x: 0, y: 1 };
   }
   
   update(dt) {
     super.update(dt);
+    this.hurtAnimation = Math.max(0, this.hurtAnimation - dt);
     
     if (this.isDead) return;
     
@@ -86,6 +89,8 @@ export class Enemy extends Entity {
     // Страх — враг убегает от игрока
     if (this.isAfraid) {
       const angle = Utils.angle(player, this);
+      this.direction.x = Math.cos(angle);
+      this.direction.y = Math.sin(angle);
       const newX = this.x + Math.cos(angle) * this.speed * dt;
       const newY = this.y + Math.sin(angle) * this.speed * dt;
       if (!this.checkCollisionWithWalls(newX, this.y)) this.x = newX;
@@ -106,8 +111,10 @@ export class Enemy extends Entity {
           if (d < closestDist) { closest = e; closestDist = d; }
         }
         if (closest) {
+          const angle = Utils.angle(this, closest);
+          this.direction.x = Math.cos(angle);
+          this.direction.y = Math.sin(angle);
           if (closestDist > this.attackRange) {
-            const angle = Utils.angle(this, closest);
             const newX = this.x + Math.cos(angle) * this.speed * dt;
             const newY = this.y + Math.sin(angle) * this.speed * dt;
             if (!this.checkCollisionWithWalls(newX, this.y)) this.x = newX;
@@ -138,6 +145,8 @@ export class Enemy extends Entity {
       this.targetY = player.y;
 
       const angle = Utils.angle(this, { x: this.targetX, y: this.targetY });
+      this.direction.x = Math.cos(angle);
+      this.direction.y = Math.sin(angle);
       const newX = this.x + Math.cos(angle) * this.speed * dt;
       const newY = this.y + Math.sin(angle) * this.speed * dt;
 
@@ -149,6 +158,9 @@ export class Enemy extends Entity {
       }
     } else if (this.attackCooldown <= 0) {
       // Атака игрока
+      const angle = Utils.angle(this, player);
+      this.direction.x = Math.cos(angle);
+      this.direction.y = Math.sin(angle);
       if (this.attackRange > 48 && this.projectileSpeed) {
         // Дальняя атака
         this.performRangedAttack(player);
@@ -394,6 +406,7 @@ export class Enemy extends Entity {
     }
     
     this.hp -= damage;
+    this.hurtAnimation = 0.22;
     
     // Воспроизводим звук попадания по врагу (асинхронно)
     (async () => {

@@ -37,6 +37,7 @@ export class Player extends Entity {
     this.blastCooldown = 0;
     this.radius = 14;
     this.attackAnimation = 0;
+    this.hurtAnimation = 0;
     this.isInvulnerable = false;
     this.invulnerabilityTime = 0;
     this.isShieldActive = false;
@@ -47,6 +48,7 @@ export class Player extends Entity {
   
   update(dt) {
     super.update(dt);
+    this.hurtAnimation = Math.max(0, this.hurtAnimation - dt);
     this.updateMovement(dt);
     this.updateCooldowns(dt);
     this.updateInvulnerability(dt);
@@ -435,6 +437,7 @@ export class Player extends Entity {
     }
 
     this.hp -= actualDamage;
+    this.hurtAnimation = 0.24;
     this.isInvulnerable = true;
     this.invulnerabilityTime = 1.0;
     audioManager.playHeroesHit();

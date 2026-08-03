@@ -7,6 +7,53 @@ export class ArtAssets {
   static atlasImages = new Map();
   static atlasReadyCallbacks = [];
   static atlasesLoading = false;
+  static spriteFrames = new Map();
+
+  static spriteSets = {
+    mage: 'Assets/sprites/characters/mage',
+    warrior: 'Assets/sprites/characters/warrior',
+    rogue: 'Assets/sprites/characters/rogue',
+    skeleton: 'Assets/sprites/enemies/skeleton',
+    skeleton_archer: 'Assets/sprites/enemies/skeleton_archer',
+    dark_mage: 'Assets/sprites/enemies/dark_mage',
+    frost_mage: 'Assets/sprites/enemies/frost_mage',
+    poison_spitter: 'Assets/sprites/enemies/poison_spitter',
+    stun_warrior: 'Assets/sprites/enemies/stun_warrior',
+    orc_warrior: 'Assets/sprites/enemies/orc_warrior',
+    shadow_assassin: 'Assets/sprites/enemies/shadow_assassin',
+    demon_lord: 'Assets/sprites/enemies/demon_lord',
+    ancient_guardian: 'Assets/sprites/enemies/ancient_guardian',
+    void_wraith: 'Assets/sprites/enemies/void_wraith',
+    crystal_golem: 'Assets/sprites/enemies/crystal_golem',
+    skeleton_king: 'Assets/sprites/bosses/skeleton_king',
+    dragon: 'Assets/sprites/bosses/dragon',
+    lich: 'Assets/sprites/bosses/lich'
+  };
+
+  // A set becomes runtime-visible only after all 15 directional frames exist.
+  static readySpriteSets = new Set(['mage']);
+
+  static enemySpriteIds = {
+    'Skeleton': 'skeleton',
+    'Skeleton Archer': 'skeleton_archer',
+    'Dark Mage': 'dark_mage',
+    'Frost Mage': 'frost_mage',
+    'Poison Spitter': 'poison_spitter',
+    'Stun Warrior': 'stun_warrior',
+    'Orc Warrior': 'orc_warrior',
+    'Shadow Assassin': 'shadow_assassin',
+    'Demon Lord': 'demon_lord',
+    'Ancient Guardian': 'ancient_guardian',
+    'Void Wraith': 'void_wraith',
+    'Crystal Golem': 'crystal_golem',
+    'Skeleton King': 'skeleton_king',
+    'Dragon': 'dragon',
+    'Lich': 'lich'
+  };
+
+  static spriteDirections = ['down', 'up', 'side'];
+  static spriteStates = ['idle', 'walk_1', 'walk_2', 'attack', 'hurt'];
+  static spriteVersion = 2;
 
   static atlasDefinitions = {
     enemies1: { src: 'Assets/generated/enemies-1.png', cols: 5, rows: 1 },
@@ -142,6 +189,55 @@ export class ArtAssets {
     return true;
   }
 
+  static loadSpriteSets() {
+    if (typeof Image === 'undefined') return;
+    Object.entries(this.spriteSets).forEach(([spriteId, root]) => {
+      if (!this.readySpriteSets.has(spriteId)) return;
+      this.spriteDirections.forEach((direction) => {
+        this.spriteStates.forEach((state) => {
+          const key = `${spriteId}:${direction}:${state}`;
+          if (this.spriteFrames.has(key)) return;
+          const image = new Image();
+          image.src = `${root}/${direction}/${state}.png?v=${this.spriteVersion}`;
+          this.spriteFrames.set(key, image);
+        });
+      });
+    });
+  }
+
+  static getDirection(vector = { x: 0, y: 1 }) {
+    const x = Number(vector.x) || 0;
+    const y = Number(vector.y) || 0;
+    if (Math.abs(y) >= Math.abs(x)) {
+      return { name: y < 0 ? 'up' : 'down', flipX: false };
+    }
+    return { name: 'side', flipX: x > 0 };
+  }
+
+  static getSpriteState(entity, state) {
+    if ((entity.hurtAnimation || 0) > 0) return 'hurt';
+    if (state.isAttacking) return 'attack';
+    if (state.isMoving) {
+      return Math.floor((entity.animationTime || 0) * 7) % 2 === 0 ? 'walk_1' : 'walk_2';
+    }
+    return 'idle';
+  }
+
+  static drawFrameSprite(ctx, spriteId, entity, state, x, y, width, height) {
+    if (!this.spriteSets[spriteId] || !this.readySpriteSets.has(spriteId)) return false;
+    const direction = this.getDirection(entity.direction);
+    const frameState = this.getSpriteState(entity, state);
+    const image = this.spriteFrames.get(`${spriteId}:${direction.name}:${frameState}`);
+    if (!image || !image.complete || !image.naturalWidth) return false;
+
+    ctx.save();
+    ctx.translate(x, y);
+    if (direction.flipX) ctx.scale(-1, 1);
+    ctx.drawImage(image, -width / 2, -height + 24, width, height);
+    ctx.restore();
+    return true;
+  }
+
   static drawTile(ctx, type, x, y, size, variant = 0) {
     const key = `tile:${type}:${size}:${variant % 8}`;
     const tile = this.getOrCreate(key, size, size, (tileCtx) => {
@@ -151,15 +247,8 @@ export class ArtAssets {
   }
 
   static drawHero(ctx, hero, x, y, state = {}) {
-    const key = `hero:${hero.class}`;
-    const sprite = this.getOrCreate(key, 72, 82, (spriteCtx) => {
-      this.paintHero(spriteCtx, hero.class);
-    });
-
     const t = hero.animationTime || 0;
-    const bob = state.isMoving ? Math.sin(t * 10) * 1.6 : Math.sin(t * 2.2) * 0.65;
-    const attack = state.isAttacking ? 1 + (hero.attackAnimation || 0) * 0.1 : 1;
-    const scale = 0.9 * attack;
+    const bob = state.isMoving ? Math.sin(t * 14) * 0.6 : Math.sin(t * 2.2) * 0.35;
     const alpha = hero.isInvulnerable ? 0.55 + Math.sin(t * 18) * 0.25 : 1;
 
     ctx.save();
@@ -188,11 +277,18 @@ export class ArtAssets {
     if (hero.vampirism) this.statusAura(ctx, x, y, '#8e2c5d', t, 30);
     if (hero.rageMode) this.statusAura(ctx, x, y, '#c43425', t * 1.4, 32);
 
-    ctx.translate(x, y + bob);
-    ctx.scale(scale, scale);
-    ctx.drawImage(sprite, -36, -55);
+    const frameDrawn = this.drawFrameSprite(ctx, hero.class, hero, state, x, y + bob, 80, 80);
+    if (!frameDrawn) {
+      const key = `hero:${hero.class}`;
+      const sprite = this.getOrCreate(key, 72, 82, (spriteCtx) => {
+        this.paintHero(spriteCtx, hero.class);
+      });
+      ctx.translate(x, y + bob);
+      ctx.scale(0.9, 0.9);
+      ctx.drawImage(sprite, -36, -55);
+    }
 
-    if (state.isAttacking) {
+    if (state.isAttacking && !frameDrawn) {
       this.attackFlash(ctx, hero.class, hero.attackAnimation || 0);
     }
 
@@ -213,34 +309,48 @@ export class ArtAssets {
     if (enemy.isAfraid) this.statusAura(ctx, x, y, '#9b59b6', -t, 29);
     if (enemy.canReflect) this.cooldownRing(ctx, x, y, 26, 0.65 + Math.sin(t * 3) * 0.15, '#d48c32');
 
-    ctx.translate(x, y + bob);
-    ctx.rotate(step * 0.018);
-    ctx.scale(scale * attack, scale * (1 - Math.abs(step) * 0.018));
-
-    const atlasDrawn = this.drawAtlasCell(
+    const spriteId = this.enemySpriteIds[enemy.type];
+    const frameDrawn = this.drawFrameSprite(
       ctx,
-      this.enemyAtlas[enemy.type],
-      enemy.isBoss ? -48 : -39,
-      enemy.isBoss ? -83 : -65,
-      enemy.isBoss ? 96 : 78,
-      enemy.isBoss ? 108 : 90
+      spriteId,
+      enemy,
+      state,
+      x,
+      y + bob,
+      enemy.isBoss ? 106 : 82,
+      enemy.isBoss ? 106 : 82
     );
 
-    if (!atlasDrawn) {
-      const key = `enemy:${enemy.type}`;
-      const sprite = this.getOrCreate(key, 74, 82, (spriteCtx) => {
-        this.paintEnemy(spriteCtx, enemy.type);
-      });
-      ctx.drawImage(sprite, -37, -55);
-    }
+    if (!frameDrawn) {
+      ctx.translate(x, y + bob);
+      ctx.rotate(step * 0.018);
+      ctx.scale(scale * attack, scale * (1 - Math.abs(step) * 0.018));
 
-    if (state.isAttacking) {
-      ctx.globalAlpha = 0.55;
-      ctx.strokeStyle = '#f0d19a';
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(0, -4, 26, -0.35, 1.15);
-      ctx.stroke();
+      const atlasDrawn = this.drawAtlasCell(
+        ctx,
+        this.enemyAtlas[enemy.type],
+        enemy.isBoss ? -48 : -39,
+        enemy.isBoss ? -83 : -65,
+        enemy.isBoss ? 96 : 78,
+        enemy.isBoss ? 108 : 90
+      );
+
+      if (!atlasDrawn) {
+        const key = `enemy:${enemy.type}`;
+        const sprite = this.getOrCreate(key, 74, 82, (spriteCtx) => {
+          this.paintEnemy(spriteCtx, enemy.type);
+        });
+        ctx.drawImage(sprite, -37, -55);
+      }
+
+      if (state.isAttacking) {
+        ctx.globalAlpha = 0.55;
+        ctx.strokeStyle = '#f0d19a';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, -4, 26, -0.35, 1.15);
+        ctx.stroke();
+      }
     }
 
     ctx.restore();
@@ -1115,4 +1225,5 @@ export class ArtAssets {
 if (typeof window !== 'undefined') {
   window.ArtAssets = ArtAssets;
   ArtAssets.loadAtlases();
+  ArtAssets.loadSpriteSets();
 }
