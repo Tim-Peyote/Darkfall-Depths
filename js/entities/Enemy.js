@@ -175,7 +175,14 @@ export class Enemy extends Entity {
   async performRangedAttack(target) {
     // Создаем снаряд
     const { EnemyProjectile } = await import('./Projectile.js');
-    const projectile = new EnemyProjectile(this.x, this.y, target, this.damage, this.projectileSpeed);
+    const projectile = new EnemyProjectile(
+      this.x,
+      this.y,
+      target,
+      this.damage,
+      this.projectileSpeed,
+      this.type
+    );
     
     // Добавляем специальные эффекты к снаряду
     if (this.canFreeze) {

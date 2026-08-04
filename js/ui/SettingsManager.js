@@ -1216,7 +1216,7 @@ export class SettingsManager {
         // Разрешаем аудио в явном пользовательском жесте
         try { audioManager.createAudioContextAndPlay(); } catch (_) {}
 
-        const { GameEngine } = await import('../game/GameEngine.js?v=2');
+        const { GameEngine } = await import('../game/GameEngine.js');
         GameEngine.startGame();
       };
       

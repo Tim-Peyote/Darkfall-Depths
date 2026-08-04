@@ -504,7 +504,25 @@ export class LightingSystem {
   
   // Установка карты для проверки препятствий
   setGameMap(map) {
+    if (this.gameMap === map) return;
+
     this.gameMap = map;
+    const mapWidth = map?.[0]?.length || MAP_SIZE;
+    const mapHeight = map?.length || MAP_SIZE;
+    const nextLightMapSize = Math.max(mapWidth, mapHeight);
+
+    if (this.lightMapSize !== nextLightMapSize) {
+      this.lightMapSize = nextLightMapSize;
+      this.initializeLightMap();
+    } else {
+      this.lightMap.fill(0);
+    }
+
+    // Sources and cached visibility belong to the previous dungeon layout.
+    this.lightSources.clear();
+    this.visibleLights.clear();
+    this.lightCache.clear();
+    this.lastUpdateTime = 0;
   }
   
   // Проверка линии видимости между двумя точками

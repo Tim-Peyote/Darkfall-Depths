@@ -2,7 +2,7 @@
 
 import { gameState, ctx } from '../core/GameState.js';
 import { ObjectPool } from '../core/ObjectPool.js';
-import { PerformanceMonitor } from '../core/PerformanceMonitor.js';
+import { PerformanceMonitor } from '../core/PerformanceMonitor.js?v=3';
 
 export class Particle {
   constructor() {
@@ -80,4 +80,4 @@ export function createParticle(x, y, vx, vy, color, life, size = 2) {
   particle.init(x, y, vx, vy, color, life, size);
   gameState.particles.push(particle);
   return particle;
-} 
+}

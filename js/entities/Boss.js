@@ -246,7 +246,8 @@ export class Boss extends Enemy {
 
       const proj = new EnemyProjectile(
         this.x, this.y, { x: targetX, y: targetY },
-        this.firebreathDamage || this.damage, this.projectileSpeed || 250
+        this.firebreathDamage || this.damage, this.projectileSpeed || 250,
+        this.type
       );
       gameState.projectiles.push(proj);
     }

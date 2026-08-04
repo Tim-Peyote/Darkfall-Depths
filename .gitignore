@@ -11,3 +11,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Python tooling caches
+__pycache__/
+*.py[cod]

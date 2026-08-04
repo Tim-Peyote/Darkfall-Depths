@@ -9,6 +9,7 @@ export class ArtAssets {
   static atlasesLoading = false;
   static spriteFrames = new Map();
   static itemImages = new Map();
+  static vfxFrames = new Map();
 
   static spriteSets = {
     mage: 'Assets/sprites/characters/mage',
@@ -32,7 +33,17 @@ export class ArtAssets {
   };
 
   // A set becomes runtime-visible only after all 15 directional frames exist.
-  static readySpriteSets = new Set(['mage', 'warrior', 'rogue']);
+  static readySpriteSets = new Set(Object.keys(ArtAssets.spriteSets));
+
+  static projectileVfxSets = {
+    steel: 'Assets/vfx/projectiles/steel',
+    knife: 'Assets/vfx/projectiles/knife',
+    arcane: 'Assets/vfx/projectiles/arcane',
+    fire: 'Assets/vfx/projectiles/fire',
+    frost: 'Assets/vfx/projectiles/frost',
+    poison: 'Assets/vfx/projectiles/poison',
+    void: 'Assets/vfx/projectiles/void'
+  };
 
   static enemySpriteIds = {
     'Skeleton': 'skeleton',
@@ -54,7 +65,8 @@ export class ArtAssets {
 
   static spriteDirections = ['down', 'up', 'side'];
   static spriteStates = ['idle', 'walk_1', 'walk_2', 'attack', 'hurt'];
-  static spriteVersion = 4;
+  static spriteVersion = 6;
+  static vfxVersion = 1;
   static itemVersion = 2;
 
   static itemImageSources = {
@@ -279,6 +291,19 @@ export class ArtAssets {
     });
   }
 
+  static loadProjectileVfx() {
+    if (typeof Image === 'undefined') return;
+    Object.entries(this.projectileVfxSets).forEach(([effectId, root]) => {
+      for (let frame = 1; frame <= 4; frame++) {
+        const key = `${effectId}:${frame}`;
+        if (this.vfxFrames.has(key)) continue;
+        const image = new Image();
+        image.src = `${root}/frame_${frame}.png?v=${this.vfxVersion}`;
+        this.vfxFrames.set(key, image);
+      }
+    });
+  }
+
   static getDirection(vector = { x: 0, y: 1 }) {
     const x = Number(vector.x) || 0;
     const y = Number(vector.y) || 0;
@@ -292,7 +317,8 @@ export class ArtAssets {
     if ((entity.hurtAnimation || 0) > 0) return 'hurt';
     if (state.isAttacking) return 'attack';
     if (state.isMoving) {
-      return Math.floor((entity.animationTime || 0) * 7) % 2 === 0 ? 'walk_1' : 'walk_2';
+      // Two opposing contact poses at a restrained cadence keep limbs alternating clearly.
+      return Math.floor((entity.animationTime || 0) * 4.5) % 2 === 0 ? 'walk_1' : 'walk_2';
     }
     return 'idle';
   }
@@ -308,6 +334,22 @@ export class ArtAssets {
     ctx.translate(x, y);
     if (direction.flipX) ctx.scale(-1, 1);
     ctx.drawImage(image, -width / 2, -height + 24, width, height);
+    ctx.restore();
+    return true;
+  }
+
+  static drawProjectile(ctx, effectId, x, y, angle, time, size = 64) {
+    if (!this.projectileVfxSets[effectId]) return false;
+    // Keep travel frames readable; frame 4 is a dissipating impact frame.
+    const travelFrames = [1, 2, 3, 2];
+    const frame = travelFrames[Math.floor(Math.max(0, time) * 12) % travelFrames.length];
+    const image = this.vfxFrames.get(`${effectId}:${frame}`);
+    if (!image || !image.complete || !image.naturalWidth) return false;
+
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+    ctx.drawImage(image, -size / 2, -size / 2, size, size);
     ctx.restore();
     return true;
   }
@@ -1299,4 +1341,5 @@ if (typeof window !== 'undefined') {
   ArtAssets.loadAtlases();
   ArtAssets.loadItemImages();
   ArtAssets.loadSpriteSets();
+  ArtAssets.loadProjectileVfx();
 }

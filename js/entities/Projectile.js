@@ -4,6 +4,7 @@ import { Entity } from './Entity.js';
 import { gameState, ctx, Utils } from '../core/GameState.js';
 import { Enemy } from './Enemy.js';
 import { createParticle } from '../effects/Particle.js';
+import { ArtAssets } from '../core/ArtAssets.js';
 
 export class Projectile extends Entity {
   constructor(x, y, target, damage, speed) {
@@ -14,17 +15,22 @@ export class Projectile extends Entity {
     this.radius = 6;
     this.isPlayerProjectile = true;
     this.animationTime = 0;
+    const heroClass = gameState.player?.class || gameState.selectedCharacter?.class;
+    this.vfxType = heroClass === 'rogue' ? 'knife' : heroClass === 'warrior' ? 'steel' : 'arcane';
     
     const angle = Utils.angle(this, target);
     this.vx = Math.cos(angle) * speed;
     this.vy = Math.sin(angle) * speed;
+    // Start beyond the hero silhouette so short-range shots are immediately visible.
+    this.x += Math.cos(angle) * 18;
+    this.y += Math.sin(angle) * 18;
   }
-  
+
   update(dt) {
     this.x += this.vx * dt;
     this.y += this.vy * dt;
     this.life -= dt;
-    this.animationTime += dt * 4;
+    this.animationTime += dt;
     
     if (this.life <= 0 || this.checkCollisionWithWalls(this.x, this.y)) {
       this.isDead = true;
@@ -99,10 +105,15 @@ export class Projectile extends Entity {
       }
     }
   }
-  
+
   draw() {
     const screenX = this.x - gameState.camera.x;
     const screenY = this.y - gameState.camera.y;
+    const angle = Math.atan2(this.vy, this.vx);
+
+    if (ArtAssets.drawProjectile(ctx, this.vfxType, screenX, screenY, angle, this.animationTime, 78)) {
+      return;
+    }
     
     ctx.save();
     
@@ -155,12 +166,12 @@ export class FireballProjectile extends Projectile {
     this.pulseTime = 0;
     this.sparkleTime = 0;
     this.trailParticles = [];
+    this.vfxType = 'fire';
   }
   
   update(dt) {
     super.update(dt);
     
-    this.animationTime += dt * 8;
     this.pulseTime += dt * 6;
     this.sparkleTime += dt * 10;
     
@@ -216,9 +227,14 @@ export class FireballProjectile extends Projectile {
     const screenX = this.x - gameState.camera.x;
     const screenY = this.y - gameState.camera.y;
     
-    // Рисуем след
+    const angle = Math.atan2(this.vy, this.vx);
+    if (ArtAssets.drawProjectile(ctx, 'fire', screenX, screenY, angle, this.animationTime, 92)) {
+      return;
+    }
+
+    // Старый программный след используется только как запасной вариант.
     this.drawTrail(screenX, screenY);
-    
+
     // Рисуем основной фаербол
     this.drawFireball(screenX, screenY);
   }
@@ -343,17 +359,28 @@ export class FireballProjectile extends Projectile {
 }
 
 export class EnemyProjectile extends Projectile {
-  constructor(x, y, target, damage, speed) {
+  constructor(x, y, target, damage, speed, sourceType = '') {
     super(x, y, target, damage, speed);
     this.isPlayerProjectile = false;
     this.radius = 4;
+    this.sourceType = sourceType;
+    this.vfxType = this.resolveVfxType();
+  }
+
+  resolveVfxType() {
+    const source = String(this.sourceType).toLowerCase();
+    if (this.canFreeze || source.includes('frost')) return 'frost';
+    if (this.canPoison || source.includes('poison')) return 'poison';
+    if (source.includes('dragon') || source.includes('demon')) return 'fire';
+    if (source.includes('archer')) return 'steel';
+    return 'void';
   }
   
   async update(dt) {
     this.x += this.vx * dt;
     this.y += this.vy * dt;
     this.life -= dt;
-    this.animationTime += dt * 3;
+    this.animationTime += dt;
     
     if (this.life <= 0 || this.checkCollisionWithWalls(this.x, this.y)) {
       this.isDead = true;
@@ -402,6 +429,12 @@ export class EnemyProjectile extends Projectile {
   draw() {
     const screenX = this.x - gameState.camera.x;
     const screenY = this.y - gameState.camera.y;
+    const effectType = this.resolveVfxType();
+    const angle = Math.atan2(this.vy, this.vx);
+
+    if (ArtAssets.drawProjectile(ctx, effectType, screenX, screenY, angle, this.animationTime, 70)) {
+      return;
+    }
     
     ctx.save();
     
@@ -460,4 +493,3 @@ export class EnemyProjectile extends Projectile {
     ctx.restore();
   }
 }
-

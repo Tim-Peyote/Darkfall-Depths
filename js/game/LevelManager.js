@@ -9,6 +9,35 @@ import { TILE_SIZE, ENEMY_TYPES, generateRandomItem } from '../config/constants.
 import { Logger } from '../utils/Logger.js';
 
 export class LevelManager {
+  static placePlayer(x, y) {
+    if (gameState.player && gameState.isLevelTransition) {
+      gameState.player.x = x;
+      gameState.player.y = y;
+      gameState.player.direction = { x: 0, y: 0 };
+      gameState.player.attackAnimation = 0;
+      gameState.player.hurtAnimation = 0;
+      return gameState.player;
+    }
+
+    gameState.player = new Player({ ...gameState.selectedCharacter }, x, y);
+    return gameState.player;
+  }
+
+  static resetInputState() {
+    gameState.input.keys = {};
+    gameState.input.mouse.pressed = false;
+    Object.assign(gameState.input.joystick, {
+      active: false,
+      x: 0,
+      y: 0,
+      dx: 0,
+      dy: 0
+    });
+
+    const joystickKnob = document.getElementById('joystickKnob');
+    if (joystickKnob) joystickKnob.style.transform = 'translate(0px, 0px)';
+  }
+
   // Утилита для проверки границ карты
   static isWithinMapBounds(x, y, map) {
     if (!map || !map.length || !map[0]) return false;
@@ -180,19 +209,7 @@ export class LevelManager {
         
         if (this.isValidSafeSpawnPosition(tileX, tileY, gameState.map)) {
           
-          // При переходе на следующий уровень НЕ создаем нового игрока, а перемещаем существующего
-          if (gameState.player && gameState.isLevelTransition) {
-            // Просто перемещаем игрока на новую позицию
-            gameState.player.x = playerX;
-            gameState.player.y = playerY;
-          } else {
-            // При рестарте или новом запуске создаем нового игрока
-            gameState.player = new Player(
-              { ...gameState.selectedCharacter },
-              playerX,
-              playerY
-            );
-          }
+          this.placePlayer(playerX, playerY);
           
           // Сбрасываем флаги
           gameState.isRestart = false;
@@ -241,11 +258,7 @@ export class LevelManager {
           const playerX = (fallbackRoom.centerX + 0.5) * TILE_SIZE;
           const playerY = (fallbackRoom.centerY + 0.5) * TILE_SIZE;
           
-          gameState.player = new Player(
-            { ...gameState.selectedCharacter },
-            playerX,
-            playerY
-          );
+          this.placePlayer(playerX, playerY);
           
           // Центрируем камеру
           const canvasWidth = canvas ? canvas.width / DPR : 800;
@@ -267,8 +280,7 @@ export class LevelManager {
           // Проверяем, что центр карты находится в безопасных границах
           if (this.isWithinSafeBounds(centerX, centerY, gameState.map) && 
               gameState.map[centerY][centerX] === 0) {
-            gameState.player = new Player(
-              { ...gameState.selectedCharacter },
+            this.placePlayer(
               (centerX + 0.5) * TILE_SIZE,
               (centerY + 0.5) * TILE_SIZE
             );
@@ -282,8 +294,7 @@ export class LevelManager {
                   const testX = centerX + dx;
                   const testY = centerY + dy;
                   if (this.isValidSafeSpawnPosition(testX, testY, gameState.map)) {
-                    gameState.player = new Player(
-                      { ...gameState.selectedCharacter },
+                    this.placePlayer(
                       (testX + 0.5) * TILE_SIZE,
                       (testY + 0.5) * TILE_SIZE
                     );
@@ -310,6 +321,11 @@ export class LevelManager {
           }
         }
       }
+    }
+
+    if (gameState.player) {
+      gameState.isRestart = false;
+      gameState.isLevelTransition = false;
     }
     
     // Босс-уровень: спавним только босса, без портала
@@ -598,6 +614,7 @@ export class LevelManager {
     // Устанавливаем флаг перехода на следующий уровень
     gameState.isLevelTransition = true;
     gameState.isRestart = false;
+    this.resetInputState();
     
     // Увеличиваем уровень ДО генерации нового уровня
     gameState.level++;
@@ -639,6 +656,10 @@ export class LevelManager {
     (async () => {
       const { GameEngine } = await import('../game/GameEngine.js');
       const { SettingsManager } = await import('../ui/SettingsManager.js');
+
+      if (gameState.map && GameEngine.lightingSystem) {
+        GameEngine.lightingSystem.setGameMap(gameState.map);
+      }
       
       // Убеждаемся, что игрок существует и правильно позиционирован
       if (gameState.player) {
@@ -789,15 +810,12 @@ export class LevelManager {
           const playerY = (y + 0.5) * TILE_SIZE;
           
           // Logger.debug('✅ Found safe spawn position:', playerX, playerY);
-          
-          gameState.player = new Player(
-            { ...gameState.selectedCharacter },
-            playerX,
-            playerY
-          );
+
+          const shouldResetPlayerState = !gameState.isLevelTransition;
+          this.placePlayer(playerX, playerY);
           
           // Новый персонаж уже создан с дефолтными значениями, только сбрасываем флаги состояния
-          if (gameState.player) {
+          if (gameState.player && shouldResetPlayerState) {
             gameState.player.isDead = false;
             gameState.player.isInvulnerable = false;
             gameState.player.invulnerabilityTime = 0;
@@ -834,14 +852,11 @@ export class LevelManager {
       const playerX = (room.centerX + 0.5) * TILE_SIZE;
       const playerY = (room.centerY + 0.5) * TILE_SIZE;
       
-      gameState.player = new Player(
-        { ...gameState.selectedCharacter },
-        playerX,
-        playerY
-      );
+      const shouldResetPlayerState = !gameState.isLevelTransition;
+      this.placePlayer(playerX, playerY);
       
       // Новый персонаж уже создан с дефолтными значениями, только сбрасываем флаги состояния
-      if (gameState.player) {
+      if (gameState.player && shouldResetPlayerState) {
         gameState.player.isDead = false;
         gameState.player.isInvulnerable = false;
         gameState.player.invulnerabilityTime = 0;

@@ -137,7 +137,7 @@ export class ScreenManager {
       if (screenName === 'game') {
         setTimeout(() => {
           (async () => {
-            const { GameEngine } = await import('../game/GameEngine.js?v=2');
+            const { GameEngine } = await import('../game/GameEngine.js');
             GameEngine.updateQuickPotions();
             
             const { SettingsManager } = await import('./SettingsManager.js?v=2');

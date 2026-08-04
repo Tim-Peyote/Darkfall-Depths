@@ -20,6 +20,12 @@ export class PerformanceMonitor {
   }
   
   static update(currentTime) {
+    if (this.lastTime === 0) {
+      this.lastTime = currentTime;
+      this.lastFrameTime = currentTime;
+      return;
+    }
+
     // Рассчитываем реальное время кадра
     if (this.lastFrameTime > 0) {
       const realFrameTime = currentTime - this.lastFrameTime;
@@ -44,6 +50,8 @@ export class PerformanceMonitor {
   }
   
   static analyzePerformance() {
+    if (this.frameTimes.length === 0 || this.fps <= 0) return;
+
     const avgFrameTime = this.frameTimes.reduce((a, b) => a + b, 0) / this.frameTimes.length;
     
     // Включаем режим низкой производительности при FPS < 30 (вернули нормальный порог)

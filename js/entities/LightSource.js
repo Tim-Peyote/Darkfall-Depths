@@ -2,7 +2,7 @@
 
 import { Entity } from './Entity.js';
 import { TILE_SIZE } from '../config/constants.js';
-import { LIGHT_TYPES } from '../map/LightingSystem.js';
+import { LIGHT_TYPES } from '../map/LightingSystem.js?v=3';
 
 export class LightSource extends Entity {
   constructor(x, y, lightType = 'TORCH', permanent = true) {

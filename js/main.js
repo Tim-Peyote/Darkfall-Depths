@@ -42,9 +42,9 @@ import { Utils } from './utils/Utils.js';
 import { Logger } from './utils/Logger.js';
 
 // Импорты игры
-import { GameEngine } from './game/GameEngine.js?v=2';
+import { GameEngine } from './game/GameEngine.js';
 import { LevelManager } from './game/LevelManager.js';
-import { PerformanceMonitor } from './core/PerformanceMonitor.js';
+import { PerformanceMonitor } from './core/PerformanceMonitor.js?v=3';
 
 // Глобальные переменные для совместимости
 window.gameState = gameState;
