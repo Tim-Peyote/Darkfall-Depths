@@ -8,6 +8,7 @@ export class ArtAssets {
   static atlasReadyCallbacks = [];
   static atlasesLoading = false;
   static spriteFrames = new Map();
+  static itemImages = new Map();
 
   static spriteSets = {
     mage: 'Assets/sprites/characters/mage',
@@ -54,6 +55,33 @@ export class ArtAssets {
   static spriteDirections = ['down', 'up', 'side'];
   static spriteStates = ['idle', 'walk_1', 'walk_2', 'attack', 'hurt'];
   static spriteVersion = 4;
+  static itemVersion = 1;
+
+  static itemImageSources = {
+    scroll_werewolf: 'Assets/items/scrolls/scroll_werewolf.png',
+    scroll_stone: 'Assets/items/scrolls/scroll_stone.png',
+    scroll_fire_explosion: 'Assets/items/scrolls/scroll_fire_explosion.png',
+    scroll_ice_storm: 'Assets/items/scrolls/scroll_ice_storm.png',
+    scroll_lightning: 'Assets/items/scrolls/scroll_lightning.png',
+    scroll_earthquake: 'Assets/items/scrolls/scroll_earthquake.png',
+    scroll_clone: 'Assets/items/scrolls/scroll_clone.png',
+    scroll_teleport: 'Assets/items/scrolls/scroll_teleport.png',
+    scroll_invisibility: 'Assets/items/scrolls/scroll_invisibility.png',
+    scroll_time: 'Assets/items/scrolls/scroll_time.png',
+    scroll_curse: 'Assets/items/scrolls/scroll_curse.png',
+    scroll_chaos: 'Assets/items/scrolls/scroll_chaos.png',
+    scroll_fear: 'Assets/items/scrolls/scroll_fear.png',
+    scroll_smoke: 'Assets/items/scrolls/scroll_smoke.png',
+    scroll_meteor: 'Assets/items/scrolls/scroll_meteor.png',
+    scroll_barrier: 'Assets/items/scrolls/scroll_barrier.png',
+    scroll_rage: 'Assets/items/scrolls/scroll_rage.png',
+    scroll_invulnerability: 'Assets/items/scrolls/scroll_invulnerability.png',
+    scroll_vampirism: 'Assets/items/scrolls/scroll_vampirism.png',
+    mystery_scroll: 'Assets/items/scrolls/mystery_scroll.png',
+    scroll_fire: 'Assets/items/scrolls/scroll_fire.png',
+    scroll_ice: 'Assets/items/scrolls/scroll_ice.png',
+    scroll_mystery: 'Assets/items/scrolls/scroll_mystery.png'
+  };
 
   static atlasDefinitions = {
     enemies1: { src: 'Assets/generated/enemies-1.png', cols: 5, rows: 1 },
@@ -186,6 +214,23 @@ export class ArtAssets {
       width,
       height
     );
+    return true;
+  }
+
+  static loadItemImages() {
+    if (typeof Image === 'undefined') return;
+    Object.entries(this.itemImageSources).forEach(([itemId, source]) => {
+      if (this.itemImages.has(itemId)) return;
+      const image = new Image();
+      image.src = `${source}?v=${this.itemVersion}`;
+      this.itemImages.set(itemId, image);
+    });
+  }
+
+  static drawItemImage(ctx, itemId, x, y, width, height) {
+    const image = this.itemImages.get(itemId);
+    if (!image || !image.complete || !image.naturalWidth) return false;
+    ctx.drawImage(image, x, y, width, height);
     return true;
   }
 
@@ -376,7 +421,8 @@ export class ArtAssets {
     ctx.translate(x, y + Math.sin(time * 3) * 3);
     ctx.scale(pulse, pulse);
     ctx.rotate(Math.sin(time * 1.2) * 0.08);
-    if (!this.drawAtlasCell(ctx, this.itemAtlas[base], -29, -29, 58, 58)) {
+    if (!this.drawItemImage(ctx, base, -29, -29, 58, 58)
+      && !this.drawAtlasCell(ctx, this.itemAtlas[base], -29, -29, 58, 58)) {
       const key = `item:${base}:${item.rarity || 'common'}`;
       const sprite = this.getOrCreate(key, 58, 58, (spriteCtx) => {
         this.paintItem(spriteCtx, item);
@@ -391,14 +437,11 @@ export class ArtAssets {
     if (!item) return false;
     const base = item.base || item.type;
     const inset = size * 0.04;
-    return this.drawAtlasCell(
-      ctx,
-      this.itemAtlas[base],
-      x - size / 2 + inset,
-      y - size / 2 + inset,
-      size - inset * 2,
-      size - inset * 2
-    );
+    const drawX = x - size / 2 + inset;
+    const drawY = y - size / 2 + inset;
+    const drawSize = size - inset * 2;
+    return this.drawItemImage(ctx, base, drawX, drawY, drawSize, drawSize)
+      || this.drawAtlasCell(ctx, this.itemAtlas[base], drawX, drawY, drawSize, drawSize);
   }
 
   static getOrCreate(key, width, height, painter) {
@@ -1225,5 +1268,6 @@ export class ArtAssets {
 if (typeof window !== 'undefined') {
   window.ArtAssets = ArtAssets;
   ArtAssets.loadAtlases();
+  ArtAssets.loadItemImages();
   ArtAssets.loadSpriteSets();
 }
