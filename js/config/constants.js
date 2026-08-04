@@ -13,6 +13,12 @@ export const FRAME_TIME = 1000 / FPS_TARGET;
 // Проверка на тач устройство
 export const IS_MOBILE = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
 
+export const usesMobileLayout = () => (
+  window.innerWidth <= 768
+  || (window.innerWidth <= 1024 && window.innerHeight <= 500)
+  || window.matchMedia?.('(pointer: coarse)').matches
+);
+
 // ==================== ИГРОВЫЕ ДАННЫЕ ====================
 // Принудительное обновление кеша - $(date)
 export const CHARACTERS = [

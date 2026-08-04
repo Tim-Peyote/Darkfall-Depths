@@ -1,7 +1,7 @@
 /* Darkfall Depths - Главный файл игры */
 
 // Импорты конфигурации
-import { TILE_SIZE, MAP_SIZE, CHARACTERS, ENEMY_TYPES, generateRandomItem } from './config/constants.js';
+import { TILE_SIZE, MAP_SIZE, CHARACTERS, ENEMY_TYPES, generateRandomItem, usesMobileLayout } from './config/constants.js?v=2';
 
 // Импорты ядра
 import { gameState, setCanvasElements } from './core/GameState.js';
@@ -29,10 +29,10 @@ import { createParticle } from './effects/Particle.js';
 import { InputManager } from './input/InputManager.js';
 
 // Импорты UI
-import { ScreenManager } from './ui/ScreenManager.js';
+import { ScreenManager } from './ui/ScreenManager.js?v=2';
 import { InventoryManager } from './ui/InventoryManager.js';
 import { RecordsManager } from './ui/RecordsManager.js';
-import { SettingsManager } from './ui/SettingsManager.js';
+import { SettingsManager } from './ui/SettingsManager.js?v=2';
 import { ContextMenuManager } from './ui/ContextMenuManager.js';
 import { MenuNavigationManager } from './ui/MenuNavigationManager.js';
 import { InventorySpriteRenderer } from './ui/InventorySpriteRenderer.js';
@@ -42,7 +42,7 @@ import { Utils } from './utils/Utils.js';
 import { Logger } from './utils/Logger.js';
 
 // Импорты игры
-import { GameEngine } from './game/GameEngine.js';
+import { GameEngine } from './game/GameEngine.js?v=2';
 import { LevelManager } from './game/LevelManager.js';
 import { PerformanceMonitor } from './core/PerformanceMonitor.js';
 
@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           const abilityBtn = document.getElementById('abilityBtn');
           const mobileInventoryBtn = document.getElementById('mobileInventoryBtn');
           
-          if (window.innerWidth <= 768) {
+          if (usesMobileLayout()) {
             // Мобильная версия
             if (mobileControls) {
               mobileControls.classList.remove('hidden');
@@ -249,7 +249,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const abilityBtn = document.getElementById('abilityBtn');
         const mobileInventoryBtn = document.getElementById('mobileInventoryBtn');
         
-        if (window.innerWidth <= 768) {
+        if (usesMobileLayout()) {
           // Мобильная версия
           if (mobileControls) {
             mobileControls.classList.remove('hidden');
@@ -268,6 +268,10 @@ document.addEventListener('DOMContentLoaded', async () => {
           if (mobileControls) {
             mobileControls.classList.add('hidden');
           }
+        }
+
+        if (gameState.screen === 'game') {
+          GameEngine.resizeCanvas();
         }
       });
     

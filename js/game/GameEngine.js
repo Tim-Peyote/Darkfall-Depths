@@ -2,7 +2,7 @@
 
 import { gameState, canvas, ctx, minimapCanvas, minimapCtx, DPR, Utils } from '../core/GameState.js';
 import { audioManager } from '../audio/AudioManager.js';
-import { ScreenManager } from '../ui/ScreenManager.js';
+import { ScreenManager } from '../ui/ScreenManager.js?v=2';
 import { InputManager } from '../input/InputManager.js';
 import { SettingsManager } from '../ui/SettingsManager.js';
 import { RecordsManager } from '../ui/RecordsManager.js';
@@ -10,7 +10,7 @@ import { LevelManager } from './LevelManager.js';
 import { Player } from '../entities/Player.js';
 import { Enemy } from '../entities/Enemy.js';
 import { MapGenerator } from '../map/MapGenerator.js';
-import { TILE_SIZE, MAP_SIZE, ENEMY_TYPES, FRAME_TIME, CHARACTERS } from '../config/constants.js';
+import { TILE_SIZE, MAP_SIZE, ENEMY_TYPES, FRAME_TIME, CHARACTERS, usesMobileLayout } from '../config/constants.js?v=2';
 import { PerformanceMonitor } from '../core/PerformanceMonitor.js';
 import { WebGLRenderer } from '../core/WebGLRenderer.js';
 import { WebGLFogOfWar } from '../map/WebGLFogOfWar.js';
@@ -822,7 +822,7 @@ export class GameEngine {
   
   static renderFPSIndicator() {
     // Скрываем FPS на мобильных устройствах
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = usesMobileLayout();
     if (isMobile) {
       return; // Не отображаем FPS на мобильных
     }
@@ -946,10 +946,11 @@ export class GameEngine {
       return;
     }
     
-    const rect = canvas.getBoundingClientRect();
-    // Если canvas скрыт, используем размеры окна
-    const width = rect.width > 0 ? rect.width : window.innerWidth;
-    const height = rect.height > 0 ? rect.height : window.innerHeight;
+    const gameScreen = canvas.parentElement;
+    const rect = gameScreen?.getBoundingClientRect();
+    const viewport = window.visualViewport;
+    const width = rect?.width > 0 ? rect.width : (viewport?.width || window.innerWidth);
+    const height = rect?.height > 0 ? rect.height : (viewport?.height || window.innerHeight);
     
     canvas.width = width * DPR;
     canvas.height = height * DPR;

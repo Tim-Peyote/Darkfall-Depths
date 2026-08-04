@@ -5880,3 +5880,393 @@ html, body {
     gap: 4px;
   }
 }
+
+/* === Final responsive geometry pass === */
+html,
+body {
+  inset: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  top: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 100dvh;
+  transform: none !important;
+}
+
+.screen {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 0 !important;
+}
+
+#gameScreen.active {
+  display: block !important;
+}
+
+#gameCanvas {
+  position: absolute;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+@media (max-width: 768px), (max-height: 500px) and (max-width: 1024px) {
+  #gameScreen .desktop-ability-container,
+  #gameScreen #inventoryToggle,
+  #gameScreen #abilityCooldownUI {
+    display: none !important;
+  }
+
+  #gameScreen .mobile {
+    display: block !important;
+    position: absolute;
+    inset: auto 0 0;
+    width: 100%;
+    height: 180px;
+    padding: 0 !important;
+  }
+
+  #gameScreen .ui-overlay {
+    inset: 0 0 auto;
+    width: 100%;
+    padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) 0 max(10px, env(safe-area-inset-left));
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    background: linear-gradient(180deg, rgba(5, 4, 3, 0.55), transparent);
+  }
+
+  #gameScreen .ui-left {
+    width: auto;
+    max-width: calc(100% - 92px);
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-start;
+    filter: none !important;
+  }
+
+  #gameScreen .ui-left > .flex {
+    position: static !important;
+  }
+
+  #gameScreen .player-stats {
+    box-sizing: border-box;
+    width: min(66vw, 258px);
+    min-width: 0;
+    padding: 8px 10px;
+    gap: 6px;
+  }
+
+  #gameScreen .stat-bar {
+    width: 100%;
+    height: 22px;
+  }
+
+  #gameScreen .level-info,
+  #gameScreen .gold-display {
+    padding: 4px 7px;
+    font-size: 13px;
+  }
+
+  #gameScreen .ui-right {
+    position: absolute;
+    top: max(10px, env(safe-area-inset-top));
+    right: max(10px, env(safe-area-inset-right));
+    width: 76px;
+  }
+
+  #gameScreen #minimap {
+    position: static !important;
+    width: 76px !important;
+    height: 76px !important;
+  }
+
+  #gameScreen #pauseBtn {
+    position: absolute !important;
+    top: max(94px, calc(env(safe-area-inset-top) + 88px)) !important;
+    right: max(10px, env(safe-area-inset-right)) !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+  }
+
+  #gameScreen .quick-potions-container.health-potions-bottom {
+    box-sizing: border-box;
+    left: auto !important;
+    right: max(14px, env(safe-area-inset-right)) !important;
+    bottom: max(100px, calc(env(safe-area-inset-bottom) + 92px)) !important;
+    width: max-content !important;
+    min-width: 0 !important;
+    height: max-content !important;
+    padding: 5px !important;
+    gap: 5px !important;
+    flex-direction: column !important;
+  }
+
+  #gameScreen .quick-potions-container .potion-slot {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+  }
+
+  #gameScreen #joystickContainer {
+    left: max(16px, env(safe-area-inset-left)) !important;
+    bottom: max(16px, env(safe-area-inset-bottom)) !important;
+    width: 96px !important;
+    height: 96px !important;
+  }
+
+  #gameScreen .mobile-buttons {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    pointer-events: none;
+  }
+
+  #gameScreen #abilityBtn {
+    position: absolute !important;
+    right: max(16px, env(safe-area-inset-right)) !important;
+    bottom: max(16px, env(safe-area-inset-bottom)) !important;
+    width: 64px !important;
+    height: 64px !important;
+  }
+
+  #gameScreen #mobileInventoryBtn {
+    position: absolute !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: max(16px, env(safe-area-inset-bottom)) !important;
+    width: 64px !important;
+    height: 64px !important;
+    transform: translateX(-50%) !important;
+  }
+
+  #gameScreen > .active-buffs-container {
+    top: max(58px, calc(env(safe-area-inset-top) + 50px)) !important;
+    width: min(44vw, 260px) !important;
+  }
+
+  .boss-health-bar {
+    top: max(8px, env(safe-area-inset-top));
+    width: min(58vw, 320px);
+  }
+
+  .inventory-overlay,
+  .inventory-content {
+    height: 100dvh;
+  }
+
+  .pause-content {
+    max-height: calc(100dvh - 24px);
+  }
+}
+
+@media (max-height: 500px) and (max-width: 1024px) {
+  #selectScreen .select-content {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    padding: 8px 16px;
+    overflow-y: auto;
+  }
+
+  #selectScreen .select-title {
+    width: max-content;
+    margin: 0 auto 6px;
+    padding: 7px 18px;
+    font-size: 18px;
+  }
+
+  #selectScreen .character-grid {
+    display: none !important;
+  }
+
+  #selectScreen .character-avatars {
+    display: flex !important;
+    justify-content: center;
+    gap: 28px;
+    padding: 4px 12px;
+    margin: 0 auto 4px;
+  }
+
+  #selectScreen .character-avatar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    min-width: 76px;
+    min-height: 78px;
+  }
+
+  #selectScreen .character-avatar-small {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 58px;
+    height: 58px;
+    flex: 0 0 58px;
+    overflow: hidden;
+    border: 1px solid rgba(160, 136, 80, 0.55);
+    border-radius: 50%;
+    background: rgba(8, 6, 5, 0.72);
+  }
+
+  #selectScreen .character-sprite-small {
+    font-size: 28px;
+  }
+
+  #selectScreen .character-avatar-name {
+    color: var(--color-accent-gold);
+    font-size: 11px;
+  }
+
+  #selectScreen .character-avatar-class {
+    color: var(--color-text-secondary);
+    font-size: 8px;
+    text-transform: uppercase;
+  }
+
+  #selectScreen .character-details {
+    box-sizing: border-box;
+    width: min(520px, 76vw);
+    min-height: 0;
+    margin: 2px auto 6px;
+    padding: 8px 12px;
+    border: 1px solid rgba(160, 136, 80, 0.42);
+    background: rgba(8, 6, 5, 0.76);
+  }
+
+  #selectScreen .character-details-header {
+    margin-bottom: 2px;
+  }
+
+  #selectScreen .character-details-sprite {
+    font-size: 24px;
+  }
+
+  #selectScreen .character-details-description {
+    min-height: 0;
+    margin-bottom: 4px;
+    font-size: 9px;
+  }
+
+  #selectScreen .character-details-stats {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    margin-top: 3px;
+    padding: 4px;
+  }
+
+  #selectScreen .character-details-stat {
+    min-height: 28px;
+    padding: 2px 5px;
+    font-size: 9px;
+  }
+
+  #selectScreen .select-buttons {
+    margin: 3px auto 0;
+  }
+
+  #selectScreen .select-buttons .btn {
+    min-height: 38px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  #gameScreen .mobile {
+    height: 118px;
+  }
+
+  #gameScreen .player-stats {
+    width: min(42vw, 238px);
+    padding: 6px 8px;
+    gap: 4px;
+  }
+
+  #gameScreen .stat-bar {
+    height: 20px;
+  }
+
+  #gameScreen .level-info,
+  #gameScreen .gold-display {
+    padding: 2px 6px;
+    font-size: 12px;
+  }
+
+  #gameScreen .ui-right {
+    width: 64px;
+  }
+
+  #gameScreen #minimap {
+    width: 64px !important;
+    height: 64px !important;
+  }
+
+  #gameScreen #pauseBtn {
+    top: max(82px, calc(env(safe-area-inset-top) + 74px)) !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+  }
+
+  #gameScreen .quick-potions-container.health-potions-bottom {
+    left: 126px !important;
+    right: auto !important;
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    width: max-content !important;
+    flex-direction: row !important;
+    padding: 4px !important;
+    gap: 4px !important;
+  }
+
+  #gameScreen .quick-potions-container .potion-slot {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+  }
+
+  #gameScreen #joystickContainer {
+    width: 88px !important;
+    height: 88px !important;
+    left: max(12px, env(safe-area-inset-left)) !important;
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+  }
+
+  #gameScreen #abilityBtn {
+    width: 58px !important;
+    height: 58px !important;
+    right: max(12px, env(safe-area-inset-right)) !important;
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+  }
+
+  #gameScreen #mobileInventoryBtn {
+    left: auto !important;
+    right: max(82px, calc(env(safe-area-inset-right) + 72px)) !important;
+    bottom: max(12px, env(safe-area-inset-bottom)) !important;
+    width: 58px !important;
+    height: 58px !important;
+    transform: none !important;
+  }
+
+  #gameScreen > .active-buffs-container {
+    top: max(12px, env(safe-area-inset-top)) !important;
+    width: min(38vw, 300px) !important;
+  }
+
+  .pause-content {
+    width: min(720px, calc(100vw - 24px));
+    max-height: calc(100dvh - 16px);
+  }
+}

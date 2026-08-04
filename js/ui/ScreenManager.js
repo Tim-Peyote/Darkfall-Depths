@@ -2,7 +2,7 @@
 
 import { gameState } from '../core/GameState.js';
 import { audioManager } from '../audio/AudioManager.js';
-import { CHARACTERS } from '../config/constants.js';
+import { CHARACTERS, usesMobileLayout } from '../config/constants.js?v=2';
 import { MenuNavigationManager } from './MenuNavigationManager.js';
 
 export class ScreenManager {
@@ -90,7 +90,7 @@ export class ScreenManager {
       // Инициализируем настройки звука при переключении на экран настроек
       if (screenName === 'settings') {
         (async () => {
-          const { SettingsManager } = await import('./SettingsManager.js');
+          const { SettingsManager } = await import('./SettingsManager.js?v=2');
           SettingsManager.initializeMainMenuAudioSettings();
         })();
       }
@@ -98,7 +98,7 @@ export class ScreenManager {
       // Настраиваем обработчики событий при переключении на главное меню
       if (screenName === 'menu') {
         (async () => {
-          const { SettingsManager } = await import('./SettingsManager.js');
+          const { SettingsManager } = await import('./SettingsManager.js?v=2');
           SettingsManager.setupEventListeners();
         })();
       }
@@ -107,7 +107,7 @@ export class ScreenManager {
       if (screenName === 'records') {
         setTimeout(() => {
           (async () => {
-            const { SettingsManager } = await import('./SettingsManager.js');
+            const { SettingsManager } = await import('./SettingsManager.js?v=2');
             SettingsManager.setupRecordsEventListeners();
           })();
         }, 100);
@@ -117,7 +117,7 @@ export class ScreenManager {
       if (screenName === 'settings') {
         setTimeout(() => {
           (async () => {
-            const { SettingsManager } = await import('./SettingsManager.js');
+            const { SettingsManager } = await import('./SettingsManager.js?v=2');
             SettingsManager.setupSettingsEventListeners();
           })();
         }, 100);
@@ -127,7 +127,7 @@ export class ScreenManager {
       if (screenName === 'select') {
         setTimeout(() => {
           (async () => {
-            const { SettingsManager } = await import('./SettingsManager.js');
+            const { SettingsManager } = await import('./SettingsManager.js?v=2');
             SettingsManager.setupSelectEventListeners();
           })();
         }, 100);
@@ -137,10 +137,10 @@ export class ScreenManager {
       if (screenName === 'game') {
         setTimeout(() => {
           (async () => {
-            const { GameEngine } = await import('../game/GameEngine.js');
+            const { GameEngine } = await import('../game/GameEngine.js?v=2');
             GameEngine.updateQuickPotions();
             
-            const { SettingsManager } = await import('./SettingsManager.js');
+            const { SettingsManager } = await import('./SettingsManager.js?v=2');
             SettingsManager.setupGameButtonEventListeners();
             
             // Дополнительная проверка кнопок через 500мс
@@ -163,7 +163,7 @@ export class ScreenManager {
               }
               
               // Проверяем мобильные элементы управления
-              if (window.innerWidth <= 768) {
+              if (usesMobileLayout()) {
                 if (mobileControls) {
                   mobileControls.classList.remove('hidden');
                   // Logger.debug('✅ Mobile controls enabled');
@@ -243,7 +243,7 @@ export class ScreenManager {
     window.addEventListener('resize', handleResize);
     
     // Проверяем, является ли устройство мобильным
-    const isMobile = window.innerWidth <= 768;
+    const isMobile = usesMobileLayout();
     
     if (isMobile) {
       // Мобильная версия с аватарами и деталями
@@ -681,7 +681,7 @@ export class ScreenManager {
       
       // Инициализируем обработчики клавиатуры для слайдеров
       (async () => {
-        const { SettingsManager } = await import('./SettingsManager.js');
+        const { SettingsManager } = await import('./SettingsManager.js?v=2');
         SettingsManager.setupAudioEventListeners();
         
         // Также инициализируем обработчики для кнопок паузы

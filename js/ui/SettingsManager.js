@@ -310,7 +310,7 @@ export class SettingsManager {
         e.preventDefault();
         e.stopPropagation();
         
-        const { ScreenManager } = await import('../ui/ScreenManager.js');
+        const { ScreenManager } = await import('../ui/ScreenManager.js?v=2');
         await ScreenManager.togglePause();
         
         // Инициализируем значения в паузе
@@ -673,7 +673,7 @@ export class SettingsManager {
         // Защита от повторного срабатывания
         if (gameState.screen === 'select') return;
         
-        const { ScreenManager } = await import('../ui/ScreenManager.js');
+        const { ScreenManager } = await import('../ui/ScreenManager.js?v=2');
         ScreenManager.switchScreen('select');
         ScreenManager.buildCharacterSelect();
       };
@@ -1216,7 +1216,7 @@ export class SettingsManager {
         // Разрешаем аудио в явном пользовательском жесте
         try { audioManager.createAudioContextAndPlay(); } catch (_) {}
 
-        const { GameEngine } = await import('../game/GameEngine.js');
+        const { GameEngine } = await import('../game/GameEngine.js?v=2');
         GameEngine.startGame();
       };
       
