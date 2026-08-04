@@ -31,7 +31,7 @@ export class ArtAssets {
   };
 
   // A set becomes runtime-visible only after all 15 directional frames exist.
-  static readySpriteSets = new Set(['mage', 'warrior']);
+  static readySpriteSets = new Set(['mage', 'warrior', 'rogue']);
 
   static enemySpriteIds = {
     'Skeleton': 'skeleton',
@@ -53,7 +53,7 @@ export class ArtAssets {
 
   static spriteDirections = ['down', 'up', 'side'];
   static spriteStates = ['idle', 'walk_1', 'walk_2', 'attack', 'hurt'];
-  static spriteVersion = 3;
+  static spriteVersion = 4;
 
   static atlasDefinitions = {
     enemies1: { src: 'Assets/generated/enemies-1.png', cols: 5, rows: 1 },

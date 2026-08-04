@@ -5836,3 +5836,47 @@ html, body {
     inset 0 1px 0 rgba(255, 230, 170, 0.18),
     0 0 14px rgba(139, 26, 26, 0.52);
 }
+
+/* Timed effects live independently from the stats, coins and minimap. */
+#gameScreen > .active-buffs-container {
+  position: absolute !important;
+  top: max(78px, calc(env(safe-area-inset-top) + 68px)) !important;
+  left: 50% !important;
+  right: auto !important;
+  bottom: auto !important;
+  transform: translateX(-50%) !important;
+  z-index: 1400 !important;
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 6px;
+  width: min(560px, calc(100% - 380px));
+  max-width: none !important;
+  pointer-events: none;
+}
+
+#gameScreen > .active-buffs-container .active-buff,
+#gameScreen > .active-buffs-container .active-debuff {
+  flex: 0 0 auto;
+  min-width: 58px;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+}
+
+@media (max-width: 768px) {
+  #gameScreen > .active-buffs-container {
+    top: max(68px, calc(env(safe-area-inset-top) + 58px)) !important;
+    left: 50% !important;
+    width: calc(100% - 150px) !important;
+    max-width: 360px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  #gameScreen > .active-buffs-container {
+    top: max(58px, calc(env(safe-area-inset-top) + 50px)) !important;
+    width: calc(100% - 112px) !important;
+    gap: 4px;
+  }
+}

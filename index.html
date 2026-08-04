@@ -12,7 +12,7 @@
     <!-- Gothic Font Import -->
     <link href="https://fonts.googleapis.com/css2?family=UnifrakturCook:wght@700&display=swap" rel="stylesheet">
     
-    <link rel="stylesheet" href="style.css?v=42">
+    <link rel="stylesheet" href="style.css?v=43">
     
     <!-- iOS Safari optimizations -->
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -180,8 +180,6 @@
                     <div class="cooldown-text">0s</div>
                 </div>
                 
-                <!-- Active Buffs -->
-                <div id="activeBuffsContainer" class="active-buffs-container"></div>
             </div>
             
             <div class="ui-right">
@@ -189,6 +187,9 @@
                 <canvas id="minimap" width="120" height="120"></canvas>
             </div>
         </div>
+
+        <!-- Timed effects are centered independently from stats, coins and minimap. -->
+        <div id="activeBuffsContainer" class="active-buffs-container"></div>
 
         <!-- Desktop ability lives outside the HUD flex layout so it cannot overlap stats. -->
         <div class="desktop-ability-container">
@@ -455,6 +456,6 @@
       </div>
     </div>
 
-    <script type="module" src="js/main.js?v=130"></script>
+    <script type="module" src="js/main.js?v=131"></script>
 </body>
 </html>
