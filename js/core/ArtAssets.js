@@ -55,9 +55,38 @@ export class ArtAssets {
   static spriteDirections = ['down', 'up', 'side'];
   static spriteStates = ['idle', 'walk_1', 'walk_2', 'attack', 'hurt'];
   static spriteVersion = 4;
-  static itemVersion = 1;
+  static itemVersion = 2;
 
   static itemImageSources = {
+    sword: 'Assets/items/equipment/sword.png',
+    axe: 'Assets/items/equipment/axe.png',
+    staff: 'Assets/items/equipment/staff.png',
+    wand: 'Assets/items/equipment/wand.png',
+    dagger: 'Assets/items/equipment/dagger.png',
+    crossbow: 'Assets/items/equipment/crossbow.png',
+    shield: 'Assets/items/equipment/shield.png',
+    robe: 'Assets/items/equipment/robe.png',
+    leather: 'Assets/items/equipment/leather.png',
+    plate: 'Assets/items/equipment/plate.png',
+    helmet: 'Assets/items/equipment/helmet.png',
+    hood: 'Assets/items/equipment/hood.png',
+    cap: 'Assets/items/equipment/cap.png',
+    gloves: 'Assets/items/equipment/gloves.png',
+    belt: 'Assets/items/equipment/belt.png',
+    boots: 'Assets/items/equipment/boots.png',
+    amulet: 'Assets/items/equipment/amulet.png',
+    ring: 'Assets/items/equipment/ring.png',
+    potion: 'Assets/items/consumables/potion.png',
+    mana_potion: 'Assets/items/consumables/mana_potion.png',
+    speed_potion: 'Assets/items/consumables/speed_potion.png',
+    strength_potion: 'Assets/items/consumables/strength_potion.png',
+    defense_potion: 'Assets/items/consumables/defense_potion.png',
+    regen_potion: 'Assets/items/consumables/regen_potion.png',
+    combo_potion: 'Assets/items/consumables/combo_potion.png',
+    purification_potion: 'Assets/items/consumables/purification_potion.png',
+    mystery_potion: 'Assets/items/consumables/mystery_potion.png',
+    health_potion: 'Assets/items/consumables/health_potion.png',
+    gold_pouch: 'Assets/items/consumables/gold_pouch.png',
     scroll_werewolf: 'Assets/items/scrolls/scroll_werewolf.png',
     scroll_stone: 'Assets/items/scrolls/scroll_stone.png',
     scroll_fire_explosion: 'Assets/items/scrolls/scroll_fire_explosion.png',
